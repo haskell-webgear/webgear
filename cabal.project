@@ -1,0 +1,3 @@
+packages: webgear-core/
+          webgear-server/
+          webgear-openapi/

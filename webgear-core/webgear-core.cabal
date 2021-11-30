@@ -1,0 +1,113 @@
+cabal-version:       2.4
+
+name:                webgear-core
+version:             1.0.0
+synopsis:            Composable, type-safe library to build HTTP API servers
+description:
+        WebGear is a library to for building composable, type-safe HTTP API servers.
+
+        WebGear focuses on good documentation and usability.
+
+        See the documentation of WebGear module to get started.
+homepage:            https://github.com/haskell-webgear/webgear-core#readme
+bug-reports:         https://github.com/haskell-webgear/webgear-core/issues
+author:              Raghu Kaippully
+maintainer:          rkaippully@gmail.com
+copyright:           2020 Raghu Kaippully
+license:             MPL-2.0
+license-file:        LICENSE
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+
+
+source-repository head
+  type:      git
+  location:  https://github.com/haskell-webgear/webgear-core
+
+
+common webgear-common
+  default-language:   Haskell2010
+  default-extensions: Arrows
+                      ConstraintKinds
+                      DataKinds
+                      DeriveFunctor
+                      DeriveGeneric
+                      DerivingStrategies
+                      DerivingVia
+                      FlexibleContexts
+                      FlexibleInstances
+                      FunctionalDependencies
+                      GeneralizedNewtypeDeriving
+                      InstanceSigs
+                      KindSignatures
+                      LambdaCase
+                      MultiParamTypeClasses
+                      NamedFieldPuns
+                      OverloadedStrings
+                      OverloadedLists
+                      PolyKinds
+                      RankNTypes
+                      RecordWildCards
+                      ScopedTypeVariables
+                      StandaloneDeriving
+                      TemplateHaskellQuotes
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+  build-depends:      base >=4.13.0.0 && <4.16
+                    , bytestring >=0.10.10.1 && <0.12
+                    , bytestring-conversion ==0.3.*
+                    , case-insensitive ==1.2.*
+                    , filepath ==1.4.*
+                    , http-api-data ==0.4.*
+                    , http-media ==0.8.*
+                    , http-types ==0.12.*
+                    , network ==3.1.*
+                    , safe-exceptions ==0.1.*
+                    , tagged ==0.8.*
+                    , template-haskell >=2.15.0.0 && <2.18
+                    , text ==1.2.*
+                    , unordered-containers ==0.2.*
+                    , wai ==3.2.*
+  ghc-options:        -Wall
+                      -Wno-unticked-promoted-constructors
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wmissing-fields
+                      -Wmissing-home-modules
+                      -Wmissing-deriving-strategies
+                      -Wpartial-fields
+                      -Wredundant-constraints
+                      -Werror
+                      -fshow-warning-groups
+
+  if impl(ghc >= 8.10)
+    ghc-options:      -Wunused-packages
+
+library
+  import:             webgear-common
+  exposed-modules:    WebGear
+                    , WebGear.Core.Modifiers
+                    , WebGear.Core.Trait
+                    , WebGear.Core.Request
+                    , WebGear.Core.Response
+                    , WebGear.Core.Handler
+                    , WebGear.Core.Middlewares
+                    , WebGear.Core.Middleware.Auth.Basic
+                    , WebGear.Core.Middleware.Auth.JWT
+                    , WebGear.Core.Middleware.Auth.Common
+                    , WebGear.Core.Middleware.Body
+                    , WebGear.Core.Middleware.Header
+                    , WebGear.Core.Middleware.Method
+                    , WebGear.Core.Middleware.Path
+                    , WebGear.Core.Middleware.QueryParam
+                    , WebGear.Core.Middleware.Status
+                    , WebGear.Core.Handler.Static
+  hs-source-dirs:     src
+  build-depends:      arrows ==0.4.*
+                    , jose >=0.8.3.1 && <0.10
+                    , mime-types ==0.1.*
