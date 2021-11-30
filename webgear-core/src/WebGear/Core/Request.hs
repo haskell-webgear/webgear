@@ -1,24 +1,20 @@
--- |
--- Copyright        : (c) Raghu Kaippully, 2020-2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
--- Requests processed by handlers.
---
-module WebGear.Core.Request
-  ( -- * WebGear Request
-    Request (..)
-  , remoteHost
-  , httpVersion
-  , isSecure
-  , requestMethod
-  , pathInfo
-  , queryString
-  , requestHeader
-  , requestHeaders
-  , requestBodyLength
-  , getRequestBodyChunk
-  ) where
+{- |
+ Requests processed by handlers.
+-}
+module WebGear.Core.Request (
+  -- * WebGear Request
+  Request (..),
+  remoteHost,
+  httpVersion,
+  isSecure,
+  requestMethod,
+  pathInfo,
+  queryString,
+  requestHeader,
+  requestHeaders,
+  requestBodyLength,
+  getRequestBodyChunk,
+) where
 
 import Data.ByteString (ByteString)
 import Data.List (find)
@@ -27,10 +23,9 @@ import qualified Network.HTTP.Types as HTTP
 import Network.Socket (SockAddr)
 import qualified Network.Wai as Wai
 
-
 newtype Request = Request
-  { waiRequest   :: Wai.Request
-    -- ^ underlying WAI request
+  { -- | underlying WAI request
+    waiRequest :: Wai.Request
   }
 
 -- | Get the value of a request header

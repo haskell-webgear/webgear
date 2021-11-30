@@ -1,9 +1,5 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
--- |
--- Copyright        : (c) Raghu Kaippully, 2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
+
 module WebGear.Server.Middleware.Path where
 
 import qualified Data.List as List
@@ -14,7 +10,6 @@ import WebGear.Core.Middleware.Path (Path (..), PathEnd (..), PathVar (..), Path
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), Linked)
 import WebGear.Server.Handler (ServerHandler (..))
-
 
 instance Monad m => Get (ServerHandler m) Path Request where
   {-# INLINEABLE getTrait #-}
@@ -31,9 +26,9 @@ instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag va
   getTrait PathVar = ServerHandler $ \(_, path@(RoutePath remaining)) -> do
     pure $ case remaining of
       [] -> (Right (Left PathVarNotFound), path)
-      (p:ps) ->
+      (p : ps) ->
         case parseUrlPiece p of
-          Left e    -> (Right (Left $ PathVarParseError e), path)
+          Left e -> (Right (Left $ PathVarParseError e), path)
           Right val -> (Right (Right val), RoutePath ps)
 
 instance Monad m => Get (ServerHandler m) PathEnd Request where
@@ -42,4 +37,4 @@ instance Monad m => Get (ServerHandler m) PathEnd Request where
   getTrait PathEnd = ServerHandler f
     where
       f (_, p@(RoutePath [])) = pure (Right $ Right (), p)
-      f (_, p)                = pure (Right $ Left (), p)
+      f (_, p) = pure (Right $ Left (), p)

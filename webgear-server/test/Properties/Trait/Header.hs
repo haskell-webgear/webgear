@@ -1,6 +1,6 @@
-module Properties.Trait.Header
-  ( tests
-  ) where
+module Properties.Trait.Header (
+  tests,
+) where
 
 import Data.Functor.Identity (runIdentity)
 import Data.String (fromString)
@@ -18,29 +18,23 @@ import WebGear.Server.Middleware.Header ()
 
 prop_headerParseError :: Property
 prop_headerParseError = property $ \hval ->
-  let
-    hval' = "test-" <> hval
-    req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", encodeUtf8 hval')]}
-  in
-    runIdentity $ do
-      res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
-      pure $ case res of
-        Right (Left e) ->
-          e === Right (HeaderParseError $ "could not parse: `" <> hval' <> "' (input does not start with a digit)")
-        v -> counterexample ("Unexpected result: " <> show v) (property False)
-
+  let hval' = "test-" <> hval
+      req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", encodeUtf8 hval')]}
+   in runIdentity $ do
+        res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
+        pure $ case res of
+          Right (Left e) ->
+            e === Right (HeaderParseError $ "could not parse: `" <> hval' <> "' (input does not start with a digit)")
+          v -> counterexample ("Unexpected result: " <> show v) (property False)
 
 prop_headerParseSuccess :: Property
 prop_headerParseSuccess = property $ \(n :: Int) ->
-  let
-    req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", fromString $ show n)]}
-  in
-    runIdentity $ do
-      res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
-      pure $ case res of
-        Right (Right n') -> n === n'
-        e                -> counterexample ("Unexpected result: " <> show e) (property False)
-
+  let req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", fromString $ show n)]}
+   in runIdentity $ do
+        res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
+        pure $ case res of
+          Right (Right n') -> n === n'
+          e -> counterexample ("Unexpected result: " <> show e) (property False)
 
 -- Hack for TH splicing
 return []

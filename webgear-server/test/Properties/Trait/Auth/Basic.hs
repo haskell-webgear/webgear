@@ -1,6 +1,6 @@
-module Properties.Trait.Auth.Basic
-  ( tests
-  ) where
+module Properties.Trait.Auth.Basic (
+  tests,
+) where
 
 import Control.Arrow (returnA, (>>>))
 import Data.ByteString.Base64 (encode)
@@ -8,14 +8,25 @@ import Data.ByteString.Char8 (elem)
 import Data.Either (fromRight)
 import Data.Functor.Identity (Identity, runIdentity)
 import Network.Wai (defaultRequest, requestHeaders)
-import Prelude hiding (elem)
-import Test.QuickCheck (Discard (..), Property, allProperties, counterexample, property, (.&&.),
-                        (===))
+import Test.QuickCheck (
+  Discard (..),
+  Property,
+  allProperties,
+  counterexample,
+  property,
+  (.&&.),
+  (===),
+ )
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Auth.Basic (BasicAuth, BasicAuth' (..), Credentials (..),
-                                           Password (..), Username (..))
+import WebGear.Core.Middleware.Auth.Basic (
+  BasicAuth,
+  BasicAuth' (..),
+  Credentials (..),
+  Password (..),
+  Username (..),
+ )
 import WebGear.Core.Middleware.Auth.Common (AuthorizationHeader)
 import WebGear.Core.Middleware.Header (Header (..))
 import WebGear.Core.Request (Request (..))
@@ -23,6 +34,7 @@ import WebGear.Core.Trait (Linked, getTrait, linkzero, probe)
 import WebGear.Server.Handler (ServerHandler, runServerHandler)
 import WebGear.Server.Middleware.Auth.Basic ()
 import WebGear.Server.Middleware.Header ()
+import Prelude hiding (elem)
 
 prop_basicAuth :: Property
 prop_basicAuth = property f
@@ -30,8 +42,7 @@ prop_basicAuth = property f
     f (username, password)
       | ':' `elem` username = property Discard
       | otherwise =
-          let
-            hval = "Basic " <> encode (username <> ":" <> password)
+        let hval = "Basic " <> encode (username <> ":" <> password)
 
             mkRequest :: ServerHandler Identity () (Linked '[AuthorizationHeader "Basic"] Request)
             mkRequest = proc () -> do
@@ -44,15 +55,13 @@ prop_basicAuth = property f
 
             authCfg :: BasicAuth Identity () Credentials
             authCfg = BasicAuth'{..}
-          in
-            runIdentity $ do
+         in runIdentity $ do
               res <- runServerHandler (mkRequest >>> getTrait authCfg) [""] ()
               pure $ case res of
                 Right (Right creds) ->
                   credentialsUsername creds === Username username
-                  .&&. credentialsPassword creds === Password password
+                    .&&. credentialsPassword creds === Password password
                 e -> counterexample ("Unexpected failure: " <> show e) (property False)
-
 
 -- Hack for TH splicing
 return []

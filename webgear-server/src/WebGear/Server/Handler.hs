@@ -1,17 +1,10 @@
--- |
--- Copyright        : (c) Raghu Kaippully, 2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
--- Handler serving an API
---
-module WebGear.Server.Handler
-  ( ServerHandler (..)
-  , RoutePath (..)
-  , runServerHandler
-  , toApplication
-  , transform
-  ) where
+module WebGear.Server.Handler (
+  ServerHandler (..),
+  RoutePath (..),
+  runServerHandler,
+  toApplication,
+  transform,
+) where
 
 import Control.Arrow (Arrow (..), ArrowChoice (..), ArrowPlus (..), ArrowZero (..))
 import Control.Arrow.Operations (ArrowError (..))
@@ -29,8 +22,7 @@ import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), toWaiResponse)
 import WebGear.Core.Trait (Linked, linkzero)
 
-
-newtype ServerHandler m a b = ServerHandler { unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath) }
+newtype ServerHandler m a b = ServerHandler {unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath)}
 
 instance Monad m => Cat.Category (ServerHandler m) where
   {-# INLINEABLE id #-}
@@ -39,7 +31,7 @@ instance Monad m => Cat.Category (ServerHandler m) where
   {-# INLINEABLE (.) #-}
   ServerHandler f . ServerHandler g = ServerHandler $ \(a, s) ->
     g (a, s) >>= \case
-      (Left e, s')  -> pure (Left e, s')
+      (Left e, s') -> pure (Left e, s')
       (Right b, s') -> f (b, s')
 
 instance Monad m => Arrow (ServerHandler m) where
@@ -48,13 +40,13 @@ instance Monad m => Arrow (ServerHandler m) where
   {-# INLINEABLE first #-}
   first (ServerHandler f) = ServerHandler $ \((a, c), s) ->
     f (a, s) >>= \case
-      (Left e, s')  -> pure (Left e, s')
+      (Left e, s') -> pure (Left e, s')
       (Right b, s') -> pure (Right (b, c), s')
 
   {-# INLINEABLE second #-}
   second (ServerHandler f) = ServerHandler $ \((c, a), s) ->
     f (a, s) >>= \case
-      (Left e, s')  -> pure (Left e, s')
+      (Left e, s') -> pure (Left e, s')
       (Right b, s') -> pure (Right (c, b), s')
 
 instance Monad m => ArrowZero (ServerHandler m) where
@@ -66,24 +58,26 @@ instance Monad m => ArrowPlus (ServerHandler m) where
   ServerHandler f <+> ServerHandler g = ServerHandler $ \(a, s) ->
     f (a, s) >>= \case
       (Left _e, _s') -> g (a, s)
-      (Right b, s')  -> pure (Right b, s')
+      (Right b, s') -> pure (Right b, s')
 
 instance Monad m => ArrowChoice (ServerHandler m) where
   {-# INLINEABLE left #-}
   left (ServerHandler f) = ServerHandler $ \(bd, s) ->
     case bd of
       Right d -> pure (Right (Right d), s)
-      Left b -> f (b, s) >>= \case
-        (Left e, s')  -> pure (Left e, s')
-        (Right c, s') -> pure (Right (Left c), s')
+      Left b ->
+        f (b, s) >>= \case
+          (Left e, s') -> pure (Left e, s')
+          (Right c, s') -> pure (Right (Left c), s')
 
   {-# INLINEABLE right #-}
   right (ServerHandler f) = ServerHandler $ \(db, s) ->
     case db of
       Left d -> pure (Right (Left d), s)
-      Right b -> f (b, s) >>= \case
-        (Left e, s')  -> pure (Left e, s')
-        (Right c, s') -> pure (Right (Right c), s')
+      Right b ->
+        f (b, s) >>= \case
+          (Left e, s') -> pure (Left e, s')
+          (Right c, s') -> pure (Right (Right c), s')
 
 instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
   {-# INLINEABLE raise #-}
@@ -92,14 +86,14 @@ instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
   {-# INLINEABLE handle #-}
   (ServerHandler action) `handle` (ServerHandler errHandler) = ServerHandler $ \(a, s) ->
     action (a, s) >>= \case
-      (Left e, s')  -> errHandler ((a, e), s')
+      (Left e, s') -> errHandler ((a, e), s')
       (Right b, s') -> pure (Right b, s')
 
   {-# INLINEABLE tryInUnless #-}
   tryInUnless (ServerHandler action) (ServerHandler resHandler) (ServerHandler errHandler) =
     ServerHandler $ \(a, s) ->
       action (a, s) >>= \case
-        (Left e, s')  -> errHandler ((a, e), s')
+        (Left e, s') -> errHandler ((a, e), s')
         (Right b, s') -> resHandler ((a, b), s')
 
 instance Monad m => Handler (ServerHandler m) m where
@@ -116,8 +110,9 @@ runServerHandler :: Monad m => ServerHandler m a b -> RoutePath -> a -> m (Eithe
 runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
 
 toApplication :: ServerHandler IO (Linked '[] Request) Response -> Wai.Application
-toApplication h rqt cont = runServerHandler h path request >>=
-    cont . toWaiResponse . addServerHeader . mkWebGearResponse
+toApplication h rqt cont =
+  runServerHandler h path request
+    >>= cont . toWaiResponse . addServerHeader . mkWebGearResponse
   where
     request :: Linked '[] Request
     request = linkzero $ Request rqt
@@ -129,7 +124,7 @@ toApplication h rqt cont = runServerHandler h path request >>=
     mkWebGearResponse = fromRight (Response HTTP.notFound404 [] mempty)
 
     addServerHeader :: Response -> Response
-    addServerHeader resp@Response{..} = resp{ responseHeaders = responseHeaders <> webGearServerHeader }
+    addServerHeader resp@Response{..} = resp{responseHeaders = responseHeaders <> webGearServerHeader}
 
 transform :: (forall x. m x -> n x) -> ServerHandler m a b -> ServerHandler n a b
 transform f (ServerHandler g) =

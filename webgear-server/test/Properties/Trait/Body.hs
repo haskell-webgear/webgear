@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
-module Properties.Trait.Body
-  ( tests
-  ) where
+module Properties.Trait.Body (
+  tests,
+) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.IORef (newIORef, readIORef, writeIORef)
@@ -30,22 +30,21 @@ prop_emptyRequestBodyFails = monadicIO $ do
   req <- bodyToRequest ("" :: String)
   runServerHandler (getTrait (JSONBody' :: JSONBody Int)) [""] req >>= \case
     Right (Left _) -> assert True
-    e              -> monitor (counterexample $ "Unexpected " <> show e) >> assert False
+    e -> monitor (counterexample $ "Unexpected " <> show e) >> assert False
 
 prop_validBodyParses :: Property
 prop_validBodyParses = property $ \n -> monadicIO $ do
   req <- bodyToRequest (n :: Integer)
   runServerHandler (getTrait JSONBody') [""] req >>= \case
     Right (Right n') -> assert (n == n')
-    _                -> assert False
+    _ -> assert False
 
 prop_invalidBodyTypeFails :: Property
 prop_invalidBodyTypeFails = property $ \n -> monadicIO $ do
   req <- bodyToRequest (n :: Integer)
   runServerHandler (getTrait (JSONBody' :: JSONBody String)) [""] req >>= \case
     Right (Left _) -> assert True
-    _              -> assert False
-
+    _ -> assert False
 
 -- Hack for TH splicing
 return []

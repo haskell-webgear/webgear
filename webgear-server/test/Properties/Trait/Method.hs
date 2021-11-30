@@ -1,12 +1,20 @@
-module Properties.Trait.Method
-  ( tests
-  ) where
+module Properties.Trait.Method (
+  tests,
+) where
 
 import Data.Functor.Identity (runIdentity)
 import Network.HTTP.Types (StdMethod (..), methodGet, renderStdMethod)
 import Network.Wai (defaultRequest, requestMethod)
-import Test.QuickCheck (Arbitrary (arbitrary), Property, allProperties, elements, property, (.&&.),
-                        (=/=), (===))
+import Test.QuickCheck (
+  Arbitrary (arbitrary),
+  Property,
+  allProperties,
+  elements,
+  property,
+  (.&&.),
+  (=/=),
+  (===),
+ )
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Middleware.Method (Method (..), MethodMismatch (..))
@@ -19,20 +27,17 @@ newtype MethodWrapper = MethodWrapper StdMethod
   deriving stock (Show)
 
 instance Arbitrary MethodWrapper where
-  arbitrary = elements $ MethodWrapper <$> [minBound..maxBound]
+  arbitrary = elements $ MethodWrapper <$> [minBound .. maxBound]
 
 prop_methodMatch :: Property
 prop_methodMatch = property $ \(MethodWrapper v) ->
-  let
-    req = linkzero $ Request $ defaultRequest{requestMethod = renderStdMethod v}
-  in
-    runIdentity $ do
-      res <- runServerHandler (getTrait (Method GET)) [""] req
-      pure $ case res of
-        Right (Right _) -> v === GET
-        Right (Left e)  -> expectedMethod e === methodGet .&&. actualMethod e =/= methodGet
-        Left _          -> property False
-
+  let req = linkzero $ Request $ defaultRequest{requestMethod = renderStdMethod v}
+   in runIdentity $ do
+        res <- runServerHandler (getTrait (Method GET)) [""] req
+        pure $ case res of
+          Right (Right _) -> v === GET
+          Right (Left e) -> expectedMethod e === methodGet .&&. actualMethod e =/= methodGet
+          Left _ -> property False
 
 -- Hack for TH splicing
 return []

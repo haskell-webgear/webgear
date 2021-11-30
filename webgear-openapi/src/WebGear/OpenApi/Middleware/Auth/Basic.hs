@@ -1,9 +1,5 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
--- |
--- Copyright        : (c) Raghu Kaippully, 2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
+
 module WebGear.OpenApi.Middleware.Auth.Basic where
 
 import Data.OpenApi
@@ -15,17 +11,16 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), Linked, TraitAbsence (Absence))
 import WebGear.OpenApi.Handler (DocNode (DocSecurityScheme), OpenApiHandler (..), singletonNode)
 
-
 instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) => Get (OpenApiHandler m) (BasicAuth' x scheme m e a) Request where
   {-# INLINEABLE getTrait #-}
-  getTrait :: BasicAuth' x scheme m e a
-           -> OpenApiHandler m (Linked ts Request) (Either (Absence (BasicAuth' x scheme m e a) Request) (Attribute (BasicAuth' x scheme m e a) Request))
+  getTrait ::
+    BasicAuth' x scheme m e a ->
+    OpenApiHandler m (Linked ts Request) (Either (Absence (BasicAuth' x scheme m e a) Request) (Attribute (BasicAuth' x scheme m e a) Request))
   getTrait _ =
-    let
-      schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
-      securityScheme = SecurityScheme
-        { _securitySchemeType = SecuritySchemeHttp HttpSchemeBasic
-        , _securitySchemeDescription = Nothing
-        }
-    in
-      OpenApiHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)
+    let schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
+        securityScheme =
+          SecurityScheme
+            { _securitySchemeType = SecuritySchemeHttp HttpSchemeBasic
+            , _securitySchemeDescription = Nothing
+            }
+     in OpenApiHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)

@@ -1,10 +1,6 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE UndecidableInstances #-}
--- |
--- Copyright        : (c) Raghu Kaippully, 2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module WebGear.Server.Middleware.Auth.Basic where
 
 import Control.Arrow (arr, returnA, (>>>))
@@ -13,34 +9,44 @@ import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Char8 (intercalate, split)
 import Data.Void (Void)
 import WebGear.Core.Handler (handler)
-import WebGear.Core.Middleware.Auth.Basic (BasicAuth' (..), BasicAuthError (..), Credentials (..),
-                                           Password (..), Username (..))
-import WebGear.Core.Middleware.Auth.Common (AuthToken (..), AuthorizationHeader,
-                                            getAuthorizationHeaderTrait)
+import WebGear.Core.Middleware.Auth.Basic (
+  BasicAuth' (..),
+  BasicAuthError (..),
+  Credentials (..),
+  Password (..),
+  Username (..),
+ )
+import WebGear.Core.Middleware.Auth.Common (
+  AuthToken (..),
+  AuthorizationHeader,
+  getAuthorizationHeaderTrait,
+ )
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), Linked)
 import WebGear.Server.Handler (ServerHandler)
 
-
 parseCreds :: AuthToken scheme -> Either (BasicAuthError e) Credentials
 parseCreds AuthToken{..} =
   case split ':' (decodeLenient authToken) of
-    []   -> Left BasicAuthCredsBadFormat
-    u:ps -> Right $ Credentials (Username u) (Password $ intercalate ":" ps)
+    [] -> Left BasicAuthCredsBadFormat
+    u : ps -> Right $ Credentials (Username u) (Password $ intercalate ":" ps)
 
-instance ( Monad m
-         , Get (ServerHandler m) (AuthorizationHeader scheme) Request
-         ) =>
-         Get (ServerHandler m) (BasicAuth' Required scheme m e a) Request where
+instance
+  ( Monad m
+  , Get (ServerHandler m) (AuthorizationHeader scheme) Request
+  ) =>
+  Get (ServerHandler m) (BasicAuth' Required scheme m e a) Request
+  where
   {-# INLINEABLE getTrait #-}
-  getTrait :: BasicAuth' Required scheme m e a
-           -> ServerHandler m (Linked ts Request) (Either (BasicAuthError e) a)
+  getTrait ::
+    BasicAuth' Required scheme m e a ->
+    ServerHandler m (Linked ts Request) (Either (BasicAuthError e) a)
   getTrait BasicAuth'{..} = proc request -> do
     result <- getAuthorizationHeaderTrait @scheme -< request
     case result of
-      Nothing              -> returnA -< Left BasicAuthHeaderMissing
-      (Just (Left _))      -> returnA -< Left BasicAuthSchemeMismatch
+      Nothing -> returnA -< Left BasicAuthHeaderMissing
+      (Just (Left _)) -> returnA -< Left BasicAuthSchemeMismatch
       (Just (Right token)) ->
         case parseCreds token of
           Left e -> returnA -< Left e
@@ -51,11 +57,14 @@ instance ( Monad m
         res <- toBasicAttribute creds
         pure $ first BasicAuthAttributeError res
 
-instance ( Monad m
-         , Get (ServerHandler m) (AuthorizationHeader scheme) Request
-         ) =>
-         Get (ServerHandler m) (BasicAuth' Optional scheme m e a) Request where
+instance
+  ( Monad m
+  , Get (ServerHandler m) (AuthorizationHeader scheme) Request
+  ) =>
+  Get (ServerHandler m) (BasicAuth' Optional scheme m e a) Request
+  where
   {-# INLINEABLE getTrait #-}
-  getTrait :: BasicAuth' Optional scheme m e a
-           -> ServerHandler m (Linked ts Request) (Either Void (Either (BasicAuthError e) a))
+  getTrait ::
+    BasicAuth' Optional scheme m e a ->
+    ServerHandler m (Linked ts Request) (Either Void (Either (BasicAuthError e) a))
   getTrait BasicAuth'{..} = getTrait (BasicAuth'{..} :: BasicAuth' Required scheme m e a) >>> arr Right

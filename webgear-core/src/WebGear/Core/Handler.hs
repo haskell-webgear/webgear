@@ -1,20 +1,16 @@
--- |
--- Copyright        : (c) Raghu Kaippully, 2020-2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
--- WebGear handlers
---
-module WebGear.Core.Handler
-  ( Handler (..)
-  , RoutePath (..)
-  , RouteMismatch(..)
-  , Middleware
-  , routeMismatch
-  , respondA
-  , (>#>)
-  , (<#<)
-  ) where
+{- |
+ WebGear handlers
+-}
+module WebGear.Core.Handler (
+  Handler (..),
+  RoutePath (..),
+  RouteMismatch (..),
+  Middleware,
+  routeMismatch,
+  respondA,
+  (>#>),
+  (<#<),
+) where
 
 import Control.Arrow (ArrowChoice, ArrowPlus, arr)
 import Control.Arrow.Operations (ArrowError (..))
@@ -23,7 +19,6 @@ import GHC.Exts (IsList (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Linked (unlink))
-
 
 newtype RoutePath = RoutePath [Text]
   deriving newtype (Show, Eq)
@@ -63,18 +58,20 @@ routeMismatch = proc _a -> raise -< RouteMismatch
 
 infix 1 >#>, <#<
 
-(>#>) :: ArrowChoice a
-      => a (env, stack) response1
-      -> a (env, (response1, stack)) response2
-      -> a (env, stack) response2
+(>#>) ::
+  ArrowChoice a =>
+  a (env, stack) response1 ->
+  a (env, (response1, stack)) response2 ->
+  a (env, stack) response2
 arr1 >#> arr2 = proc (e, s) -> do
   r <- arr1 -< (e, s)
   arr2 -< (e, (r, s))
 
-(<#<) :: ArrowChoice a
-      => a (env, (response1, stack)) response2
-      -> a (env, stack) response1
-      -> a (env, stack) response2
+(<#<) ::
+  ArrowChoice a =>
+  a (env, (response1, stack)) response2 ->
+  a (env, stack) response1 ->
+  a (env, stack) response2
 arr1 <#< arr2 = proc (e, s) -> do
   r <- arr2 -< (e, s)
   arr1 -< (e, (r, s))

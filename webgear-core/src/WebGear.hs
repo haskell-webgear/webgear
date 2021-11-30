@@ -1,10 +1,6 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 {- |
- Copyright        : (c) Raghu Kaippully, 2020-2021
- License          : MPL-2.0
- Maintainer       : rkaippully@gmail.com
-
  WebGear helps to build composable, type-safe HTTP API servers.
 
  The documentation below gives an overview of WebGear. Example

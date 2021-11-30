@@ -1,9 +1,5 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
--- |
--- Copyright        : (c) Raghu Kaippully, 2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
+
 module WebGear.Server.Middleware.Method where
 
 import Control.Arrow (returnA)
@@ -12,7 +8,6 @@ import WebGear.Core.Middleware.Method (Method (..), MethodMismatch (..))
 import WebGear.Core.Request (Request, requestMethod)
 import WebGear.Core.Trait (Get (..), Linked, unlink)
 import WebGear.Server.Handler (ServerHandler)
-
 
 instance Monad m => Get (ServerHandler m) Method Request where
   {-# INLINEABLE getTrait #-}

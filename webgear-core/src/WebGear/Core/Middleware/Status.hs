@@ -1,74 +1,69 @@
--- |
--- Copyright        : (c) Raghu Kaippully, 2020-2021
--- License          : MPL-2.0
--- Maintainer       : rkaippully@gmail.com
---
--- Response status
---
-module WebGear.Core.Middleware.Status
-  ( Status (..)
+{- |
+ Response status
+-}
+module WebGear.Core.Middleware.Status (
+  Status (..),
 
-    -- * Handlers to create responses
-  , mkResponse
-  , continue100
-  , switchingProtocols101
-  , ok200
-  , created201
-  , accepted202
-  , nonAuthoritative203
-  , noContent204
-  , resetContent205
-  , partialContent206
-  , multipleChoices300
-  , movedPermanently301
-  , found302
-  , seeOther303
-  , notModified304
-  , temporaryRedirect307
-  , permanentRedirect308
-  , badRequest400
-  , unauthorized401
-  , paymentRequired402
-  , forbidden403
-  , notFound404
-  , methodNotAllowed405
-  , notAcceptable406
-  , proxyAuthenticationRequired407
-  , requestTimeout408
-  , conflict409
-  , gone410
-  , lengthRequired411
-  , preconditionFailed412
-  , requestEntityTooLarge413
-  , requestURITooLong414
-  , unsupportedMediaType415
-  , requestedRangeNotSatisfiable416
-  , expectationFailed417
-  , imATeapot418
-  , unprocessableEntity422
-  , preconditionRequired428
-  , tooManyRequests429
-  , requestHeaderFieldsTooLarge431
-  , internalServerError500
-  , notImplemented501
-  , badGateway502
-  , serviceUnavailable503
-  , gatewayTimeout504
-  , httpVersionNotSupported505
-  , networkAuthenticationRequired511
-  ) where
+  -- * Handlers to create responses
+  mkResponse,
+  continue100,
+  switchingProtocols101,
+  ok200,
+  created201,
+  accepted202,
+  nonAuthoritative203,
+  noContent204,
+  resetContent205,
+  partialContent206,
+  multipleChoices300,
+  movedPermanently301,
+  found302,
+  seeOther303,
+  notModified304,
+  temporaryRedirect307,
+  permanentRedirect308,
+  badRequest400,
+  unauthorized401,
+  paymentRequired402,
+  forbidden403,
+  notFound404,
+  methodNotAllowed405,
+  notAcceptable406,
+  proxyAuthenticationRequired407,
+  requestTimeout408,
+  conflict409,
+  gone410,
+  lengthRequired411,
+  preconditionFailed412,
+  requestEntityTooLarge413,
+  requestURITooLong414,
+  unsupportedMediaType415,
+  requestedRangeNotSatisfiable416,
+  expectationFailed417,
+  imATeapot418,
+  unprocessableEntity422,
+  preconditionRequired428,
+  tooManyRequests429,
+  requestHeaderFieldsTooLarge431,
+  internalServerError500,
+  notImplemented501,
+  badGateway502,
+  serviceUnavailable503,
+  gatewayTimeout504,
+  httpVersionNotSupported505,
+  networkAuthenticationRequired511,
+) where
 
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Linked, Set, Trait (..), linkzero, plant)
-
 
 newtype Status = Status HTTP.Status
 
 instance Trait Status Response where
   type Attribute Status Response = HTTP.Status
 
-mkResponse :: forall h. Set h Status Response => HTTP.Status -> h () (Linked '[Status] Response)
+mkResponse :: Set h Status Response => HTTP.Status -> h () (Linked '[Status] Response)
 mkResponse status = proc () -> do
   let response = linkzero $ Response status [] Nothing
   plant (Status status) -< (response, status)
