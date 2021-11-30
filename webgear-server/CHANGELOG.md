@@ -2,6 +2,9 @@
 
 ## Unreleased changes
 
+### Changed
+- New arrow based API
+
 ## [0.2.1] - 2021-01-11
 
 ### Changed
