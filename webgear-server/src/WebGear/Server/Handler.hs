@@ -97,9 +97,9 @@ instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
         (Right b, s') -> resHandler ((a, b), s')
 
 instance Monad m => Handler (ServerHandler m) m where
-  {-# INLINEABLE handler #-}
-  handler :: (a -> m b) -> ServerHandler m a b
-  handler f = ServerHandler $ \(a, s) -> f a >>= \b -> pure (Right b, s)
+  {-# INLINEABLE arrM #-}
+  arrM :: (a -> m b) -> ServerHandler m a b
+  arrM f = ServerHandler $ \(a, s) -> f a >>= \b -> pure (Right b, s)
 
   {-# INLINEABLE consumeRoute #-}
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a

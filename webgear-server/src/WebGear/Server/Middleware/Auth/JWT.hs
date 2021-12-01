@@ -9,7 +9,7 @@ import Control.Monad.Time (MonadTime)
 import qualified Crypto.JWT as JWT
 import Data.ByteString.Lazy (fromStrict)
 import Data.Void (Void)
-import WebGear.Core.Handler (handler)
+import WebGear.Core.Handler (arrM)
 import WebGear.Core.Middleware.Auth.Common (
   AuthToken (..),
   AuthorizationHeader,
@@ -40,7 +40,7 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
           Right jwt -> validateJWT -< jwt
     where
       validateJWT :: ServerHandler m JWT.SignedJWT (Either (JWTAuthError e) a)
-      validateJWT = handler $ \jwt -> runExceptT $ do
+      validateJWT = arrM $ \jwt -> runExceptT $ do
         claims <- withExceptT JWTAuthTokenBadFormat $ JWT.verifyClaims jwtValidationSettings jwkSet jwt
         lift (toJWTAttribute claims) >>= either (throwError . JWTAuthAttributeError) pure
 

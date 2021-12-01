@@ -107,9 +107,9 @@ instance ArrowError RouteMismatch (OpenApiHandler m) where
     OpenApiHandler $ BinaryNode (BinaryNode doc1 doc2) doc3
 
 instance Monad m => Handler (OpenApiHandler m) m where
-  {-# INLINEABLE handler #-}
-  handler :: (a -> m b) -> OpenApiHandler m a b
-  handler _ = OpenApiHandler{openApiDoc = NullNode}
+  {-# INLINEABLE arrM #-}
+  arrM :: (a -> m b) -> OpenApiHandler m a b
+  arrM _ = OpenApiHandler{openApiDoc = NullNode}
 
   {-# INLINEABLE consumeRoute #-}
   consumeRoute :: OpenApiHandler m RoutePath a -> OpenApiHandler m () a

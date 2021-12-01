@@ -8,7 +8,7 @@ import Data.Bifunctor (first)
 import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Char8 (intercalate, split)
 import Data.Void (Void)
-import WebGear.Core.Handler (handler)
+import WebGear.Core.Handler (arrM)
 import WebGear.Core.Middleware.Auth.Basic (
   BasicAuth' (..),
   BasicAuthError (..),
@@ -53,7 +53,7 @@ instance
           Right c -> validateCreds -< c
     where
       validateCreds :: ServerHandler m Credentials (Either (BasicAuthError e) a)
-      validateCreds = handler $ \creds -> do
+      validateCreds = arrM $ \creds -> do
         res <- toBasicAttribute creds
         pure $ first BasicAuthAttributeError res
 

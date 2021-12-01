@@ -21,7 +21,7 @@ import WebGear.Server.Handler (ServerHandler)
 instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body mediaType val) Request where
   {-# INLINEABLE getTrait #-}
   getTrait :: Body mediaType val -> ServerHandler m (Linked ts Request) (Either Text val)
-  getTrait Body = handler $ \request -> do
+  getTrait Body = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
     pure $ case runParser' parser (fromChunks chunks) of
       Left e -> Left $ pack e
@@ -49,7 +49,7 @@ instance (Monad m, MkMediaType mediaType, ToByteString val) => Set (ServerHandle
 instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody' mediaType val) Request where
   {-# INLINEABLE getTrait #-}
   getTrait :: JSONBody' mediaType val -> ServerHandler m (Linked ts Request) (Either Text val)
-  getTrait JSONBody' = handler $ \request -> do
+  getTrait JSONBody' = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
     pure $ case Aeson.eitherDecode' (fromChunks chunks) of
       Left e -> Left $ pack e

@@ -70,4 +70,4 @@ serveFile = proc file -> do
           (\r -> setHeader @"Content-Type" -< (r, contentType))
       respondA -< r
   where
-    readFile = handler $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)
+    readFile = arrM $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)

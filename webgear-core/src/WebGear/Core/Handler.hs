@@ -32,7 +32,7 @@ instance IsList RoutePath where
 -- | A handler is an arrow with a monadic context.
 class (ArrowChoice h, ArrowPlus h, ArrowError RouteMismatch h, Monad m) => Handler h m | h -> m where
   -- | Lift a monadic function to a handler arrow
-  handler :: (a -> m b) -> h a b
+  arrM :: (a -> m b) -> h a b
 
   -- | Consume all remaining path components with an arrow
   consumeRoute :: h RoutePath a -> h () a
