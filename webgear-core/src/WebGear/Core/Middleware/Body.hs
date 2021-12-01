@@ -19,7 +19,6 @@ module WebGear.Core.Middleware.Body (
 ) where
 
 import Control.Arrow (ArrowChoice, returnA, (<<<))
-import Data.ByteString (ByteString)
 import Data.Kind (Type)
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
@@ -111,8 +110,8 @@ jsonRequestBody = jsonRequestBody'
 
 setBody ::
   forall mediaType body h ts.
-  (Sets h [Body (Just mediaType) body, RequiredHeader "Content-Type" ByteString] Response, KnownSymbol mediaType) =>
-  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" ByteString : Body (Just mediaType) body : ts) Response)
+  (Sets h [Body (Just mediaType) body, RequiredHeader "Content-Type" Text] Response, KnownSymbol mediaType) =>
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : Body (Just mediaType) body : ts) Response)
 setBody = proc (r, body) -> do
   r' <- plant Body -< (r, body)
   let mt = fromString $ symbolVal (Proxy @mediaType)
@@ -128,8 +127,8 @@ setBodyWithoutContentType = plant Body
 
 setJSONBody ::
   forall body h ts.
-  Sets h [JSONBody body, RequiredHeader "Content-Type" ByteString] Response =>
-  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" ByteString : JSONBody body : ts) Response)
+  Sets h [JSONBody body, RequiredHeader "Content-Type" Text] Response =>
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
 setJSONBody = proc (r, body) -> do
   r' <- plant JSONBody' -< (r, body)
   returnA <<< plant Header -< (r', "application/json")
