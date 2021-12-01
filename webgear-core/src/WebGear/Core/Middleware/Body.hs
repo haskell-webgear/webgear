@@ -12,12 +12,14 @@ module WebGear.Core.Middleware.Body (
   requestBody,
   jsonRequestBody',
   jsonRequestBody,
-  setResponseBody,
-  setJSONResponseBody',
-  setJSONResponseBody,
+  setBody,
+  setBodyWithoutContentType,
+  setJSONBody,
+  setJSONBodyWithoutContentType,
 ) where
 
-import Control.Arrow (ArrowChoice)
+import Control.Arrow (ArrowChoice, returnA, (<<<))
+import Data.ByteString (ByteString)
 import Data.Kind (Type)
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
@@ -25,9 +27,10 @@ import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Media as HTTP
 import WebGear.Core.Handler (Middleware)
+import WebGear.Core.Middleware.Header (Header (..), RequiredHeader)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Linked, Set, Trait (..), TraitAbsence (..), plant, probe)
+import WebGear.Core.Trait (Get, Linked, Set, Sets, Trait (..), TraitAbsence (..), plant, probe)
 
 -- | Body with a type @body@ that can be converted to a 'ByteString'.
 data Body (mediaType :: Maybe Symbol) (t :: Type) = Body
@@ -106,20 +109,33 @@ jsonRequestBody ::
   Middleware h req (JSONBody t : req)
 jsonRequestBody = jsonRequestBody'
 
-setResponseBody ::
-  forall mt body h ts.
-  Set h (Body mt body) Response =>
-  h (Linked ts Response, body) (Linked (Body mt body : ts) Response)
-setResponseBody = plant Body
+setBody ::
+  forall mediaType body h ts.
+  (Sets h [Body (Just mediaType) body, RequiredHeader "Content-Type" ByteString] Response, KnownSymbol mediaType) =>
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" ByteString : Body (Just mediaType) body : ts) Response)
+setBody = proc (r, body) -> do
+  r' <- plant Body -< (r, body)
+  let mt = fromString $ symbolVal (Proxy @mediaType)
+  returnA <<< plant Header -< (r', mt)
 
-setJSONResponseBody' ::
-  forall mt body h ts.
-  Set h (JSONBody' mt body) Response =>
-  h (Linked ts Response, body) (Linked (JSONBody' mt body : ts) Response)
-setJSONResponseBody' = plant JSONBody'
+setBodyWithoutContentType ::
+  forall body h ts.
+  Set h (Body Nothing body) Response =>
+  h
+    (Linked ts Response, body)
+    (Linked (Body Nothing body : ts) Response)
+setBodyWithoutContentType = plant Body
 
-setJSONResponseBody ::
+setJSONBody ::
+  forall body h ts.
+  Sets h [JSONBody body, RequiredHeader "Content-Type" ByteString] Response =>
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" ByteString : JSONBody body : ts) Response)
+setJSONBody = proc (r, body) -> do
+  r' <- plant JSONBody' -< (r, body)
+  returnA <<< plant Header -< (r', "application/json")
+
+setJSONBodyWithoutContentType ::
   forall body h ts.
   Set h (JSONBody body) Response =>
   h (Linked ts Response, body) (Linked (JSONBody body : ts) Response)
-setJSONResponseBody = setJSONResponseBody'
+setJSONBodyWithoutContentType = plant JSONBody'

@@ -21,7 +21,7 @@ import Data.Void (absurd)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (Handler, respondA, (>#>))
-import WebGear.Core.Middleware.Body (Body, setResponseBody)
+import WebGear.Core.Middleware.Body (Body, setBody)
 import WebGear.Core.Middleware.Header (Header (..), RequiredHeader, setHeader)
 import WebGear.Core.Middleware.Status (Status, unauthorized401)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
@@ -67,6 +67,7 @@ respondUnauthorized ::
   , Sets
       h
       [ Status
+      , RequiredHeader "Content-Type" ByteString
       , RequiredHeader "WWW-Authenticate" ByteString
       , Body (Just "text/plain") Text
       ]
@@ -79,7 +80,7 @@ respondUnauthorized scheme (Realm realm) = proc _ -> do
   let body = "Unauthorized" :: Text
       headerVal = original scheme <> " realm=\"" <> realm <> "\""
   r <-
-    (unauthorized401 -< ())
-      >#> (\r -> setResponseBody @(Just "text/plain") -< (r, body))
-      >#> (\r -> setHeader @"WWW-Authenticate" -< (r, headerVal))
+    (unauthorized401 -< ()) >#>
+      (\r -> setBody @"text/plain" -< (r, body)) >#>
+      (\r -> setHeader @"WWW-Authenticate" -< (r, headerVal))
   respondA -< r

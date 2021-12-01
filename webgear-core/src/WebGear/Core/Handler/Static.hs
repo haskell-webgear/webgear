@@ -14,7 +14,7 @@ import qualified Data.Text as Text
 import qualified Network.Mime as Mime
 import System.FilePath (joinPath, takeFileName, (</>))
 import WebGear.Core.Handler (Handler (..), RoutePath (..), respondA, (>#>))
-import WebGear.Core.Middleware.Body (Body, setResponseBody)
+import WebGear.Core.Middleware.Body (Body, setBodyWithoutContentType)
 import WebGear.Core.Middleware.Header (RequiredHeader, setHeader)
 import WebGear.Core.Middleware.Status (Status, notFound404, ok200)
 import WebGear.Core.Request (Request (..))
@@ -65,9 +65,9 @@ serveFile = proc file -> do
     Just contents -> do
       let contentType = Mime.defaultMimeLookup $ Text.pack $ takeFileName file
       r <-
-        (ok200 -< ())
-          >#> (\r -> setResponseBody @Nothing -< (r, contents))
-          >#> (\r -> setHeader @"Content-Type" -< (r, contentType))
+        (ok200 -< ()) >#>
+          (\r -> setBodyWithoutContentType -< (r, contents)) >#>
+          (\r -> setHeader @"Content-Type" -< (r, contentType))
       respondA -< r
   where
     readFile = handler $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)
