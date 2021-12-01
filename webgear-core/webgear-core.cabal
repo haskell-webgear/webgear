@@ -90,7 +90,7 @@ common webgear-common
 
 library
   import:             webgear-common
-  exposed-modules:    WebGear
+  exposed-modules:    WebGear.Core
                     , WebGear.Core.Modifiers
                     , WebGear.Core.Trait
                     , WebGear.Core.Request

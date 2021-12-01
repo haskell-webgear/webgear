@@ -7,7 +7,7 @@
  programs built using WebGear are available under
  https://github.com/haskell-webgear/.
 -}
-module WebGear (
+module WebGear.Core (
   -- * Serving HTTP APIs
   -- $serving
 
@@ -29,7 +29,6 @@ module WebGear (
   -- * Servers with other monads
   -- $otherMonads
   module Control.Arrow,
-  module Data.ByteString.Lazy,
   module Data.ByteString.Conversion.To,
   module Data.Proxy,
   module Data.Text,
@@ -44,7 +43,7 @@ module WebGear (
 
 import Control.Arrow
 import Data.ByteString.Conversion.To
-import Data.ByteString.Lazy (ByteString)
+
 import Data.Proxy (Proxy (..))
 import Data.Text
 import Web.HttpApiData (FromHttpApiData (..))

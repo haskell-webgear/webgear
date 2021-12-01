@@ -5,6 +5,7 @@ module WebGear.Core.Handler (
   Handler (..),
   RoutePath (..),
   RouteMismatch (..),
+  RequestHandler,
   Middleware,
   routeMismatch,
   respondA,

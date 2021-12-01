@@ -79,7 +79,9 @@ common webgear-common
                       
 library
   import:             webgear-common
-  exposed-modules:    WebGear.Server.Handler
+  exposed-modules:    WebGear.Server
+                    , WebGear.Server.Handler
+                    , WebGear.Server.Middlewares
                     , WebGear.Server.Middleware.Auth.Basic
                     , WebGear.Server.Middleware.Auth.JWT
                     , WebGear.Server.Middleware.Body

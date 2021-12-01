@@ -64,14 +64,7 @@ instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
 
 respondUnauthorized ::
   ( Handler h m
-  , Sets
-      h
-      [ Status
-      , RequiredHeader "Content-Type" ByteString
-      , RequiredHeader "WWW-Authenticate" ByteString
-      , Body (Just "text/plain") Text
-      ]
-      Response
+  , Sets h [Status, RequiredHeader "Content-Type" Text, RequiredHeader "WWW-Authenticate" ByteString, Body (Just "text/plain") Text] Response
   ) =>
   CI ByteString ->
   Realm ->

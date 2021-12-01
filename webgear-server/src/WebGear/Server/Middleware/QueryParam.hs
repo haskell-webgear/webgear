@@ -21,15 +21,12 @@ import WebGear.Core.Request (Request, queryString)
 import WebGear.Core.Trait (Get (..), Linked, unlink)
 import WebGear.Server.Handler (ServerHandler)
 
-mkName :: KnownSymbol name => Proxy name -> Text
-mkName = fromString . symbolVal
-
 extractQueryParam ::
   (Monad m, KnownSymbol name, FromHttpApiData val) =>
   Proxy name ->
   ServerHandler m (Linked ts Request) (Maybe (Either Text val))
 extractQueryParam proxy = proc req -> do
-  let name = mkName proxy
+  let name = fromString $ symbolVal proxy
       params = queryToQueryText $ queryString $ unlink req
   returnA -< parseQueryParam <$> (find ((== name) . fst) params >>= snd)
 

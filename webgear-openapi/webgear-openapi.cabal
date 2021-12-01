@@ -26,7 +26,9 @@ source-repository head
 
 
 library
-  exposed-modules:    WebGear.OpenApi.Handler
+  exposed-modules:    WebGear.OpenApi
+                    , WebGear.OpenApi.Handler
+                    , WebGear.OpenApi.Middlewares
                     , WebGear.OpenApi.Middleware.Auth.Basic
                     , WebGear.OpenApi.Middleware.Auth.JWT
                     , WebGear.OpenApi.Middleware.Body
