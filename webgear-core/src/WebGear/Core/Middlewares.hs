@@ -23,11 +23,12 @@ import WebGear.Core.Middleware.QueryParam
 import WebGear.Core.Middleware.Status
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Gets, Set)
+import WebGear.Core.Trait (Gets, Sets)
 
 -- | Constraints that include all common middlewares.
-type StdHandler h m =
+type StdHandler h m req res =
   ( Handler h m
   , Gets h [Method, Path, PathEnd] Request
-  , Set h Status Response
+  , Gets h req Request
+  , Sets h (Status : res) Response
   )

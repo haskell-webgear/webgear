@@ -36,6 +36,7 @@ module WebGear.Core (
   module WebGear.Core.Trait,
   module WebGear.Core.Request,
   module WebGear.Core.Response,
+  module WebGear.Core.Modifiers,
   module WebGear.Core.Handler,
   module WebGear.Core.Handler.Static,
   module WebGear.Core.Middlewares,
@@ -52,6 +53,7 @@ import qualified Network.Wai as Wai
 
 import WebGear.Core.Handler
 import WebGear.Core.Handler.Static
+import WebGear.Core.Modifiers
 import WebGear.Core.Request
 import WebGear.Core.Response
 import WebGear.Core.Trait

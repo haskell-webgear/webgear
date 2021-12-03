@@ -4,6 +4,8 @@
 module WebGear.Core.Middleware.QueryParam (
   -- * Traits
   QueryParam (..),
+  RequiredQueryParam,
+  OptionalQueryParam,
   ParamNotFound (..),
   ParamParseError (..),
 
@@ -32,6 +34,9 @@ import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
  conversion is applied strictly or leniently.
 -}
 data QueryParam (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = QueryParam
+
+type RequiredQueryParam = QueryParam Required Strict
+type OptionalQueryParam = QueryParam Optional Strict
 
 -- | Indicates a missing query parameter
 data ParamNotFound = ParamNotFound
@@ -85,6 +90,7 @@ queryParamHandler errorHandler nextHandler = proc request -> do
  > queryParam @"limit" @Integer errorHandler okHandler
 -}
 queryParam ::
+  forall name val h req.
   (Get h (QueryParam Required Strict name val) Request, ArrowChoice h) =>
   h (Linked req Request, Either ParamNotFound ParamParseError) Response ->
   Middleware h req (QueryParam Required Strict name val : req)
@@ -100,6 +106,7 @@ queryParam = queryParamHandler
  > optionalQueryParam @"limit" @Integer errorHandler okHandler
 -}
 optionalQueryParam ::
+  forall name val h req.
   (Get h (QueryParam Optional Strict name val) Request, ArrowChoice h) =>
   h (Linked req Request, ParamParseError) Response ->
   Middleware h req (QueryParam Optional Strict name val : req)
@@ -117,6 +124,7 @@ optionalQueryParam = queryParamHandler
  > lenientQueryParam @"limit" @Integer errorHandler okHandler
 -}
 lenientQueryParam ::
+  forall name val h req.
   (Get h (QueryParam Required Lenient name val) Request, ArrowChoice h) =>
   h (Linked req Request, ParamNotFound) Response ->
   Middleware h req (QueryParam Required Lenient name val : req)
@@ -134,6 +142,7 @@ lenientQueryParam = queryParamHandler
  missing query parameters are reported in the trait attribute.
 -}
 optionalLenientQueryParam ::
+  forall name val h req.
   (Get h (QueryParam Optional Lenient name val) Request, ArrowChoice h) =>
   Middleware h req (QueryParam Optional Lenient name val : req)
 optionalLenientQueryParam = queryParamHandler $ arr (absurd . snd)

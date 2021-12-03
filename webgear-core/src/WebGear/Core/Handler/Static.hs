@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as Text
 import qualified Network.Mime as Mime
 import System.FilePath (joinPath, takeFileName, (</>))
-import WebGear.Core.Handler (Handler (..), RoutePath (..), respondA, (>#>))
+import WebGear.Core.Handler (Handler (..), RoutePath (..), unlinkA)
 import WebGear.Core.Middleware.Body (Body, setBodyWithoutContentType)
 import WebGear.Core.Middleware.Header (RequiredHeader, setHeader)
 import WebGear.Core.Middleware.Status (Status, notFound404, ok200)
@@ -36,7 +36,7 @@ serveDir root index = proc _request -> consumeRoute go -< ()
   where
     go = proc path -> do
       case (path, index) of
-        (RoutePath [], Nothing) -> respondA <<< notFound404 -< ()
+        (RoutePath [], Nothing) -> unlinkA <<< notFound404 -< ()
         (RoutePath [], Just f) -> serveFile -< root </> f
         (RoutePath ps, _) -> serveFile -< root </> joinPath (Text.unpack <$> ps)
 
@@ -49,13 +49,11 @@ serveFile ::
 serveFile = proc file -> do
   maybeContents <- readFile -< file
   case maybeContents of
-    Nothing -> respondA <<< notFound404 -< ()
+    Nothing -> unlinkA <<< notFound404 -< ()
     Just contents -> do
       let contentType = Mime.defaultMimeLookup $ Text.pack $ takeFileName file
-      r <-
-        (ok200 -< ()) >#>
-          (\r -> setBodyWithoutContentType -< (r, contents)) >#>
-          (\r -> setHeader @"Content-Type" -< (r, contentType))
-      respondA -< r
+      r <- ok200 -< ()
+      r' <- setBodyWithoutContentType -< (r, contents)
+      unlinkA <<< setHeader @"Content-Type" -< (r', contentType)
   where
     readFile = arrM $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)
