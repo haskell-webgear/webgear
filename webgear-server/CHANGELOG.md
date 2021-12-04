@@ -3,6 +3,7 @@
 ## Unreleased changes
 
 ### Changed
+- New home at https://github.com/haskell-webgear/webgear
 - New arrow based API
 
 ## [0.2.1] - 2021-01-11
