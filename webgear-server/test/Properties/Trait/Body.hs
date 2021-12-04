@@ -13,11 +13,14 @@ import Test.QuickCheck.Instances ()
 import Test.QuickCheck.Monadic (assert, monadicIO, monitor)
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Body (JSONBody, JSONBody' (..))
+import WebGear.Core.Middleware.Body (JSONBody (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (Linked, getTrait, linkzero)
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Middleware.Body ()
+
+jsonBody :: JSONBody t
+jsonBody = JSONBody (Just "application/json")
 
 bodyToRequest :: (MonadIO m, Show a) => a -> m (Linked '[] Request)
 bodyToRequest x = do
@@ -28,21 +31,21 @@ bodyToRequest x = do
 prop_emptyRequestBodyFails :: Property
 prop_emptyRequestBodyFails = monadicIO $ do
   req <- bodyToRequest ("" :: String)
-  runServerHandler (getTrait (JSONBody' :: JSONBody Int)) [""] req >>= \case
+  runServerHandler (getTrait (jsonBody :: JSONBody Int)) [""] req >>= \case
     Right (Left _) -> assert True
     e -> monitor (counterexample $ "Unexpected " <> show e) >> assert False
 
 prop_validBodyParses :: Property
 prop_validBodyParses = property $ \n -> monadicIO $ do
   req <- bodyToRequest (n :: Integer)
-  runServerHandler (getTrait JSONBody') [""] req >>= \case
+  runServerHandler (getTrait jsonBody) [""] req >>= \case
     Right (Right n') -> assert (n == n')
     _ -> assert False
 
 prop_invalidBodyTypeFails :: Property
 prop_invalidBodyTypeFails = property $ \n -> monadicIO $ do
   req <- bodyToRequest (n :: Integer)
-  runServerHandler (getTrait (JSONBody' :: JSONBody String)) [""] req >>= \case
+  runServerHandler (getTrait (jsonBody :: JSONBody String)) [""] req >>= \case
     Right (Left _) -> assert True
     _ -> assert False
 

@@ -4,9 +4,7 @@
 module WebGear.Core.Middleware.Body (
   -- * Traits
   Body (..),
-  JSONBody' (..),
-  JSONBody,
-  MkMediaType (..),
+  JSONBody (..),
 
   -- * Middlewares
   requestBody,
@@ -24,10 +22,8 @@ module WebGear.Core.Middleware.Body (
 
 import Control.Arrow (ArrowChoice, returnA, (<<<))
 import Data.Kind (Type)
-import Data.Proxy (Proxy (Proxy))
-import Data.String (fromString)
 import Data.Text (Text)
-import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
+import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Middleware)
@@ -38,47 +34,37 @@ import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Linked, Set, Sets, Trait (..), TraitAbsence (..), plant, probe)
 
 -- | Body with a type @body@ that can be converted to a 'ByteString'.
-data Body (mediaType :: Maybe Symbol) (t :: Type) = Body
+newtype Body (t :: Type) = Body (Maybe HTTP.MediaType)
 
-instance Trait (Body mt t) Request where
-  type Attribute (Body mt t) Request = t
+instance Trait (Body t) Request where
+  type Attribute (Body t) Request = t
 
-instance TraitAbsence (Body mt t) Request where
-  type Absence (Body mt t) Request = Text
+instance TraitAbsence (Body t) Request where
+  type Absence (Body t) Request = Text
 
-instance Trait (Body mt t) Response where
-  type Attribute (Body mt t) Response = t
+instance Trait (Body t) Response where
+  type Attribute (Body t) Response = t
 
 -- | A 'Trait' for converting a JSON formatted body into a value.
-data JSONBody' (mediaType :: Maybe Symbol) (t :: Type) = JSONBody'
+newtype JSONBody (t :: Type) = JSONBody (Maybe HTTP.MediaType)
 
-type JSONBody = JSONBody' (Just "application/json")
+instance Trait (JSONBody t) Request where
+  type Attribute (JSONBody t) Request = t
 
-instance Trait (JSONBody' mt t) Request where
-  type Attribute (JSONBody' mt t) Request = t
+instance TraitAbsence (JSONBody t) Request where
+  type Absence (JSONBody t) Request = Text
 
-instance TraitAbsence (JSONBody' mt t) Request where
-  type Absence (JSONBody' mt t) Request = Text
-
-instance Trait (JSONBody' mt t) Response where
-  type Attribute (JSONBody' mt t) Response = t
-
-class MkMediaType (a :: Maybe Symbol) where
-  mkMediaType :: Proxy a -> Maybe HTTP.MediaType
-
-instance MkMediaType Nothing where
-  mkMediaType _ = Nothing
-
-instance KnownSymbol s => MkMediaType (Just s) where
-  mkMediaType _ = Just $ fromString $ symbolVal $ Proxy @s
+instance Trait (JSONBody t) Response where
+  type Attribute (JSONBody t) Response = t
 
 requestBody ::
-  (Get h (Body mt t) Request, ArrowChoice h) =>
+  (Get h (Body t) Request, ArrowChoice h) =>
+  Maybe HTTP.MediaType ->
   -- | error handler
   h (Linked req Request, Text) Response ->
-  Middleware h req (Body mt t : req)
-requestBody errorHandler nextHandler = proc request -> do
-  result <- probe Body -< request
+  Middleware h req (Body t : req)
+requestBody mediaType errorHandler nextHandler = proc request -> do
+  result <- probe (Body mediaType) -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
@@ -94,13 +80,14 @@ requestBody errorHandler nextHandler = proc request -> do
  > jsonRequestBody @t errorHandler
 -}
 jsonRequestBody' ::
-  forall mt t h req.
-  (Get h (JSONBody' mt t) Request, ArrowChoice h) =>
+  forall t h req.
+  (Get h (JSONBody t) Request, ArrowChoice h) =>
+  Maybe HTTP.MediaType ->
   -- | error handler
   h (Linked req Request, Text) Response ->
-  Middleware h req (JSONBody' mt t : req)
-jsonRequestBody' errorHandler nextHandler = proc request -> do
-  result <- probe JSONBody' -< request
+  Middleware h req (JSONBody t : req)
+jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
+  result <- probe (JSONBody mediaType) -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
@@ -112,71 +99,69 @@ jsonRequestBody ::
   -- | error handler
   h (Linked req Request, Text) Response ->
   Middleware h req (JSONBody t : req)
-jsonRequestBody = jsonRequestBody'
+jsonRequestBody = jsonRequestBody' (Just "application/json")
 
 setBody ::
-  forall mediaType body h ts.
-  ( KnownSymbol mediaType
-  , Sets h [Body (Just mediaType) body, RequiredHeader "Content-Type" Text] Response
-  ) =>
-  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : Body (Just mediaType) body : ts) Response)
-setBody = proc (r, body) -> do
-  r' <- plant Body -< (r, body)
-  let mt = fromString $ symbolVal (Proxy @mediaType)
+  forall body h ts.
+  Sets h [Body body, RequiredHeader "Content-Type" Text] Response =>
+  HTTP.MediaType ->
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : Body body : ts) Response)
+setBody mediaType = proc (r, body) -> do
+  r' <- plant (Body (Just mediaType)) -< (r, body)
+  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   returnA <<< plant Header -< (r', mt)
 
 setBodyWithoutContentType ::
   forall body h ts.
-  Set h (Body Nothing body) Response =>
-  h (Linked ts Response, body) (Linked (Body Nothing body : ts) Response)
-setBodyWithoutContentType = plant Body
+  Set h (Body body) Response =>
+  h (Linked ts Response, body) (Linked (Body body : ts) Response)
+setBodyWithoutContentType = plant (Body Nothing)
 
 setJSONBody' ::
-  forall mediaType body h ts.
-  ( KnownSymbol mediaType
-  , Sets h [JSONBody' (Just mediaType) body, RequiredHeader "Content-Type" Text] Response
-  ) =>
-  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : JSONBody' (Just mediaType) body : ts) Response)
-setJSONBody' = proc (r, body) -> do
-  r' <- plant JSONBody' -< (r, body)
-  let mt = fromString $ symbolVal (Proxy @mediaType)
+  forall body h ts.
+  Sets h [JSONBody body, RequiredHeader "Content-Type" Text] Response =>
+  HTTP.MediaType ->
+  h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
+setJSONBody' mediaType = proc (r, body) -> do
+  r' <- plant (JSONBody (Just mediaType)) -< (r, body)
+  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   returnA <<< plant Header -< (r', mt)
 
 setJSONBody ::
   forall body h ts.
   Sets h [JSONBody body, RequiredHeader "Content-Type" Text] Response =>
   h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
-setJSONBody = setJSONBody' @"application/json"
+setJSONBody = setJSONBody' "application/json"
 
 setJSONBodyWithoutContentType ::
   forall body h ts.
   Set h (JSONBody body) Response =>
   h (Linked ts Response, body) (Linked (JSONBody body : ts) Response)
-setJSONBodyWithoutContentType = plant JSONBody'
+setJSONBodyWithoutContentType = plant (JSONBody Nothing)
 
 respondA ::
-  forall mediaType body h.
-  ( KnownSymbol mediaType
-  , Sets h [Status, Body (Just mediaType) body, RequiredHeader "Content-Type" Text] Response
-  ) =>
+  forall body h.
+  Sets h [Status, Body body, RequiredHeader "Content-Type" Text] Response =>
   HTTP.Status ->
-  h body (Linked [RequiredHeader "Content-Type" Text, Body (Just mediaType) body, Status] Response)
-respondA status = proc body -> do
+  HTTP.MediaType ->
+  h body (Linked [RequiredHeader "Content-Type" Text, Body body, Status] Response)
+respondA status mediaType = proc body -> do
   r <- mkResponse status -< ()
-  setBody -< (r, body)
+  setBody mediaType -< (r, body)
 
 respondJsonA ::
   forall body h.
   Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
   HTTP.Status ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
-respondJsonA = respondJsonA' @"application/json"
+respondJsonA status = respondJsonA' status "application/json"
 
 respondJsonA' ::
-  forall mediaType body h.
-  (KnownSymbol mediaType, Sets h [Status, JSONBody' (Just mediaType) body, RequiredHeader "Content-Type" Text] Response) =>
+  forall body h.
+  Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
   HTTP.Status ->
-  h body (Linked [RequiredHeader "Content-Type" Text, JSONBody' (Just mediaType) body, Status] Response)
-respondJsonA' status = proc body -> do
+  HTTP.MediaType ->
+  h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
+respondJsonA' status mediaType = proc body -> do
   r <- mkResponse status -< ()
-  setJSONBody' -< (r, body)
+  setJSONBody' mediaType -< (r, body)
