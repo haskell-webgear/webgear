@@ -1,0 +1,22 @@
+cradle:
+  multi:
+    - path: "./webgear-core/src"
+      config:
+        cradle:
+          stack:
+            component: "webgear-core:lib"
+    - path: "./webgear-server/src"
+      config:
+        cradle:
+          stack:
+            component: "webgear-server:lib"
+    - path: "./webgear-server/test"
+      config:
+        cradle:
+          stack:
+            component: "webgear-server:test:webgear-server-test"
+    - path: "./webgear-openapi/src"
+      config:
+        cradle:
+          stack:
+            component: "webgear-openapi:lib"

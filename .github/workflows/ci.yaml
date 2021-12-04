@@ -1,0 +1,131 @@
+name: Haskell CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  stack-build:
+    name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        ghc:
+          - 9.0.1
+          - 8.10.7
+          - 8.8.4
+        exclude:
+          - os: macos-latest
+            ghc: 8.10.7
+          - os: macos-latest
+            ghc: 8.8.4
+
+    env:
+      STACK_YAML: stack-${{ matrix.ghc }}.yaml
+
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout Source Code
+
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell Build Environment
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          enable-stack: true
+          stack-version: 2.7.3
+
+      - uses: actions/cache@v2
+        name: Cache dependencies
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ matrix.ghc }}-stack-${{ hashFiles(env.STACK_YAML) }}
+
+      - name: Build
+        run: |
+          # Workaround for random errors on macos
+          rm -rf ~/.stack/setup-exe-src ~/.stack/setup-exe-cache
+          stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+
+      - name: Test
+        run: stack test --system-ghc --ta '--quickcheck-tests 100000'
+
+      - name: Haddock
+        run: stack haddock --system-ghc
+
+      - name : Prepare sdist
+        run: stack sdist --system-ghc --ignore-check
+
+      - name: Upload to Hackage
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          export HACKAGE_USERNAME="rkaippully"
+          export HACKAGE_PASSWORD="${{ secrets.HACKAGE_TOKEN }}"
+          stack upload --system-ghc --ignore-check webgear-core
+          stack upload --system-ghc --ignore-check webgear-server
+          stack upload --system-ghc --ignore-check webgear-openapi
+
+  cabal-build:
+    name: Cabal - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ghc:
+          - 9.0.1
+          - 8.10.7
+          - 8.8.4
+        exclude:
+          - os: macos-latest
+            ghc: 8.10.7
+          - os: macos-latest
+            ghc: 8.8.4
+
+    env:
+      CONFIG: "--enable-tests --enable-benchmarks"
+
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout Source Code
+
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell Build Environment
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          enable-stack: false
+
+      - name: Update package index
+        run: cabal update $CONFIG
+
+      - name: Generate freeze file
+        run: cabal freeze $CONFIG
+
+      - uses: actions/cache@v2
+        name: Cache dependencies
+        with:
+          path: |
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-${{ matrix.ghc }}-cabal-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-cabal-
+
+      - name: Build
+        run: cabal build all --enable-documentation $CONFIG
+
+      - name: Test
+        run: cabal test all --test-show-details=always --test-options='--quickcheck-tests 100000' $CONFIG
+
+      - name: Haddock
+        run: cabal haddock all --enable-documentation $CONFIG
+
+      - name: Prepare sdist
+        run: cabal sdist all

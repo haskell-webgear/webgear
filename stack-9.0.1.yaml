@@ -1,0 +1,6 @@
+resolver: nightly-2021-11-28
+
+packages:
+  - ./webgear-core
+  - ./webgear-server
+  - ./webgear-openapi

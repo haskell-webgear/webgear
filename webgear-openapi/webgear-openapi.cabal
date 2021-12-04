@@ -1,0 +1,93 @@
+cabal-version:       2.4
+
+name:                webgear-openapi
+version:             1.0.0
+synopsis:            Composable, type-safe library to build HTTP API servers
+description:
+    WebGear is a library to for building composable, type-safe HTTP API servers.
+    This package can be used to generate OpenAPI specifications from WebGear
+    applications.
+homepage:            https://github.com/haskell-webgear/webgear-openapi#readme
+bug-reports:         https://github.com/haskell-webgear/webgear-openapi/issues
+author:              Raghu Kaippully
+maintainer:          rkaippully@gmail.com
+copyright:           2020 Raghu Kaippully
+license:             MPL-2.0
+license-file:        LICENSE
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+
+
+source-repository head
+  type:      git
+  location:  https://github.com/haskell-webgear/webgear-openapi
+
+
+library
+  exposed-modules:    WebGear.OpenApi
+                    , WebGear.OpenApi.Handler
+                    , WebGear.OpenApi.Middlewares
+                    , WebGear.OpenApi.Middleware.Auth.Basic
+                    , WebGear.OpenApi.Middleware.Auth.JWT
+                    , WebGear.OpenApi.Middleware.Body
+                    , WebGear.OpenApi.Middleware.Header
+                    , WebGear.OpenApi.Middleware.Method
+                    , WebGear.OpenApi.Middleware.Path
+                    , WebGear.OpenApi.Middleware.QueryParam
+                    , WebGear.OpenApi.Middleware.Status
+  hs-source-dirs:     src
+  default-language:   Haskell2010
+  default-extensions: Arrows
+                      ConstraintKinds
+                      DataKinds
+                      DeriveFunctor
+                      DeriveGeneric
+                      DerivingStrategies
+                      DerivingVia
+                      FlexibleContexts
+                      FlexibleInstances
+                      FunctionalDependencies
+                      GeneralizedNewtypeDeriving
+                      InstanceSigs
+                      KindSignatures
+                      LambdaCase
+                      MultiParamTypeClasses
+                      NamedFieldPuns
+                      OverloadedStrings
+                      OverloadedLists
+                      PolyKinds
+                      RankNTypes
+                      RecordWildCards
+                      ScopedTypeVariables
+                      StandaloneDeriving
+                      TemplateHaskellQuotes
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+  build-depends:      arrows ==0.4.*
+                    , base >=4.13.0.0 && <4.16
+                    , http-media ==0.8.*
+                    , http-types ==0.12.*
+                    , insert-ordered-containers ==0.2.*
+                    , lens >=4.18.1 && <5.1
+                    , openapi3 ==3.1.*
+                    , text ==1.2.*
+                    , webgear-core ==1.0.0
+  ghc-options:        -Wall
+                      -Wno-unticked-promoted-constructors
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wmissing-fields
+                      -Wmissing-home-modules
+                      -Wmissing-deriving-strategies
+                      -Wpartial-fields
+                      -Wredundant-constraints
+                      -Werror
+                      -fshow-warning-groups
+
+  if impl(ghc >= 8.10)
+    ghc-options:      -Wunused-packages
