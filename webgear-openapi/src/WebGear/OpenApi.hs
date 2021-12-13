@@ -1,7 +1,21 @@
-{- | Main module for WebGear OpenApi handler.
+{- | Main module for WebGear OpenAPI support.
 
- This module can be imported to get all required types and functions
- to generate OpenApi documentation.
+ Import this module to get all required types and functions for
+ generating OpenAPI documentation. Alternatively, import individual
+ modules under @WebGear.OpenApi@.
+
+ Typical usage to generate OpenAPI:
+
+@
+ import WebGear.OpenApi
+ import Data.OpenApi (OpenApi)
+
+ myHandler :: Handler h m => RequestHandler h '[]
+ myHandler = ....
+
+ documentation :: OpenApi
+ documentation = toOpenApi myHandler
+@
 -}
 module WebGear.OpenApi (
   module WebGear.Core,

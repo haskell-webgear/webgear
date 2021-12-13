@@ -11,8 +11,8 @@ WebGear is a Haskell library for building composable, type-safe HTTP APIs.
 This is the main repository of WebGear project. It contains multiple packages:
 
 - `webgear-core`: The core library.
-- `webgear-server`: Serve WebGear applications using `warp` HTTP server.
-- `webgear-openapi`: Generate OpenAPI specifications of WebGear applications.
+- `webgear-server`: Serve WebGear applications using `wai` and `warp`.
+- `webgear-openapi`: Generate OpenAPI specifications from WebGear specifications.
 
 Examples of WebGear applications can be found at:
 
