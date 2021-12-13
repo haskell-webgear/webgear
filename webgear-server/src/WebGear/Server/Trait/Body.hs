@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Body where
+-- | Server implementation of the `Body` trait.
+module WebGear.Server.Trait.Body () where
 
 import Control.Arrow (returnA)
 import Control.Monad.IO.Class (MonadIO (..))

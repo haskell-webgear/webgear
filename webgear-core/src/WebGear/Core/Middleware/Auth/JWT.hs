@@ -31,7 +31,7 @@ import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
  https://tools.ietf.org/html/rfc6750
 
  This trait supports a custom scheme instead of the standard
- "Bearer" scheme.
+ \"Bearer\" scheme.
 -}
 data JWTAuth' (x :: Existence) (scheme :: Symbol) m e a = JWTAuth'
   { jwtValidationSettings :: JWT.JWTValidationSettings
@@ -39,6 +39,7 @@ data JWTAuth' (x :: Existence) (scheme :: Symbol) m e a = JWTAuth'
   , toJWTAttribute :: JWT.ClaimsSet -> m (Either e a)
   }
 
+-- | Trait for JWT authentication with the \"Bearer\" scheme
 type JWTAuth = JWTAuth' Required "Bearer"
 
 -- | Configuration settings for JWT authentication
@@ -49,6 +50,7 @@ data JWTAuthConfig m e a = JWTAuthConfig
   , toJWTAttribute :: JWT.ClaimsSet -> m (Either e a)
   }
 
+-- | Error extracting a JWT from a request
 data JWTAuthError e
   = JWTAuthHeaderMissing
   | JWTAuthSchemeMismatch
@@ -76,17 +78,19 @@ instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
 
  Example usage:
 
- > jwtAuth cfg handler
+ > jwtAuth cfg errorHandler nextHandler
 
- This middleware returns a 401 response if the authorization header
- is missing or formatted incorrectly. It returns a 403 response if
- the JWT is invalid.
+ The @errorHandler@ is invoked if the credentials are invalid or
+ missing. The @nextHandler@ is invoked if the credentials were
+ retrieved successfully.
 -}
 jwtAuth ::
   ( Get h (JWTAuth m e t) Request
   , ArrowChoice h
   ) =>
+  -- | Authentication configuration
   JWTAuthConfig m e t ->
+  -- | Error handler
   h (Linked req Request, JWTAuthError e) Response ->
   Middleware h req (JWTAuth m e t : req)
 jwtAuth = jwtAuth' @"Bearer"
@@ -102,14 +106,15 @@ jwtAuth = jwtAuth' @"Bearer"
  > optionalJWTAuth cfg handler
 
  This middleware will not fail if authorization credentials are
- invalid or missing in the request. Instead the trait attribute is
- of type Either 'JWTAuthError' 'JWT.ClaimsSet' so that the handler
- can process the authentication error appropriately.
+ invalid or missing. Instead the trait attribute is of type @'Either'
+ ('JWTAuthError' e) t@ so that the handler can process the
+ authentication error appropriately.
 -}
 optionalJWTAuth ::
   ( Get h (JWTAuth' Optional "Bearer" m e t) Request
   , ArrowChoice h
   ) =>
+  -- | Authentication configuration
   JWTAuthConfig m e t ->
   Middleware h req (JWTAuth' Optional "Bearer" m e t : req)
 optionalJWTAuth = optionalJWTAuth' @"Bearer"
@@ -130,49 +135,52 @@ jwtAuthMiddleware JWTAuthConfig{..} errorHandler nextHandler =
       Right val -> nextHandler -< val
 
 {- | Middleware to add JWT authentication protection for a
- handler. Expects the JWT to be available via an authorization
- header in the format:
+ handler. Expects the JWT to be available via an authorization header
+ in the format:
 
  > Authorization: <scheme> <jwt>
 
  Example usage:
 
- > jwtAuth' @"<scheme>" cfg handler
+ > jwtAuth' @"<scheme>" cfg errorHandler nextHandler
 
- This middleware returns a 401 response if the authorization header
- is missing or formatted incorrectly. It returns a 403 response if
- the JWT is invalid.
+ The @errorHandler@ is invoked if the credentials are invalid or
+ missing. The @nextHandler@ is invoked if the credentials were
+ retrieved successfully.
 -}
 jwtAuth' ::
   forall s e t h m req.
   ( Get h (JWTAuth' Required s m e t) Request
   , ArrowChoice h
   ) =>
+  -- | Authentication configuration
   JWTAuthConfig m e t ->
+  -- | Error handler
   h (Linked req Request, JWTAuthError e) Response ->
   Middleware h req (JWTAuth' Required s m e t : req)
 jwtAuth' = jwtAuthMiddleware
 
 {- | Middleware to add JWT authentication protection for a
- handler. Expects the JWT to be available via an authorization
- header in the format:
+ handler. Expects the JWT to be available via an authorization header
+ in the format:
 
  > Authorization: <scheme> <jwt>
 
  Example usage:
 
- > optionalJWTAuth' @"<scheme>" cfg handler
+ > optionalJWTAuth' @"<scheme>" cfg nextHandler
 
  This middleware will not fail if authorization credentials are
- invalid or missing in the request. Instead the trait attribute is
- of type Either 'JWTAuthError' 'JWT.ClaimsSet' so that the handler
- can process the authentication error appropriately.
+ invalid or missing. Instead the trait attribute is of type @'Either'
+ ('JWTAuthError' e) t@ so that the handler can process the
+ authentication error appropriately.
 -}
 optionalJWTAuth' ::
   forall s e t h m req.
   ( Get h (JWTAuth' Optional s m e t) Request
   , ArrowChoice h
   ) =>
+  -- | Authentication configuration
   JWTAuthConfig m e t ->
   Middleware h req (JWTAuth' Optional s m e t : req)
 optionalJWTAuth' cfg = jwtAuthMiddleware cfg $ arr (absurd . snd)

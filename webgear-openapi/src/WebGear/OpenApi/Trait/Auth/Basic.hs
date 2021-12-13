@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Auth.Basic where
+-- | OpenApi implementation of 'BasicAuth'' trait.
+module WebGear.OpenApi.Trait.Auth.Basic where
 
 import Data.OpenApi
 import Data.Proxy (Proxy (..))

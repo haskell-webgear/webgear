@@ -85,9 +85,8 @@ path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
 {- | A middleware that captures a path variable from a single path
  component.
 
- The value captured is converted to a value of type @val@ via
- 'FromHttpApiData'. The route will be rejected if the value is not
- found or cannot be converted.
+ The value captured is converted to a value of type @val@. The route
+ will be rejected if the value is not found or cannot be converted.
 
  For example, the following code could be used to read a path
  component as 'Int' tagged with the symbol \"objId\", and then

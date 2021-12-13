@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.QueryParam where
+-- | OpenApi implementation of 'QueryParam' trait.
+module WebGear.OpenApi.Trait.QueryParam where
 
 import Data.OpenApi (
   Param (..),

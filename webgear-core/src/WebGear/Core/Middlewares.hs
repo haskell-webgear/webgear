@@ -1,3 +1,4 @@
+-- | All the middlewares supported by WebGear.
 module WebGear.Core.Middlewares (
   module WebGear.Core.Middleware.Auth.Basic,
   module WebGear.Core.Middleware.Auth.JWT,
@@ -25,7 +26,15 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Gets, Sets)
 
--- | Constraints that include all common middlewares.
+{- | Constraints that include all common traits.
+
+ The type variables are:
+
+ * @h@ - The handler arrow
+ * @m@ - The underlying monad of the handler
+ * @req@ - List of traits the handler `Gets` from the request
+ * @res@ - List of traits the handler `Sets` on the response
+-}
 type StdHandler h m req res =
   ( Handler h m
   , Gets h [Method, Path, PathEnd] Request

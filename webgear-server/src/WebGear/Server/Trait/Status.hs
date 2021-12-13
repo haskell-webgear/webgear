@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Status where
+-- | Server implementation of the `Status` trait.
+module WebGear.Server.Trait.Status where
 
 import Control.Arrow (returnA)
 import qualified Network.HTTP.Types.Status as HTTP

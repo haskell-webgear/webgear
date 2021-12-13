@@ -38,13 +38,16 @@ newtype HeaderParseError = HeaderParseError Text
   deriving stock (Read, Show, Eq)
 
 {- | A 'Trait' for capturing an HTTP header of specified @name@ and
- converting it to some type @val@ via 'FromHttpApiData'. The
- modifiers @e@ and @p@ determine how missing headers and parsing
- errors are handled. The header name is compared case-insensitively.
+ converting it to some type @val@. The modifiers @e@ and @p@ determine
+ how missing headers and parsing errors are handled. The header name
+ is compared case-insensitively.
 -}
 data Header (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = Header
 
+-- | A `Header` that is required and parsed strictly
 type RequiredHeader = Header Required Strict
+
+-- | A `Header` that is optional and parsed strictly
 type OptionalHeader = Header Optional Strict
 
 instance Trait (Header Required Strict name val) Request where
@@ -83,8 +86,7 @@ headerHandler errorHandler nextHandler = proc request -> do
     Left err -> errorHandler -< (request, err)
     Right val -> nextHandler -< val
 
-{- | Extract a header value and convert it to a value of type @val@
- using 'FromHttpApiData'.
+{- | Extract a header value and convert it to a value of type @val@.
 
  The associated trait attribute has type @val@.
 
@@ -99,8 +101,8 @@ header ::
   Middleware h req (Header Required Strict name val : req)
 header = headerHandler
 
-{- | Extract an optional header value and convert it to a value of
- type @val@ using 'FromHttpApiData'.
+{- | Extract an optional header value and convert it to a value of type
+ @val@.
 
  The associated trait attribute has type @Maybe val@; a @Nothing@
  value indicates that the header is missing from the request.
@@ -116,8 +118,7 @@ optionalHeader ::
   Middleware h req (Header Optional Strict name val : req)
 optionalHeader = headerHandler
 
-{- | Extract a header value and convert it to a value of type @val@
- using 'FromHttpApiData'.
+{- | Extract a header value and convert it to a value of type @val@.
 
  The associated trait attribute has type @Either Text val@. The
  parsing is done leniently and any errors are reported in the trait
@@ -134,8 +135,7 @@ lenientHeader ::
   Middleware h req (Header Required Lenient name val : req)
 lenientHeader = headerHandler
 
-{- | Extract a header value and convert it to a value of type @val@
- using 'FromHttpApiData'.
+{- | Extract a header value and convert it to a value of type @val@.
 
  The associated trait attribute has type @Maybe (Either Text
  val)@. The parsing is done leniently. Any parsing errors and

@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Status where
+-- | OpenApi implementation of 'Status' trait.
+module WebGear.OpenApi.Trait.Status where
 
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Middleware.Status (Status (..))

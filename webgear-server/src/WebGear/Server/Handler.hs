@@ -1,3 +1,6 @@
+{- |
+ Server implementation of WebGear handlers
+-}
 module WebGear.Server.Handler (
   ServerHandler (..),
   RoutePath (..),
@@ -22,6 +25,12 @@ import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), toWaiResponse)
 import WebGear.Core.Trait (Linked, linkzero)
 
+{- | An arrow implementing a WebGear server.
+
+ It can be thought of equivalent to the function arrow @a -> m b@
+ where @m@ is a monad. It also supports routing and possibly failing
+ the computation when the route does not match.
+-}
 newtype ServerHandler m a b = ServerHandler {unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath)}
 
 instance Monad m => Cat.Category (ServerHandler m) where
@@ -106,9 +115,20 @@ instance Monad m => Handler (ServerHandler m) m where
   consumeRoute (ServerHandler h) = ServerHandler $
     \((), path) -> h (path, RoutePath [])
 
-runServerHandler :: Monad m => ServerHandler m a b -> RoutePath -> a -> m (Either RouteMismatch b)
+-- | Run a ServerHandler to produce a result or a route mismatch error.
+runServerHandler ::
+  Monad m =>
+  -- | The handler to run
+  ServerHandler m a b ->
+  -- | Path used for routing
+  RoutePath ->
+  -- | Input value to the arrow
+  a ->
+  -- | The result of the arrow
+  m (Either RouteMismatch b)
 runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
 
+-- | Convert a ServerHandler to a WAI application
 toApplication :: ServerHandler IO (Linked '[] Request) Response -> Wai.Application
 toApplication h rqt cont =
   runServerHandler h path request
@@ -126,7 +146,28 @@ toApplication h rqt cont =
     addServerHeader :: Response -> Response
     addServerHeader resp@Response{..} = resp{responseHeaders = responseHeaders <> webGearServerHeader}
 
-transform :: (forall x. m x -> n x) -> ServerHandler m a b -> ServerHandler n a b
+{- | Transform a `ServerHandler` running in one monad to another monad.
+
+ This is useful in cases where the server is running in a custom
+ monad but you would like to convert it to a WAI application using
+ `toApplication`.
+
+ Example usage with a ReaderT monad stack:
+
+@
+ `toApplication` (transform f server)
+   where
+     server :: `ServerHandler` (ReaderT r IO) (`Linked` '[] `Request`) `Response`
+     server = ....
+
+     f :: ReaderT r IO a -> IO a
+     f action = runReaderT action r
+@
+-}
+transform ::
+  (forall x. m x -> n x) ->
+  ServerHandler m a b ->
+  ServerHandler n a b
 transform f (ServerHandler g) =
   ServerHandler $ f . g
 

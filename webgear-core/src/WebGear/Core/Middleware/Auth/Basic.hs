@@ -33,6 +33,7 @@ newtype BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'
   { toBasicAttribute :: Credentials -> m (Either e a)
   }
 
+-- | Trait for HTTP basic authentication with the "Basic" scheme.
 type BasicAuth = BasicAuth' Required "Basic"
 
 {- | Username for basic authentication. Valid usernames cannot contain
@@ -58,6 +59,7 @@ data BasicAuthConfig m e a = BasicAuthConfig
   , toBasicAttribute :: Credentials -> m (Either e a)
   }
 
+-- | Error retrieving basic authentication credentials
 data BasicAuthError e
   = BasicAuthHeaderMissing
   | BasicAuthSchemeMismatch
@@ -93,16 +95,17 @@ basicAuthMiddleware BasicAuthConfig{..} errorHandler nextHandler =
 
  Example usage:
 
- > basicAuth cfg handler
+ > basicAuth cfg errorHandler nextHandler
 
- This middleware returns a 401 response if no credentials are found
- in the request. It returns a 403 response if credentials are
- present but 'toBasicAttribute' failed to convert that to value of type
- t.
+ The @errorHandler@ is invoked if the credentials are invalid or
+ missing. The @nextHandler@ is invoked if the credentials were
+ retrieved successfully.
 -}
 basicAuth ::
   (Get h (BasicAuth' 'Required "Basic" m e t) Request, ArrowChoice h) =>
+  -- | Authentication configuration
   BasicAuthConfig m e t ->
+  -- | Error handler
   h (Linked req Request, BasicAuthError e) Response ->
   Middleware h req (BasicAuth m e t : req)
 basicAuth = basicAuthMiddleware
@@ -111,15 +114,16 @@ basicAuth = basicAuthMiddleware
 
  Example usage:
 
- > optionalBasicAuth cfg handler
+ > optionalBasicAuth cfg nextHandler
 
- This middleware will not fail if credentials are invalid or missing
- in the request. Instead the trait attribute is of type Either
- 'BasicAuthError' 'Credentials' so that the handler can process the
+ This middleware will not fail if credentials are invalid or
+ missing. Instead the trait attribute is of type @'Either'
+ ('BasicAuthError' e) t@ so that the handler can process the
  authentication error appropriately.
 -}
 optionalBasicAuth ::
   (Get h (BasicAuth' 'Optional scheme m e t) Request, ArrowChoice h) =>
+  -- | Authentication configuration
   BasicAuthConfig m e t ->
   Middleware h req (BasicAuth' Optional scheme m e t : req)
 optionalBasicAuth cfg = basicAuthMiddleware cfg $ arr (absurd . snd)

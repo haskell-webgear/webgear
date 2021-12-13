@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Path where
+-- | OpenApi implementation of path traits.
+module WebGear.OpenApi.Trait.Path where
 
 import Data.Data (Proxy (Proxy))
 import Data.OpenApi (Param (..), ParamLocation (ParamPath), Referenced (Inline), ToSchema, toSchema)

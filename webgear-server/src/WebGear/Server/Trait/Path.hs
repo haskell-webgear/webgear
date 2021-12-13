@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Path where
+-- | Server implementation of the path traits.
+module WebGear.Server.Trait.Path where
 
 import qualified Data.List as List
 import qualified Data.Text as Text

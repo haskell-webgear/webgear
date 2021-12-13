@@ -27,15 +27,18 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
 
-{- | Capture a query parameter with a specified @name@ and convert it
- to a value of type @val@ via 'FromHttpApiData'. The type parameter
- @e@ denotes whether the query parameter is required to be
- present. The parse style parameter @p@ determines whether the
- conversion is applied strictly or leniently.
+{- | Capture a query parameter with a specified @name@ and convert it to
+ a value of type @val@. The type parameter @e@ denotes whether the
+ query parameter is required to be present. The parse style parameter
+ @p@ determines whether the conversion is applied strictly or
+ leniently.
 -}
 data QueryParam (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = QueryParam
 
+-- | `QueryParam` that is required and parsed strictly 
 type RequiredQueryParam = QueryParam Required Strict
+
+-- | `QueryParam` that is optional and parsed strictly
 type OptionalQueryParam = QueryParam Optional Strict
 
 -- | Indicates a missing query parameter
@@ -81,9 +84,8 @@ queryParamHandler errorHandler nextHandler = proc request -> do
     Left err -> errorHandler -< (request, err)
     Right val -> nextHandler -< val
 
-{- | Extract a query parameter and convert it to a value of type @val@
- using 'FromHttpApiData'. The associated trait attribute has type
- @val@.
+{- | Extract a query parameter and convert it to a value of type
+ @val@. The associated trait attribute has type @val@.
 
  Example usage:
 
@@ -97,9 +99,9 @@ queryParam ::
 queryParam = queryParamHandler
 
 {- | Extract an optional query parameter and convert it to a value of
- type @val@ using 'FromHttpApiData'. The associated trait attribute
- has type @Maybe val@; a @Nothing@ value indicates that the
- parameter is missing from the request.
+ type @val@. The associated trait attribute has type @Maybe val@; a
+ @Nothing@ value indicates that the parameter is missing from the
+ request.
 
  Example usage:
 
@@ -112,8 +114,7 @@ optionalQueryParam ::
   Middleware h req (QueryParam Optional Strict name val : req)
 optionalQueryParam = queryParamHandler
 
-{- | Extract a query parameter and convert it to a value of type @val@
- using 'FromHttpApiData'.
+{- | Extract a query parameter and convert it to a value of type @val@.
 
  The associated trait attribute has type @Either Text val@. The
  parsing is done leniently and any errors are reported in the trait
@@ -130,8 +131,7 @@ lenientQueryParam ::
   Middleware h req (QueryParam Required Lenient name val : req)
 lenientQueryParam = queryParamHandler
 
-{- | Extract a query parameter and convert it to a value of type @val@
- using 'FromHttpApiData'.
+{- | Extract a query parameter and convert it to a value of type @val@.
 
  Example usage:
 

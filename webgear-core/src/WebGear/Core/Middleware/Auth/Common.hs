@@ -31,9 +31,14 @@ import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Linked, Sets)
 import Prelude hiding (break, drop)
 
--- | Header trait for authorization
+-- | Trait for \"Authorization\" header
 type AuthorizationHeader scheme = Header Optional Lenient "Authorization" (AuthToken scheme)
 
+{- | Extract the \"Authorization\" header from a request by specifying
+   an authentication scheme.
+
+  The header is split into the scheme and token parts and returned.
+-}
 getAuthorizationHeaderTrait ::
   forall scheme h ts.
   Get h (AuthorizationHeader scheme) Request =>
@@ -46,9 +51,12 @@ getAuthorizationHeaderTrait = proc request -> do
 newtype Realm = Realm ByteString
   deriving newtype (Eq, Ord, Show, Read, IsString)
 
+-- | The components of Authorization request header
 data AuthToken (scheme :: Symbol) = AuthToken
-  { authScheme :: CI ByteString
-  , authToken :: ByteString
+  { -- | Authentication scheme
+    authScheme :: CI ByteString
+  , -- | Authentication token
+    authToken :: ByteString
   }
 
 instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
@@ -63,6 +71,11 @@ instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
               then Right (AuthToken actualScheme (drop 1 tok))
               else Left "scheme mismatch"
 
+{- | Create a \"401 Unquthorized\" response.
+
+ The response will have a plain text body and an appropriate
+ \"WWW-Authenticate\" header.
+-}
 respondUnauthorized ::
   ( Handler h m
   , Sets
@@ -74,7 +87,9 @@ respondUnauthorized ::
       ]
       Response
   ) =>
+  -- | The authentication scheme
   CI ByteString ->
+  -- | The authentication realm
   Realm ->
   h a Response
 respondUnauthorized scheme (Realm realm) = proc _ -> do

@@ -58,11 +58,13 @@ import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Linked, Set, Trait (..), linkzero, plant)
 
+-- | HTTP response status
 newtype Status = Status HTTP.Status
 
 instance Trait Status Response where
   type Attribute Status Response = HTTP.Status
 
+-- | Generate a response with the specified status
 mkResponse :: Set h Status Response => HTTP.Status -> h () (Linked '[Status] Response)
 mkResponse status = proc () -> do
   let response = linkzero $ Response status [] Nothing

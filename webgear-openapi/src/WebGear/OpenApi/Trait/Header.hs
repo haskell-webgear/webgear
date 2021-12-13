@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Header where
+-- | OpenApi implementation of 'Header' trait.
+module WebGear.OpenApi.Trait.Header () where
 
 import Control.Lens ((&), (.~), (?~))
 import Data.OpenApi hiding (Response)

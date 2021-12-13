@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Body where
+-- | OpenApi implementation of 'Body' trait.
+module WebGear.OpenApi.Trait.Body where
 
 import Control.Lens ((&), (.~), (?~))
 import Data.Maybe (fromMaybe)

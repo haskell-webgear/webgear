@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Auth.JWT where
+-- | OpenApi implementation of 'JWTAuth'' trait.
+module WebGear.OpenApi.Trait.Auth.JWT where
 
 import Data.OpenApi
 import Data.String (fromString)

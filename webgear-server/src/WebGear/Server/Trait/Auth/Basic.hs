@@ -1,7 +1,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Auth.Basic where
+-- | Server implementation of the 'BasicAuth'' trait.
+module WebGear.Server.Trait.Auth.Basic where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.Bifunctor (first)
@@ -26,12 +27,6 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), Linked)
 import WebGear.Server.Handler (ServerHandler)
 
-parseCreds :: AuthToken scheme -> Either (BasicAuthError e) Credentials
-parseCreds AuthToken{..} =
-  case split ':' (decodeLenient authToken) of
-    [] -> Left BasicAuthCredsBadFormat
-    u : ps -> Right $ Credentials (Username u) (Password $ intercalate ":" ps)
-
 instance
   ( Monad m
   , Get (ServerHandler m) (AuthorizationHeader scheme) Request
@@ -52,6 +47,12 @@ instance
           Left e -> returnA -< Left e
           Right c -> validateCreds -< c
     where
+      parseCreds :: AuthToken scheme -> Either (BasicAuthError e) Credentials
+      parseCreds AuthToken{..} =
+        case split ':' (decodeLenient authToken) of
+          [] -> Left BasicAuthCredsBadFormat
+          u : ps -> Right $ Credentials (Username u) (Password $ intercalate ":" ps)
+
       validateCreds :: ServerHandler m Credentials (Either (BasicAuthError e) a)
       validateCreds = arrM $ \creds -> do
         res <- toBasicAttribute creds

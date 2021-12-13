@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.OpenApi.Middleware.Method where
+-- | OpenApi implementation of 'Method' trait.
+module WebGear.OpenApi.Trait.Method where
 
 import WebGear.Core.Middleware.Method (Method (..))
 import WebGear.Core.Request (Request)

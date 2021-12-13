@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.QueryParam where
+-- | Server implementation of the `QueryParam` trait.
+module WebGear.Server.Trait.QueryParam () where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.List (find)

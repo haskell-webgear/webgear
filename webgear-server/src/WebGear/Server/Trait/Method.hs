@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Method where
+-- | Server implementation of the `Method` trait.
+module WebGear.Server.Trait.Method where
 
 import Control.Arrow (returnA)
 import qualified Network.HTTP.Types as HTTP

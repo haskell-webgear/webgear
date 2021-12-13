@@ -23,6 +23,7 @@ import qualified Network.HTTP.Types as HTTP
 import Network.Socket (SockAddr)
 import qualified Network.Wai as Wai
 
+-- | A request processed by a handler
 newtype Request = Request
   { -- | underlying WAI request
     waiRequest :: Wai.Request

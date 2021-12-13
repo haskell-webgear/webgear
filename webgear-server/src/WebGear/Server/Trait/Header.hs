@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module WebGear.Server.Middleware.Header where
+-- | Server implementation of the `Header` trait.
+module WebGear.Server.Trait.Header () where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.ByteString.Conversion (ToByteString, toByteString')
