@@ -22,36 +22,41 @@
  For example, given this handler:
 
  @
- myHandler :: ('Handler' h m, 'HasTrait' ('JWTAuth' m e 'JWT.ClaimsSet') req) => 'RequestHandler' h req
+ myHandler :: ('Handler' h IO, 'HasTrait' ('JWTAuth' IO () 'Credentials') req) => 'RequestHandler' h req
  myHandler = ....
  @
 
  and the following definitions:
 
  @
- authConfig :: Monad m => 'JWTAuth' m ('JWTAuthError' e) 'JWT.ClaimsSet'
+ authConfig :: 'JWTAuth' IO () 'JWT.ClaimsSet'
  authConfig = 'JWTAuth''
    { jwtValidationSettings = 'JWT.defaultJWTValidationSettings' (const True)
    , jwkSet = ....
    , toJWTAttribute = pure . Right
    }
 
- errorHandler :: 'Handler' h m => h ('Linked' req 'Request', 'JWTAuthError' e) 'Response'
+ type ErrorTraits = [Status, RequiredHeader \"Content-Type\" Text, RequiredHeader \"WWW-Authenticate\" Text, Body Text]
+
+ errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
+              => h (Linked req Request, 'JWTAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Bearer\" \"MyRealm\"
  @
 
  we can add JWT authentication to @myHandler@:
 
  @
+ myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'Credentials') Request, Sets h ErrorTraits Response)
+                   => 'RequestHandler' h req
  myHandlerWithAuth = 'jwtAuth' authConfig errorHandler myHandler
  @
 
- The middlewares defined below take a 'JWTAuth'' configuration object
- which has settings for validating a JWT. It also contains a function
- of type @'JWT.ClaimsSet' -> m (Either e a)@. This is used to convert
- the set of claims in the JWT to a value of type @a@ or fail with an
- error of type @e@. In this case @a@ is the type of the trait
- attribute and the next handler is invoked after this conversion.
+ The middlewares defined below take a 'JWTAuth'' parameter which has
+ settings for validating a JWT. It also contains a function of type
+ @'JWT.ClaimsSet' -> m (Either e a)@. This is used to convert the set
+ of claims in the JWT to a value of type @a@ or fail with an error of
+ type @e@. In this case @a@ is the type of the trait attribute and the
+ next handler is invoked after this conversion.
 
  Middlewares marked as 'Required' take an additional error handling
  arrow as a parameter. This arrow is used when an error is encountered

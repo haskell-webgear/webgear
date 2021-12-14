@@ -22,31 +22,37 @@
  For example, given this handler:
 
  @
- myHandler :: ('Handler' h m, 'HasTrait' ('BasicAuth' m e 'Credentials') req) => 'RequestHandler' h req
+ myHandler :: ('Handler' h IO, 'HasTrait' ('BasicAuth' IO () 'Credentials') req) => 'RequestHandler' h req
  myHandler = ....
  @
 
  and the following definitions:
 
  @
- authConfig :: Monad m => 'BasicAuth' m ('BasicAuthError' e) 'Credentials'
+ authConfig :: 'BasicAuth' IO () 'Credentials'
  authConfig = 'BasicAuth'' { toBasicAttribute = pure . Right }
 
- errorHandler :: 'Handler' h m => h ('Linked' req 'Request', 'BasicAuthError' e) 'Response'
+ type ErrorTraits = [Status, RequiredHeader \"Content-Type\" Text, RequiredHeader \"WWW-Authenticate\" Text, Body Text]
+
+ errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
+              => h (Linked req Request, 'BasicAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Basic\" \"MyRealm\"
  @
 
  we can add basic authentication to @myHandler@:
 
  @
+ myHandlerWithAuth :: ('Handler' h IO, Get h ('BasicAuth' IO () 'Credentials') Request, Sets h ErrorTraits Response)
+                   => 'RequestHandler' h req
  myHandlerWithAuth = 'basicAuth' authConfig errorHandler myHandler
  @
 
- The middlewares defined below take a 'BasicAuth'' configuration
- object which is a newtype wrapper over a function of type
- @'Credentials' -> m (Either e a)@. This is used to convert the user
- supplied credentials to a value of type @a@ or fail with an error of
- type @e@. The next handler is invoked after this conversion.
+ The middlewares defined below take a 'BasicAuth'' parameter which is
+ a newtype wrapper over a function of type @'Credentials' -> m (Either
+ e a)@. This is used to convert the user supplied credentials to a
+ value of type @a@ or fail with an error of type @e@. The next handler
+ is invoked after this conversion and can access @a@ as a trait
+ attribute.
 
  Middlewares marked as 'Required' take an additional error handling
  arrow as a parameter. This arrow is used when an error is encountered
