@@ -13,11 +13,11 @@ import Data.Void (Void)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import Network.HTTP.Types (HeaderName)
 import Web.HttpApiData (FromHttpApiData, parseHeader)
-import WebGear.Core.Middleware.Header (Header (..), HeaderNotFound (..), HeaderParseError (..))
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request, requestHeader)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Linked, Set (..), unlink)
+import WebGear.Core.Trait.Header (Header (..), HeaderNotFound (..), HeaderParseError (..))
 import WebGear.Server.Handler (ServerHandler)
 
 extractRequestHeader ::

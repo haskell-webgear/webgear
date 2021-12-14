@@ -10,21 +10,21 @@ import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Char8 (intercalate, split)
 import Data.Void (Void)
 import WebGear.Core.Handler (arrM)
-import WebGear.Core.Middleware.Auth.Basic (
+import WebGear.Core.Modifiers
+import WebGear.Core.Request (Request)
+import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait.Auth.Basic (
   BasicAuth' (..),
   BasicAuthError (..),
   Credentials (..),
   Password (..),
   Username (..),
  )
-import WebGear.Core.Middleware.Auth.Common (
+import WebGear.Core.Trait.Auth.Common (
   AuthToken (..),
   AuthorizationHeader,
   getAuthorizationHeaderTrait,
  )
-import WebGear.Core.Modifiers
-import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
 import WebGear.Server.Handler (ServerHandler)
 
 instance

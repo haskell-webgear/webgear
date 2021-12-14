@@ -12,14 +12,14 @@ import Data.Void (Void)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import Network.HTTP.Types (queryToQueryText)
 import Web.HttpApiData (FromHttpApiData (..))
-import WebGear.Core.Middleware.QueryParam (
+import WebGear.Core.Modifiers
+import WebGear.Core.Request (Request, queryString)
+import WebGear.Core.Trait (Get (..), Linked, unlink)
+import WebGear.Core.Trait.QueryParam (
   ParamNotFound (..),
   ParamParseError (..),
   QueryParam (..),
  )
-import WebGear.Core.Modifiers
-import WebGear.Core.Request (Request, queryString)
-import WebGear.Core.Trait (Get (..), Linked, unlink)
 import WebGear.Server.Handler (ServerHandler)
 
 extractQueryParam ::

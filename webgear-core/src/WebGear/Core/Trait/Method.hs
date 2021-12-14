@@ -1,7 +1,7 @@
 {- |
  Handle HTTP methods.
 -}
-module WebGear.Core.Middleware.Method (
+module WebGear.Core.Trait.Method (
   Method (..),
   MethodMismatch (..),
   method,
@@ -36,7 +36,7 @@ instance TraitAbsence Method Request where
  > method @GET handler
 
  It is also idiomatic to use the template haskell quasiquoter
- 'WebGear.Core.Middleware.Path.match' in cases where both HTTP method
+ 'WebGear.Core.Trait.Path.match' in cases where both HTTP method
  and path needs to be matched.
 -}
 method ::

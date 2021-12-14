@@ -20,7 +20,7 @@ module WebGear.Core (
   module WebGear.Core.Modifiers,
   module WebGear.Core.Handler,
   module WebGear.Core.Handler.Static,
-  module WebGear.Core.Middlewares,
+  module WebGear.Core.Traits,
 ) where
 
 import Control.Arrow
@@ -38,4 +38,4 @@ import WebGear.Core.Request
 import WebGear.Core.Response
 import WebGear.Core.Trait
 
-import WebGear.Core.Middlewares
+import WebGear.Core.Traits

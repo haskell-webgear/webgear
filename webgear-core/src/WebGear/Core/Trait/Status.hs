@@ -1,7 +1,7 @@
 {- |
  Response status
 -}
-module WebGear.Core.Middleware.Status (
+module WebGear.Core.Trait.Status (
   Status (..),
 
   -- * Create responses

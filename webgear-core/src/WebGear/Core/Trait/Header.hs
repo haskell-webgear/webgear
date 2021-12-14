@@ -1,7 +1,7 @@
 {- |
  Handle request headers
 -}
-module WebGear.Core.Middleware.Header (
+module WebGear.Core.Trait.Header (
   -- * Traits
   Header (..),
   HeaderNotFound (..),

@@ -7,9 +7,9 @@ import Data.Data (Proxy (Proxy))
 import Data.OpenApi (Param (..), ParamLocation (ParamPath), Referenced (Inline), ToSchema, toSchema)
 import Data.String (fromString)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Middleware.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.OpenApi.Handler (
   DocNode (DocPathElem, DocPathVar),
   OpenApiHandler (..),

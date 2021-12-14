@@ -5,9 +5,9 @@ module WebGear.Server.Trait.Status where
 
 import Control.Arrow (returnA)
 import qualified Network.HTTP.Types.Status as HTTP
-import WebGear.Core.Middleware.Status (Status (..))
 import WebGear.Core.Response (Response (responseStatus))
 import WebGear.Core.Trait (Linked, Set, setTrait, unlink)
+import WebGear.Core.Trait.Status (Status (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance Monad m => Set (ServerHandler m) Status Response where

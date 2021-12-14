@@ -7,9 +7,9 @@ import qualified Data.List as List
 import qualified Data.Text as Text
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (RoutePath (..))
-import WebGear.Core.Middleware.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.Server.Handler (ServerHandler (..))
 
 instance Monad m => Get (ServerHandler m) Path Request where

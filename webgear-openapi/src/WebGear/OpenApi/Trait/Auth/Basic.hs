@@ -7,9 +7,9 @@ import Data.OpenApi
 import Data.Proxy (Proxy (..))
 import Data.String (fromString)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Middleware.Auth.Basic (BasicAuth' (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), Linked, TraitAbsence (Absence))
+import WebGear.Core.Trait.Auth.Basic (BasicAuth' (..))
 import WebGear.OpenApi.Handler (DocNode (DocSecurityScheme), OpenApiHandler (..), singletonNode)
 
 instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) => Get (OpenApiHandler m) (BasicAuth' x scheme m e a) Request where

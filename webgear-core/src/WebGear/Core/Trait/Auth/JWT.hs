@@ -68,7 +68,7 @@
  ('JWTAuthError' e) a@. The next handler will get the errors in this
  trait attribute and must handle it.
 -}
-module WebGear.Core.Middleware.Auth.JWT (
+module WebGear.Core.Trait.Auth.JWT (
   JWTAuth' (..),
   JWTAuth,
   Realm (..),
@@ -84,11 +84,11 @@ import qualified Crypto.JWT as JWT
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
 import WebGear.Core.Handler
-import WebGear.Core.Middleware.Auth.Common
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait
+import WebGear.Core.Trait.Auth.Common
 
 {- | Trait for JWT authentication with a bearer token:
  https://tools.ietf.org/html/rfc6750

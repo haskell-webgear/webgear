@@ -12,10 +12,10 @@ import Data.Text (Text, pack)
 import Network.HTTP.Media.RenderHeader (RenderHeader (renderHeader))
 import Network.HTTP.Types (hContentType)
 import WebGear.Core.Handler (Handler (..))
-import WebGear.Core.Middleware.Body (Body (..), JSONBody (..))
 import WebGear.Core.Request (Request, getRequestBodyChunk)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Linked, Set (..), unlink)
+import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Request where

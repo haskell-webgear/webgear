@@ -11,15 +11,15 @@ import qualified Crypto.JWT as JWT
 import Data.ByteString.Lazy (fromStrict)
 import Data.Void (Void)
 import WebGear.Core.Handler (arrM)
-import WebGear.Core.Middleware.Auth.Common (
+import WebGear.Core.Modifiers
+import WebGear.Core.Request (Request)
+import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait.Auth.Common (
   AuthToken (..),
   AuthorizationHeader,
   getAuthorizationHeaderTrait,
  )
-import WebGear.Core.Middleware.Auth.JWT (JWTAuth' (..), JWTAuthError (..))
-import WebGear.Core.Modifiers
-import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..), JWTAuthError (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Required scheme m e a) Request where

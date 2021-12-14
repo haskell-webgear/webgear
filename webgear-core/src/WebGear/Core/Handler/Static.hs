@@ -14,12 +14,12 @@ import qualified Data.Text as Text
 import qualified Network.Mime as Mime
 import System.FilePath (joinPath, takeFileName, (</>))
 import WebGear.Core.Handler (Handler (..), RoutePath (..), unlinkA)
-import WebGear.Core.Middleware.Body (Body, setBodyWithoutContentType)
-import WebGear.Core.Middleware.Header (RequiredHeader, setHeader)
-import WebGear.Core.Middleware.Status (Status, notFound404, ok200)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Linked (..), Sets)
+import WebGear.Core.Trait.Body (Body, setBodyWithoutContentType)
+import WebGear.Core.Trait.Header (RequiredHeader, setHeader)
+import WebGear.Core.Trait.Status (Status, notFound404, ok200)
 import Prelude hiding (readFile)
 
 -- | Serve files under the specified directory.

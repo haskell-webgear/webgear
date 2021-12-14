@@ -7,9 +7,9 @@ import Data.OpenApi
 import Data.String (fromString)
 import Data.Typeable (Proxy (..))
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Middleware.Auth.JWT (JWTAuth' (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), Linked, TraitAbsence (..))
+import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..))
 import WebGear.OpenApi.Handler (DocNode (DocSecurityScheme), OpenApiHandler (..), singletonNode)
 
 instance

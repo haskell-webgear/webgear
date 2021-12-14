@@ -9,10 +9,10 @@ import Data.OpenApi hiding (Response)
 import Data.OpenApi.Declare (runDeclare)
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
-import WebGear.Core.Middleware.Body (Body (..), JSONBody (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Linked, Set (..))
+import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
 import WebGear.OpenApi.Handler (
   DocNode (DocRequestBody, DocResponseBody),
   OpenApiHandler (..),

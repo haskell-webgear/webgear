@@ -1,7 +1,7 @@
 {- |
  Handle query parameters
 -}
-module WebGear.Core.Middleware.QueryParam (
+module WebGear.Core.Trait.QueryParam (
   -- * Traits
   QueryParam (..),
   RequiredQueryParam,
@@ -35,7 +35,7 @@ import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
 -}
 data QueryParam (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = QueryParam
 
--- | `QueryParam` that is required and parsed strictly 
+-- | `QueryParam` that is required and parsed strictly
 type RequiredQueryParam = QueryParam Required Strict
 
 -- | `QueryParam` that is optional and parsed strictly

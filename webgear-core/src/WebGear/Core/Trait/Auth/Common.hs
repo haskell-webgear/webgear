@@ -1,7 +1,7 @@
 {- |
  Common types and functions related to authorization.
 -}
-module WebGear.Core.Middleware.Auth.Common (
+module WebGear.Core.Trait.Auth.Common (
   AuthorizationHeader,
   getAuthorizationHeaderTrait,
   Realm (..),
@@ -22,13 +22,13 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Types as HTTP
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (Handler, unlinkA)
-import WebGear.Core.Middleware.Body (Body, respondA)
-import WebGear.Core.Middleware.Header (Header (..), RequiredHeader, setHeader)
-import WebGear.Core.Middleware.Status (Status)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Linked, Sets)
+import WebGear.Core.Trait.Body (Body, respondA)
+import WebGear.Core.Trait.Header (Header (..), RequiredHeader, setHeader)
+import WebGear.Core.Trait.Status (Status)
 import Prelude hiding (break, drop)
 
 -- | Trait for \"Authorization\" header

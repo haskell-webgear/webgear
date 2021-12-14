@@ -1,4 +1,5 @@
-{- | Middlewares to handle request and response body payloads.
+{- | Traits and middlewares to handle request and response body
+   payloads.
 
  There are a number of ways to extract a body from a request:
 
@@ -23,9 +24,9 @@
  'setJSONBodyWithoutContentType', or 'setJSONBody''. These middlwares
  accept a linked response and a body and sets the body in the
  response. You can generate a response object using functions from
- "WebGear.Core.Middleware.Status" module.
+ "WebGear.Core.Trait.Status" module.
 -}
-module WebGear.Core.Middleware.Body (
+module WebGear.Core.Trait.Body (
   -- * Traits
   Body (..),
   JSONBody (..),
@@ -51,11 +52,11 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Middleware)
-import WebGear.Core.Middleware.Header (Header (..), RequiredHeader)
-import WebGear.Core.Middleware.Status (Status, mkResponse)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Linked, Set, Sets, Trait (..), TraitAbsence (..), plant, probe)
+import WebGear.Core.Trait.Header (Header (..), RequiredHeader)
+import WebGear.Core.Trait.Status (Status, mkResponse)
 
 -- | Request or response body with a type @t@.
 newtype Body (t :: Type) = Body (Maybe HTTP.MediaType)

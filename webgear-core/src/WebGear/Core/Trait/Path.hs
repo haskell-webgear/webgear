@@ -1,7 +1,7 @@
 {- |
  Middlewares related to route paths.
 -}
-module WebGear.Core.Middleware.Path (
+module WebGear.Core.Trait.Path (
   Path (..),
   PathVar (..),
   PathVarError (..),
@@ -24,9 +24,9 @@ import GHC.TypeLits (Symbol)
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
-import WebGear.Core.Middleware.Method (method)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait.Method (method)
 import Prelude hiding (drop, filter, take)
 
 {- | A path component which is literally matched against the request

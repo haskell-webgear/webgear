@@ -92,16 +92,16 @@ library
                     , WebGear.Core.Request
                     , WebGear.Core.Response
                     , WebGear.Core.Handler
-                    , WebGear.Core.Middlewares
-                    , WebGear.Core.Middleware.Auth.Basic
-                    , WebGear.Core.Middleware.Auth.JWT
-                    , WebGear.Core.Middleware.Auth.Common
-                    , WebGear.Core.Middleware.Body
-                    , WebGear.Core.Middleware.Header
-                    , WebGear.Core.Middleware.Method
-                    , WebGear.Core.Middleware.Path
-                    , WebGear.Core.Middleware.QueryParam
-                    , WebGear.Core.Middleware.Status
+                    , WebGear.Core.Traits
+                    , WebGear.Core.Trait.Auth.Basic
+                    , WebGear.Core.Trait.Auth.JWT
+                    , WebGear.Core.Trait.Auth.Common
+                    , WebGear.Core.Trait.Body
+                    , WebGear.Core.Trait.Header
+                    , WebGear.Core.Trait.Method
+                    , WebGear.Core.Trait.Path
+                    , WebGear.Core.Trait.QueryParam
+                    , WebGear.Core.Trait.Status
                     , WebGear.Core.Handler.Static
   hs-source-dirs:     src
   build-depends:      arrows ==0.4.*

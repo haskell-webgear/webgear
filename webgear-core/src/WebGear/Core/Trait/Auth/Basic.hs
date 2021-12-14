@@ -64,7 +64,7 @@
  ('BasicAuthError' e) a@. The next handler will get the errors in this
  trait attribute and must handle it.
 -}
-module WebGear.Core.Middleware.Auth.Basic (
+module WebGear.Core.Trait.Auth.Basic (
   BasicAuth' (..),
   BasicAuth,
   Realm (..),
@@ -84,11 +84,11 @@ import Data.String (IsString)
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
 import WebGear.Core.Handler
-import WebGear.Core.Middleware.Auth.Common
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait
+import WebGear.Core.Trait.Auth.Common
 
 -- | Trait for HTTP basic authentication: https://tools.ietf.org/html/rfc7617
 newtype BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'

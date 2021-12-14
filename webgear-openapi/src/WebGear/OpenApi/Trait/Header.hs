@@ -9,11 +9,11 @@ import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import qualified WebGear.Core.Middleware.Header as WG
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Set (..), Trait, TraitAbsence)
+import qualified WebGear.Core.Trait.Header as WG
 import WebGear.OpenApi.Handler (DocNode (..), OpenApiHandler (..), singletonNode)
 
 mkParam ::

@@ -13,10 +13,10 @@ import Data.OpenApi (
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Middleware.QueryParam (QueryParam (..))
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), TraitAbsence)
+import WebGear.Core.Trait.QueryParam (QueryParam (..))
 import WebGear.OpenApi.Handler (DocNode (DocQueryParam), OpenApiHandler (..), singletonNode)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Required ps name val) Request) => Get (OpenApiHandler m) (QueryParam Required ps name val) Request where
