@@ -1,5 +1,29 @@
-{- |
- Handle request/response body payloads
+{- | Middlewares to handle request and response body payloads.
+
+ There are a number of ways to extract a body from a request:
+
+ The 'requestBody' middleware attempts to convert the body to a
+ Haskell value or invoke an error handler if that fails.
+
+ The 'jsonRequestBody' middleware attempts to convert a JSON
+ formatted body to a Haskell value or invoke an error handler if that
+ fails. It uses the standard "application/json" media type.
+
+ The 'jsonRequestBody'' middleware is similar but supports custom
+ media types.
+
+ Similarly, there are a number of ways to set a response body:
+
+ The easiest option is to use one of 'respondA', 'respondJsonA', or
+ 'respondJsonA'' middlewares. These middlewares generate a response
+ from an HTTP status and a response body.
+
+ If you need finer control over setting the body, use one of
+ 'setBody', 'setBodyWithoutContentType', 'setJSONBody',
+ 'setJSONBodyWithoutContentType', or 'setJSONBody''. These middlwares
+ accept a linked response and a body and sets the body in the
+ response. You can generate a response object using functions from
+ "WebGear.Core.Middleware.Status" module.
 -}
 module WebGear.Core.Middleware.Body (
   -- * Traits

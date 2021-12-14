@@ -4,7 +4,7 @@
 module WebGear.Core.Middleware.Status (
   Status (..),
 
-  -- * Handlers to create responses
+  -- * Create responses
   mkResponse,
   continue100,
   switchingProtocols101,

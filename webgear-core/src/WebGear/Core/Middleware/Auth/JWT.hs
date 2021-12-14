@@ -22,7 +22,7 @@
  For example, given this handler:
 
  @
- myHandler :: ('Handler' h IO, 'HasTrait' ('JWTAuth' IO () 'Credentials') req) => 'RequestHandler' h req
+ myHandler :: ('Handler' h IO, 'HasTrait' ('JWTAuth' IO () 'JWT.ClaimsSet') req) => 'RequestHandler' h req
  myHandler = ....
  @
 
@@ -46,7 +46,7 @@
  we can add JWT authentication to @myHandler@:
 
  @
- myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'Credentials') Request, Sets h ErrorTraits Response)
+ myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'JWT.ClaimsSet') Request, Sets h ErrorTraits Response)
                    => 'RequestHandler' h req
  myHandlerWithAuth = 'jwtAuth' authConfig errorHandler myHandler
  @
