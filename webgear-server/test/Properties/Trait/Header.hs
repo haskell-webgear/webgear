@@ -10,11 +10,11 @@ import Test.QuickCheck (Property, allProperties, counterexample, property, (===)
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Header (Header (..), HeaderParseError (..), RequiredHeader)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait.Header (Header (..), HeaderParseError (..), RequiredHeader)
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.Header ()
+import WebGear.Server.Trait.Header ()
 
 prop_headerParseError :: Property
 prop_headerParseError = property $ \hval ->

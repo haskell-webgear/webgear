@@ -1,4 +1,4 @@
-module Properties.Trait.Params (
+module Properties.Trait.QueryParam (
   tests,
 ) where
 
@@ -10,12 +10,12 @@ import Test.QuickCheck (Property, allProperties, counterexample, property, (===)
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.QueryParam (ParamParseError (..), QueryParam (..))
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait.QueryParam (ParamParseError (..), QueryParam (..))
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.QueryParam ()
+import WebGear.Server.Trait.QueryParam ()
 
 prop_paramParseError :: Property
 prop_paramParseError = property $ \hval ->

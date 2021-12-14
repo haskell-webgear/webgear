@@ -6,11 +6,11 @@ import Data.Functor.Identity (runIdentity)
 import Network.Wai (defaultRequest, pathInfo)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
-import WebGear.Core.Middleware.Path (PathVar (..), PathVarError (..))
+import WebGear.Core.Trait.Path (PathVar (..), PathVarError (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.Path ()
+import WebGear.Server.Trait.Path ()
 
 testMissingPathVar :: TestTree
 testMissingPathVar = testCase "PathVar match: missing variable" $ do

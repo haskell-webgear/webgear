@@ -113,7 +113,7 @@ test-suite webgear-server-test
                     , Properties
                     , Properties.Trait.Body
                     , Properties.Trait.Header
-                    , Properties.Trait.Params
+                    , Properties.Trait.QueryParam
                     , Properties.Trait.Method
                     , Properties.Trait.Path
                     , Properties.Trait.Auth.Basic
