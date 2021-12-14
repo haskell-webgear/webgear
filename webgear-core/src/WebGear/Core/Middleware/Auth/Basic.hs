@@ -1,19 +1,75 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 
-{- |
- Basic authentication support.
+{- | HTTP basic authentication support.
+
+ Middlewares defined in this module add basic authentication support
+ to handlers. In most cases, you just need to use `BasicAuth` trait
+ and `basicAuth` middleware. The table below describes when to use
+ other traits and middlewares.
+
+ +----------+-------------+-------------------------+----------------------+
+ | Type     | Auth Scheme | Trait                   | Middleware           |
+ +----------+-------------+-------------------------+----------------------+
+ | Required | Basic       | 'BasicAuth'             | 'basicAuth'          |
+ +----------+-------------+-------------------------+----------------------+
+ | Optional | Basic       | 'BasicAuth'' 'Optional' | 'optionalBasicAuth'  |
+ +----------+-------------+-------------------------+----------------------+
+ | Required | Any scheme  | 'BasicAuth'' 'Required' | 'basicAuth''         |
+ +----------+-------------+-------------------------+----------------------+
+ | Optional | Any scheme  | 'BasicAuth'' 'Optional' | 'optionalBasicAuth'' |
+ +----------+-------------+-------------------------+----------------------+
+
+ For example, given this handler:
+
+ @
+ myHandler :: ('Handler' h m, 'HasTrait' ('BasicAuth' m e 'Credentials') req) => 'RequestHandler' h req
+ myHandler = ....
+ @
+
+ and the following definitions:
+
+ @
+ authConfig :: Monad m => 'BasicAuth' m ('BasicAuthError' e) 'Credentials'
+ authConfig = 'BasicAuth'' { toBasicAttribute = pure . Right }
+
+ errorHandler :: 'Handler' h m => h ('Linked' req 'Request', 'BasicAuthError' e) 'Response'
+ errorHandler = 'respondUnauthorized' \"Basic\" \"MyRealm\"
+ @
+
+ we can add basic authentication to @myHandler@:
+
+ @
+ myHandlerWithAuth = 'basicAuth' authConfig errorHandler myHandler
+ @
+
+ The middlewares defined below take a 'BasicAuth'' configuration
+ object which is a newtype wrapper over a function of type
+ @'Credentials' -> m (Either e a)@. This is used to convert the user
+ supplied credentials to a value of type @a@ or fail with an error of
+ type @e@. The next handler is invoked after this conversion.
+
+ Middlewares marked as 'Required' take an additional error handling
+ arrow as a parameter. This arrow is used when an error is encountered
+ in authentication. This arrow receives the original request and a
+ 'BasicAuthError' as inputs and must produce a response as the output.
+
+ Middlewares marked as 'Optional' do not have this additional error
+ handling arrow. Instead, the trait attribute is of type @Either
+ ('BasicAuthError' e) a@. The next handler will get the errors in this
+ trait attribute and must handle it.
 -}
 module WebGear.Core.Middleware.Auth.Basic (
   BasicAuth' (..),
   BasicAuth,
-  BasicAuthConfig (..),
   Realm (..),
   Username (..),
   Password (..),
   Credentials (..),
   BasicAuthError (..),
   basicAuth,
+  basicAuth',
   optionalBasicAuth,
+  optionalBasicAuth',
 ) where
 
 import Control.Arrow (ArrowChoice, arr)
@@ -21,12 +77,12 @@ import Data.ByteString (ByteString)
 import Data.String (IsString)
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
-import WebGear.Core.Handler (Middleware)
-import WebGear.Core.Middleware.Auth.Common (Realm (..))
+import WebGear.Core.Handler
+import WebGear.Core.Middleware.Auth.Common
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait
 
 -- | Trait for HTTP basic authentication: https://tools.ietf.org/html/rfc7617
 newtype BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'
@@ -53,12 +109,6 @@ data Credentials = Credentials
   }
   deriving stock (Eq, Ord, Show, Read)
 
--- | Configuration settings for JWT authentication
-data BasicAuthConfig m e a = BasicAuthConfig
-  { basicAuthRealm :: Realm
-  , toBasicAttribute :: Credentials -> m (Either e a)
-  }
-
 -- | Error retrieving basic authentication credentials
 data BasicAuthError e
   = BasicAuthHeaderMissing
@@ -81,12 +131,12 @@ instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
 
 basicAuthMiddleware ::
   (Get h (BasicAuth' x scheme m e t) Request, ArrowChoice h) =>
-  BasicAuthConfig m e t ->
+  BasicAuth' x scheme m e t ->
   h (Linked req Request, Absence (BasicAuth' x scheme m e t) Request) Response ->
   Middleware h req (BasicAuth' x scheme m e t : req)
-basicAuthMiddleware BasicAuthConfig{..} errorHandler nextHandler =
+basicAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
-    result <- probe BasicAuth'{..} -< request
+    result <- probe authCfg -< request
     case result of
       Left err -> errorHandler -< (request, err)
       Right val -> nextHandler -< val
@@ -102,13 +152,30 @@ basicAuthMiddleware BasicAuthConfig{..} errorHandler nextHandler =
  retrieved successfully.
 -}
 basicAuth ::
-  (Get h (BasicAuth' 'Required "Basic" m e t) Request, ArrowChoice h) =>
+  forall m e t h req.
+  (Get h (BasicAuth' Required "Basic" m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
-  BasicAuthConfig m e t ->
+  BasicAuth m e t ->
   -- | Error handler
   h (Linked req Request, BasicAuthError e) Response ->
   Middleware h req (BasicAuth m e t : req)
-basicAuth = basicAuthMiddleware
+basicAuth = basicAuth'
+
+{- | Similar to `basicAuth` but supports a custom authentication scheme.
+
+ Example usage:
+
+ > basicAuth' @"scheme" cfg errorHandler nextHandler
+-}
+basicAuth' ::
+  forall scheme m e t h req.
+  (Get h (BasicAuth' Required scheme m e t) Request, ArrowChoice h) =>
+  -- | Authentication configuration
+  BasicAuth' Required scheme m e t ->
+  -- | Error handler
+  h (Linked req Request, BasicAuthError e) Response ->
+  Middleware h req (BasicAuth' Required scheme m e t : req)
+basicAuth' = basicAuthMiddleware
 
 {- | Middleware to add optional basic authentication protection for a handler.
 
@@ -122,8 +189,24 @@ basicAuth = basicAuthMiddleware
  authentication error appropriately.
 -}
 optionalBasicAuth ::
-  (Get h (BasicAuth' 'Optional scheme m e t) Request, ArrowChoice h) =>
+  forall m e t h req.
+  (Get h (BasicAuth' Optional "Basic" m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
-  BasicAuthConfig m e t ->
+  BasicAuth' Optional "Basic" m e t ->
+  Middleware h req (BasicAuth' Optional "Basic" m e t : req)
+optionalBasicAuth = optionalBasicAuth'
+
+{- | Similar to `optionalBasicAuth` but supports a custom authentication
+   scheme.
+
+ Example usage:
+
+ > optionalBasicAuth' @"scheme" cfg nextHandler
+-}
+optionalBasicAuth' ::
+  forall scheme m e t h req.
+  (Get h (BasicAuth' Optional scheme m e t) Request, ArrowChoice h) =>
+  -- | Authentication configuration
+  BasicAuth' Optional scheme m e t ->
   Middleware h req (BasicAuth' Optional scheme m e t : req)
-optionalBasicAuth cfg = basicAuthMiddleware cfg $ arr (absurd . snd)
+optionalBasicAuth' cfg = basicAuthMiddleware cfg $ arr (absurd . snd)

@@ -71,7 +71,7 @@ instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
               then Right (AuthToken actualScheme (drop 1 tok))
               else Left "scheme mismatch"
 
-{- | Create a \"401 Unquthorized\" response.
+{- | Create a \"401 Unauthorized\" response.
 
  The response will have a plain text body and an appropriate
  \"WWW-Authenticate\" header.
