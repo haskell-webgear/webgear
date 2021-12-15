@@ -1,3 +1,4 @@
+-- | Various modifiers used by traits
 module WebGear.Core.Modifiers (
   Existence (..),
   ParseStyle (..),

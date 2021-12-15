@@ -1,10 +1,9 @@
-{-# LANGUAGE UndecidableInstances #-}
+ {-# LANGUAGE UndecidableInstances #-}
 
-{- |
- Traits are optional attributes associated with a value. For
+{- | Traits are optional attributes associated with a value. For
  example, a list containing totally ordered values might have a
  @Maximum@ trait where the associated attribute is the maximum
- value. This trait exists only if the list is non-empty. The 'Trait'
+ value. This trait exists only if the list is non-empty. The `Trait`
  typeclass provides an interface to extract such trait attributes.
 
  Traits help to link attributes with values in a type-safe manner.
@@ -33,8 +32,8 @@ module WebGear.Core.Trait (
 
   -- * Retrive trait attributes from linked values
   HasTrait (..),
-  pick,
   HaveTraits,
+  pick,
   MissingTrait,
 ) where
 
@@ -49,27 +48,43 @@ class Trait (t :: Type) a where
   -- value
   type Attribute t a :: Type
 
--- | A trait that can be retrieved from @a@ but may be absent.
+-- | A trait @t@ that can be retrieved from @a@ but could be absent.
 class Trait t a => TraitAbsence t a where
   -- | Type that indicates that the trait does not exist for a
-  -- value. This could be an error message, parse error etc.
+  -- value. This could be an error message, exception etc.
   type Absence t a :: Type
 
+-- | Extract trait attributes from a value.
 class (Arrow h, TraitAbsence t a) => Get h t a where
   -- | Attempt to deduce the trait attribute from the value @a@.
-  getTrait :: t -> h (Linked ts a) (Either (Absence t a) (Attribute t a))
-
-class (Arrow h, Trait t a) => Set h (t :: Type) a where
-  -- | Set a trait attribute on the value @a@.
-  setTrait ::
+  getTrait ::
+    -- | The trait to extract
     t ->
+    -- | Arrow that extracts the trait and can possibly fail
+    h (Linked ts a) (Either (Absence t a) (Attribute t a))
+
+-- | Set a trait attribute on a value
+class (Arrow h, Trait t a) => Set h (t :: Type) a where
+  -- | Set a trait attribute @t@ on the value @a@.
+  setTrait ::
+    -- | The trait to set
+    t ->
+    -- | A function to generate a linked value. This function must be
+    -- called by the `setTrait` implementation to generate a linked
+    -- value.
     (Linked ts a -> a -> Attribute t a -> Linked (t : ts) a) ->
+    -- | An arrow that attches a new trait attribute to a value linked
+    -- with other traits
     h (Linked ts a, Attribute t a) (Linked (t : ts) a)
 
+-- | @Gets h ts a@ is equivalent to @(Get h t1 a, Get h t2 a, ..., Get
+-- h tn a)@ where @ts = [t1, t2, ..., tn]@.
 type family Gets h ts a :: Constraint where
   Gets h '[] a = ()
   Gets h (t : ts) a = (Get h t a, Gets h ts a)
 
+-- | @Sets h ts a@ is equivalent to @(Set h t1 a, Set h t2 a, ..., Set
+-- h tn a)@ where @ts = [t1, t2, ..., tn]@.
 type family Sets h ts a :: Constraint where
   Sets h '[] a = ()
   Sets h (t : ts) a = (Set h t a, Sets h ts a)
@@ -109,6 +124,8 @@ probe t = proc l -> do
     link (_, Left e) = Left e
     link (Linked{..}, Right attr) = Right $ Linked{linkAttribute = (attr, linkAttribute), ..}
 
+-- | Set a trait attribute on linked value to produce another linked
+-- value
 plant :: Set h t a => t -> h (Linked ts a, Attribute t a) (Linked (t : ts) a)
 plant t = proc (l, attr) -> do
   setTrait t link -< (l, attr)
@@ -120,7 +137,7 @@ plant t = proc (l, attr) -> do
  of traits @ts@.
 -}
 class HasTrait t ts where
-  -- | Get the attribute associated with @t@ from a linked value
+  -- | Get the attribute associated with @t@ from a linked value. See also: 'pick'.
   from :: Linked ts a -> Tagged t (Attribute t a)
 
 instance HasTrait t (t : ts) where
@@ -133,8 +150,8 @@ instance {-# OVERLAPPABLE #-} HasTrait t ts => HasTrait t (t' : ts) where
 
 {- | Retrieve a trait.
 
- Along with 'from', @pick@ provides a good DSL to retrieve an
- attribute from a linked value:
+ @pick@ is used along with `from` to retrieve an attribute from a
+ linked value:
 
  > pick @t $ from val
 -}
@@ -153,7 +170,7 @@ type MissingTrait t =
     :$$: Text "For e.g., ‘QueryParam \"foo\" Int’ instead of ‘QueryParam \"foo\" String’?"
     :$$: Text ""
     :$$: Text "Or did you forget to apply an appropriate middleware?"
-    :$$: Text "For e.g. The trait ‘JSONRequestBody Foo’ can be used with ‘jsonRequestBody @Foo’ middleware."
+    :$$: Text "For e.g. The trait ‘JSONBody t’ can be used with ‘jsonRequestBody @t’ middleware."
     :$$: Text ""
 
 {- | Constraint that proves that all the traits in the list @ts@ are

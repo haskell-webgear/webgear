@@ -81,15 +81,15 @@ library
   import:             webgear-common
   exposed-modules:    WebGear.Server
                     , WebGear.Server.Handler
-                    , WebGear.Server.Middlewares
-                    , WebGear.Server.Middleware.Auth.Basic
-                    , WebGear.Server.Middleware.Auth.JWT
-                    , WebGear.Server.Middleware.Body
-                    , WebGear.Server.Middleware.Header
-                    , WebGear.Server.Middleware.Method
-                    , WebGear.Server.Middleware.Path
-                    , WebGear.Server.Middleware.QueryParam
-                    , WebGear.Server.Middleware.Status
+                    , WebGear.Server.Traits
+                    , WebGear.Server.Trait.Auth.Basic
+                    , WebGear.Server.Trait.Auth.JWT
+                    , WebGear.Server.Trait.Body
+                    , WebGear.Server.Trait.Header
+                    , WebGear.Server.Trait.Method
+                    , WebGear.Server.Trait.Path
+                    , WebGear.Server.Trait.QueryParam
+                    , WebGear.Server.Trait.Status
   other-modules:      Paths_webgear_server
   autogen-modules:    Paths_webgear_server
   hs-source-dirs:     src
@@ -113,7 +113,7 @@ test-suite webgear-server-test
                     , Properties
                     , Properties.Trait.Body
                     , Properties.Trait.Header
-                    , Properties.Trait.Params
+                    , Properties.Trait.QueryParam
                     , Properties.Trait.Method
                     , Properties.Trait.Path
                     , Properties.Trait.Auth.Basic

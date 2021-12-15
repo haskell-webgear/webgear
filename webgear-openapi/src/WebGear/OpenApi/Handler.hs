@@ -1,3 +1,6 @@
+{- | An implementation of `Handler` to generate `OpenApi` documentation
+ from WebGear API specifications.
+-}
 module WebGear.OpenApi.Handler (
   OpenApiHandler (..),
   DocNode (..),
@@ -20,12 +23,14 @@ import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Handler (..), RouteMismatch, RoutePath (..))
 
+-- | A tree where internal nodes have one or two children.
 data Tree a
   = NullNode
   | SingleNode a (Tree a)
   | BinaryNode (Tree a) (Tree a)
   deriving stock (Show)
 
+-- | Different types of documentation elements captured by the handler
 data DocNode
   = DocSecurityScheme Text SecurityScheme
   | DocRequestBody (Definitions Schema) RequestBody
@@ -39,9 +44,13 @@ data DocNode
   | DocStatus HTTP.Status
   deriving stock (Show)
 
+-- | Generate a tree with a single node
 singletonNode :: DocNode -> Tree DocNode
 singletonNode doc = SingleNode doc NullNode
 
+{- | A handler that captured `OpenApi` documentation of API
+ specifications.
+-}
 newtype OpenApiHandler m a b = OpenApiHandler
   {openApiDoc :: Tree DocNode}
 
@@ -115,6 +124,7 @@ instance Monad m => Handler (OpenApiHandler m) m where
   consumeRoute :: OpenApiHandler m RoutePath a -> OpenApiHandler m () a
   consumeRoute (OpenApiHandler doc) = OpenApiHandler doc
 
+-- | Generate OpenApi documentation from a handler
 toOpenApi :: OpenApiHandler m a b -> OpenApi
 toOpenApi = go . openApiDoc
   where

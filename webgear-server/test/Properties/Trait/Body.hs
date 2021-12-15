@@ -13,11 +13,11 @@ import Test.QuickCheck.Instances ()
 import Test.QuickCheck.Monadic (assert, monadicIO, monitor)
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Body (JSONBody (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (Linked, getTrait, linkzero)
+import WebGear.Core.Trait.Body (JSONBody (..))
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.Body ()
+import WebGear.Server.Trait.Body ()
 
 jsonBody :: JSONBody t
 jsonBody = JSONBody (Just "application/json")

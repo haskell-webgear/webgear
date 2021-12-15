@@ -1,5 +1,5 @@
 {- |
- WebGear handler responses
+ Responses from handlers.
 -}
 module WebGear.Core.Response (
   -- * Basic Types
@@ -14,10 +14,10 @@ import Data.Maybe (fromMaybe)
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.Wai as Wai
 
---- | An HTTP response sent from the server to the client.
----
---- The response contains a status, optional headers and an optional
---- body payload.
+-- | An HTTP response sent from the server to the client.
+--
+-- The response contains a status, optional headers and an optional
+-- body payload.
 data Response = Response
   { -- | Response status code
     responseStatus :: HTTP.Status
@@ -28,6 +28,7 @@ data Response = Response
   }
   deriving stock (Eq, Ord, Show)
 
+-- | Generate a WAI response
 toWaiResponse :: Response -> Wai.Response
 toWaiResponse Response{..} =
   Wai.responseLBS responseStatus (HM.toList responseHeaders) (fromMaybe "" responseBody)

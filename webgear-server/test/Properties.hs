@@ -8,8 +8,8 @@ import qualified Properties.Trait.Auth.Basic as Basic
 import qualified Properties.Trait.Body as Body
 import qualified Properties.Trait.Header as Header
 import qualified Properties.Trait.Method as Method
-import qualified Properties.Trait.Params as Params
 import qualified Properties.Trait.Path as Path
+import qualified Properties.Trait.QueryParam as QueryParam
 
 propertyTests :: TestTree
 propertyTests =
@@ -18,7 +18,7 @@ propertyTests =
     [ Method.tests
     , Path.tests
     , Header.tests
-    , Params.tests
+    , QueryParam.tests
     , Body.tests
     , Basic.tests
     ]

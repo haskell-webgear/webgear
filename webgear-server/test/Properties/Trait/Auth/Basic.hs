@@ -20,20 +20,20 @@ import Test.QuickCheck (
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Auth.Basic (
+import WebGear.Core.Trait.Auth.Basic (
   BasicAuth,
   BasicAuth' (..),
   Credentials (..),
   Password (..),
   Username (..),
  )
-import WebGear.Core.Middleware.Auth.Common (AuthorizationHeader)
-import WebGear.Core.Middleware.Header (Header (..))
+import WebGear.Core.Trait.Auth.Common (AuthorizationHeader)
+import WebGear.Core.Trait.Header (Header (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (Linked, getTrait, linkzero, probe)
 import WebGear.Server.Handler (ServerHandler, runServerHandler)
-import WebGear.Server.Middleware.Auth.Basic ()
-import WebGear.Server.Middleware.Header ()
+import WebGear.Server.Trait.Auth.Basic ()
+import WebGear.Server.Trait.Header ()
 import Prelude hiding (elem)
 
 prop_basicAuth :: Property

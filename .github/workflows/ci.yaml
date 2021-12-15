@@ -46,6 +46,8 @@ jobs:
         with:
           path: ~/.stack
           key: ${{ runner.os }}-${{ matrix.ghc }}-stack-${{ hashFiles(env.STACK_YAML) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-stack-
 
       - name: Build
         run: |

@@ -6,11 +6,11 @@ import Data.Functor.Identity (runIdentity)
 import Network.Wai (defaultRequest, requestHeaders)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
-import WebGear.Core.Middleware.Header (Header (..), HeaderNotFound (..), RequiredHeader)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait.Header (Header (..), HeaderNotFound (..), RequiredHeader)
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.Header ()
+import WebGear.Server.Trait.Header ()
 
 testMissingHeaderFails :: TestTree
 testMissingHeaderFails = testCase "Missing header fails Header trait" $ do

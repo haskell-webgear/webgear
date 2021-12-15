@@ -17,11 +17,11 @@ import Test.QuickCheck (
  )
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Method (Method (..), MethodMismatch (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait.Method (Method (..), MethodMismatch (..))
 import WebGear.Server.Handler (runServerHandler)
-import WebGear.Server.Middleware.Method ()
+import WebGear.Server.Trait.Method ()
 
 newtype MethodWrapper = MethodWrapper StdMethod
   deriving stock (Show)

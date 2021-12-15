@@ -1,5 +1,5 @@
 {- |
- Handler serving static resources
+ Handlers for serving static resources
 -}
 module WebGear.Core.Handler.Static (
   serveDir,
@@ -14,22 +14,25 @@ import qualified Data.Text as Text
 import qualified Network.Mime as Mime
 import System.FilePath (joinPath, takeFileName, (</>))
 import WebGear.Core.Handler (Handler (..), RoutePath (..), unlinkA)
-import WebGear.Core.Middleware.Body (Body, setBodyWithoutContentType)
-import WebGear.Core.Middleware.Header (RequiredHeader, setHeader)
-import WebGear.Core.Middleware.Status (Status, notFound404, ok200)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Linked (..), Sets)
+import WebGear.Core.Trait.Body (Body, setBodyWithoutContentType)
+import WebGear.Core.Trait.Header (RequiredHeader, setHeader)
+import WebGear.Core.Trait.Status (Status, notFound404, ok200)
 import Prelude hiding (readFile)
 
+-- | Serve files under the specified directory.
 serveDir ::
   ( MonadIO m
   , Handler h m
   , Sets h [Status, RequiredHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
   ) =>
-  -- | directory to serve
+  -- | The directory to serve
   FilePath ->
-  -- | index filename for the root directory
+  -- | Optional index filename for the root directory. A 404 Not Found
+  -- response will be returned for requests to the root path if this
+  -- is set to @Nothing@.
   Maybe FilePath ->
   h (Linked req Request) Response
 serveDir root index = proc _request -> consumeRoute go -< ()
@@ -40,6 +43,7 @@ serveDir root index = proc _request -> consumeRoute go -< ()
         (RoutePath [], Just f) -> serveFile -< root </> f
         (RoutePath ps, _) -> serveFile -< root </> joinPath (Text.unpack <$> ps)
 
+-- | Serve a file specified by the input filepath.
 serveFile ::
   ( MonadIO m
   , Handler h m

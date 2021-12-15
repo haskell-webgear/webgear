@@ -9,11 +9,11 @@ import Test.QuickCheck (Property, allProperties, property, (=/=), (===))
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Middleware.Path (Path (..), PathVar (..), PathVarError (..))
+import WebGear.Core.Trait.Path (Path (..), PathVar (..), PathVarError (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (getTrait, linkzero)
 import WebGear.Server.Handler (RoutePath (..), runServerHandler)
-import WebGear.Server.Middleware.Path ()
+import WebGear.Server.Trait.Path ()
 
 prop_pathMatch :: Property
 prop_pathMatch = property $ \h ->
