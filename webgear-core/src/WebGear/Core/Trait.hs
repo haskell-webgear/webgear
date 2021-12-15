@@ -137,7 +137,7 @@ plant t = proc (l, attr) -> do
  of traits @ts@.
 -}
 class HasTrait t ts where
-  -- | Get the attribute associated with @t@ from a linked value
+  -- | Get the attribute associated with @t@ from a linked value. See also: 'pick'.
   from :: Linked ts a -> Tagged t (Attribute t a)
 
 instance HasTrait t (t : ts) where
@@ -170,7 +170,7 @@ type MissingTrait t =
     :$$: Text "For e.g., ‘QueryParam \"foo\" Int’ instead of ‘QueryParam \"foo\" String’?"
     :$$: Text ""
     :$$: Text "Or did you forget to apply an appropriate middleware?"
-    :$$: Text "For e.g. The trait ‘JSONRequestBody Foo’ can be used with ‘jsonRequestBody @Foo’ middleware."
+    :$$: Text "For e.g. The trait ‘JSONBody t’ can be used with ‘jsonRequestBody @t’ middleware."
     :$$: Text ""
 
 {- | Constraint that proves that all the traits in the list @ts@ are

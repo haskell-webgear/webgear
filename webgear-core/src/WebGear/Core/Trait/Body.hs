@@ -21,10 +21,10 @@
 
  If you need finer control over setting the body, use one of
  'setBody', 'setBodyWithoutContentType', 'setJSONBody',
- 'setJSONBodyWithoutContentType', or 'setJSONBody''. These middlwares
+ 'setJSONBodyWithoutContentType', or 'setJSONBody''. These arrows
  accept a linked response and a body and sets the body in the
- response. You can generate a response object using functions from
- "WebGear.Core.Trait.Status" module.
+ response. You can generate an input response object using functions
+ from "WebGear.Core.Trait.Status" module.
 -}
 module WebGear.Core.Trait.Body (
   -- * Traits

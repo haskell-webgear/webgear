@@ -1,5 +1,29 @@
-{- |
- Handle request headers
+{- | Traits and middlewares to handle request and response headers.
+
+ There are a number of ways to extract a header value from a request:
+
+ The `header` middleware can extract a header value trait and invoke
+ another handler. An error handler is invoked if the header is missing
+ or the parsing fails.
+
+ The `optionalHeader` middleware is similar but will not invoke the
+ error handling in case the header is missing. Instead, the trait
+ value will be set to `Nothing` in that case.
+
+ The `lenientHeader` middleware requires the header to be present. But
+ the trait attribute will be set to 'Left' @msg@ if an error occurs
+ while parsing it to a Haskell value. Here @msg@ will indicate the
+ error in parsing.
+
+ Finally, we have `optionalLenientHeader` which combines the behaviors
+ of `optionalHeader` and `lenientHeader`. In this case, the header
+ extraction never fails. Missing headers and parse errors are
+ indicated in the trait attribute passed to next handler.
+
+ A response header can be set using `setHeader` or `setOptionalHeader`
+ arrows. They accept a linked response and a header value and sets the
+ header in the response. You can generate an input response object
+ using functions from "WebGear.Core.Trait.Status" module.
 -}
 module WebGear.Core.Trait.Header (
   -- * Traits
@@ -97,6 +121,7 @@ headerHandler errorHandler nextHandler = proc request -> do
 header ::
   forall name val h req.
   (Get h (Header Required Strict name val) Request, ArrowChoice h) =>
+  -- | Error handler
   h (Linked req Request, Either HeaderNotFound HeaderParseError) Response ->
   Middleware h req (Header Required Strict name val : req)
 header = headerHandler
@@ -114,6 +139,7 @@ header = headerHandler
 optionalHeader ::
   forall name val h req.
   (Get h (Header Optional Strict name val) Request, ArrowChoice h) =>
+  -- | Error handler
   h (Linked req Request, HeaderParseError) Response ->
   Middleware h req (Header Optional Strict name val : req)
 optionalHeader = headerHandler
@@ -131,6 +157,7 @@ optionalHeader = headerHandler
 lenientHeader ::
   forall name val h req.
   (Get h (Header Required Lenient name val) Request, ArrowChoice h) =>
+  -- | Error handler
   h (Linked req Request, HeaderNotFound) Response ->
   Middleware h req (Header Required Lenient name val : req)
 lenientHeader = headerHandler
@@ -161,7 +188,7 @@ instance Trait (Header Optional Strict name val) Response where
 
  Example usage:
 
- > setHeader @"Content-Length"
+ > response' <- setHeader @"Content-Length" -< (response, 42)
 -}
 setHeader ::
   forall name val h res.
@@ -171,9 +198,13 @@ setHeader = plant Header
 
 {- | Set an optional header value in a response.
 
+ Setting the header to 'Nothing' will remove it from the response if
+ it was previously set. The header will be considered as optional in
+ all relevant places such as documentation.
+
  Example usage:
 
- > setHeader "Content-Length" @Integer
+ > response' <- setOptionalHeader @"Content-Length" -< (response, Just 42)
 -}
 setOptionalHeader ::
   forall name val h res.

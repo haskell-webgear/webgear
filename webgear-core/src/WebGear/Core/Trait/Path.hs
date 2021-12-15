@@ -1,5 +1,8 @@
-{- |
- Middlewares related to route paths.
+{- | Middlewares related to request paths.
+
+ All the middlewares below attempt to match components of the request
+ path. In case of a mismatch, they abandon the current handler and
+ tries the next handler.
 -}
 module WebGear.Core.Trait.Path (
   Path (..),
@@ -74,7 +77,7 @@ instance TraitAbsence PathEnd Request where
  For example, the following code could be used to match the URL path
  \"a\/b\/c\" and then invoke @handler@:
 
- > path @"a/b/c" handler
+ > path "a/b/c" handler
 -}
 path ::
   (Get h Path Request, ArrowChoice h, ArrowError RouteMismatch h) =>

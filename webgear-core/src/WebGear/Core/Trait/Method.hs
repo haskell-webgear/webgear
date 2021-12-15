@@ -1,6 +1,4 @@
-{- |
- Handle HTTP methods.
--}
+-- | Traits and middlewares to handle HTTP methods.
 module WebGear.Core.Trait.Method (
   Method (..),
   MethodMismatch (..),
@@ -35,9 +33,12 @@ instance TraitAbsence Method Request where
 
  > method @GET handler
 
+ If the request does not have the specified method, another handler
+ will be tried.
+
  It is also idiomatic to use the template haskell quasiquoter
- 'WebGear.Core.Trait.Path.match' in cases where both HTTP method
- and path needs to be matched.
+ 'WebGear.Core.Trait.Path.match' or 'WebGear.Core.Trait.Path.route' in
+ cases where both an HTTP method and a path need to be matched.
 -}
 method ::
   (Get h Method Request, ArrowChoice h, ArrowError RouteMismatch h) =>

@@ -1,6 +1,4 @@
-{- |
- Response status
--}
+-- | Generate responses based on their HTTP status
 module WebGear.Core.Trait.Status (
   Status (..),
 

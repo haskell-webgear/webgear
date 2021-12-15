@@ -1,5 +1,23 @@
-{- |
- Handle query parameters
+{- | Traits and middleware to handle request query parameters.
+
+ The `queryParam` middleware can extract a query parameter value trait
+ and invoke another handler. An error handler is invoked if the parameter
+ is missing or the parsing fails.
+
+ The `optionalQueryParam` middleware is similar but will not invoke
+ the error handling in case the prameter is missing. Instead, the
+ trait value will be set to `Nothing` in that case.
+
+ The `lenientQueryParam` middleware requires the parameter to be
+ present. But the trait attribute will be set to 'Left' @msg@ if an
+ error occurs while parsing it to a Haskell value. Here @msg@ will
+ indicate the error in parsing.
+
+ Finally, we have `optionalLenientQueryParam` which combines the
+ behaviors of `optionalQueryParam` and `lenientQueryParam`. In this
+ case, the parameter extraction never fails. Missing parameters and
+ parse errors are indicated in the trait attribute passed to next
+ handler.
 -}
 module WebGear.Core.Trait.QueryParam (
   -- * Traits
@@ -85,7 +103,9 @@ queryParamHandler errorHandler nextHandler = proc request -> do
     Right val -> nextHandler -< val
 
 {- | Extract a query parameter and convert it to a value of type
- @val@. The associated trait attribute has type @val@.
+ @val@.
+
+ The associated trait attribute has type @val@.
 
  Example usage:
 
@@ -99,9 +119,10 @@ queryParam ::
 queryParam = queryParamHandler
 
 {- | Extract an optional query parameter and convert it to a value of
- type @val@. The associated trait attribute has type @Maybe val@; a
- @Nothing@ value indicates that the parameter is missing from the
- request.
+ type @val@.
+
+ The associated trait attribute has type @Maybe val@; a @Nothing@
+ value indicates that the parameter is missing from the request.
 
  Example usage:
 
