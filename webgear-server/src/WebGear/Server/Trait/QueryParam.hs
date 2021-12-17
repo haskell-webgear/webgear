@@ -36,7 +36,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   getTrait ::
     QueryParam Required Strict name val ->
     ServerHandler m (Linked ts Request) (Either (Either ParamNotFound ParamParseError) val)
-  getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
+  getTrait (QueryParam _) = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
         Nothing -> Left $ Left ParamNotFound
@@ -48,7 +48,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   getTrait ::
     QueryParam Optional Strict name val ->
     ServerHandler m (Linked ts Request) (Either ParamParseError (Maybe val))
-  getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
+  getTrait (QueryParam _) = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
         Nothing -> Right Nothing
@@ -60,7 +60,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   getTrait ::
     QueryParam Required Lenient name val ->
     ServerHandler m (Linked ts Request) (Either ParamNotFound (Either Text val))
-  getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
+  getTrait (QueryParam _) = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
         Nothing -> Left ParamNotFound
@@ -72,7 +72,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   getTrait ::
     QueryParam Optional Lenient name val ->
     ServerHandler m (Linked ts Request) (Either Void (Maybe (Either Text val)))
-  getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
+  getTrait (QueryParam _) = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
         Nothing -> Right Nothing

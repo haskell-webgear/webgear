@@ -21,24 +21,26 @@ import WebGear.OpenApi.Handler (DocNode (DocQueryParam), OpenApiHandler (..), si
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Required ps name val) Request) => Get (OpenApiHandler m) (QueryParam Required ps name val) Request where
   {-# INLINEABLE getTrait #-}
-  getTrait QueryParam =
+  getTrait (QueryParam Documentation{docDescription}) =
     let param =
           (mempty :: Param)
             { _paramName = fromString $ symbolVal $ Proxy @name
             , _paramIn = ParamQuery
             , _paramRequired = Just True
+            , _paramDescription = docDescription
             , _paramSchema = Just $ Inline $ toSchema $ Proxy @val
             }
      in OpenApiHandler $ singletonNode (DocQueryParam param)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Optional ps name val) Request) => Get (OpenApiHandler m) (QueryParam Optional ps name val) Request where
   {-# INLINEABLE getTrait #-}
-  getTrait QueryParam =
+  getTrait (QueryParam Documentation{docDescription}) =
     let param =
           (mempty :: Param)
             { _paramName = fromString $ symbolVal $ Proxy @name
             , _paramIn = ParamQuery
             , _paramRequired = Just False
+            , _paramDescription = docDescription
             , _paramSchema = Just $ Inline $ toSchema $ Proxy @val
             }
      in OpenApiHandler $ singletonNode (DocQueryParam param)
