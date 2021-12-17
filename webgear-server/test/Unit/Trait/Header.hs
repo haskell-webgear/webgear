@@ -16,7 +16,7 @@ testMissingHeaderFails :: TestTree
 testMissingHeaderFails = testCase "Missing header fails Header trait" $ do
   let req = linkzero $ Request $ defaultRequest{requestHeaders = []}
   runIdentity $ do
-    res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
+    res <- runServerHandler (getTrait (Header mempty :: RequiredHeader "foo" Int)) [""] req
     pure $ case res of
       Right (Left e) -> e @?= Left HeaderNotFound
       _ -> assertFailure "unexpected success"

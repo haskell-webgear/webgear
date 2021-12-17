@@ -44,7 +44,7 @@ getAuthorizationHeaderTrait ::
   Get h (AuthorizationHeader scheme) Request =>
   h (Linked ts Request) (Maybe (Either Text (AuthToken scheme)))
 getAuthorizationHeaderTrait = proc request -> do
-  result <- getTrait (Header :: Header Optional Lenient "Authorization" (AuthToken scheme)) -< request
+  result <- getTrait (Header mempty :: Header Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result
 
 -- | The protection space for authentication
@@ -95,4 +95,4 @@ respondUnauthorized ::
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
   r <- respondA HTTP.unauthorized401 "text/plain" -< "Unauthorized" :: Text
-  unlinkA <<< setHeader @"WWW-Authenticate" -< (r, headerVal)
+  unlinkA <<< setHeader @"WWW-Authenticate" mempty -< (r, headerVal)

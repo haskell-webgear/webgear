@@ -21,7 +21,7 @@ prop_headerParseError = property $ \hval ->
   let hval' = "test-" <> hval
       req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", encodeUtf8 hval')]}
    in runIdentity $ do
-        res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
+        res <- runServerHandler (getTrait (Header mempty :: RequiredHeader "foo" Int)) [""] req
         pure $ case res of
           Right (Left e) ->
             e === Right (HeaderParseError $ "could not parse: `" <> hval' <> "' (input does not start with a digit)")
@@ -31,7 +31,7 @@ prop_headerParseSuccess :: Property
 prop_headerParseSuccess = property $ \(n :: Int) ->
   let req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", fromString $ show n)]}
    in runIdentity $ do
-        res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
+        res <- runServerHandler (getTrait (Header mempty :: RequiredHeader "foo" Int)) [""] req
         pure $ case res of
           Right (Right n') -> n === n'
           e -> counterexample ("Unexpected result: " <> show e) (property False)

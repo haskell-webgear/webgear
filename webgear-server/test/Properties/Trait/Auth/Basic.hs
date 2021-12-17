@@ -47,7 +47,7 @@ prop_basicAuth = property f
             mkRequest :: ServerHandler Identity () (Linked '[AuthorizationHeader "Basic"] Request)
             mkRequest = proc () -> do
               let req = Request $ defaultRequest{requestHeaders = [("Authorization", hval)]}
-              r <- probe Header -< linkzero req
+              r <- probe (Header mempty) -< linkzero req
               returnA -< fromRight undefined r
 
             toBasicAttribute :: Credentials -> Identity (Either () Credentials)

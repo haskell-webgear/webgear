@@ -151,7 +151,7 @@ setBody ::
 setBody mediaType = proc (r, body) -> do
   r' <- plant (Body (Just mediaType)) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
-  returnA <<< plant Header -< (r', mt)
+  returnA <<< plant (Header mempty) -< (r', mt)
 
 -- | Set the response body without specifying any media type.
 setBodyWithoutContentType ::
@@ -173,7 +173,7 @@ setJSONBody' ::
 setJSONBody' mediaType = proc (r, body) -> do
   r' <- plant (JSONBody (Just mediaType)) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
-  returnA <<< plant Header -< (r', mt)
+  returnA <<< plant (Header mempty) -< (r', mt)
 
 {- | Set the response body to a JSON value.
 
