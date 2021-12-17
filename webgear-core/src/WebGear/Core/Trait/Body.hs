@@ -52,6 +52,7 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Middleware)
+import WebGear.Core.Modifiers (Documentation)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Linked, Set, Sets, Trait (..), TraitAbsence (..), plant, probe)
@@ -206,9 +207,10 @@ respondA ::
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
+  Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, Body body, Status] Response)
-respondA status mediaType = proc body -> do
-  r <- mkResponse status -< ()
+respondA status mediaType doc = proc body -> do
+  r <- mkResponse status doc -< ()
   setBody mediaType -< (r, body)
 
 {- | A convenience arrow to generate a response specifying a status and
@@ -221,6 +223,7 @@ respondJsonA ::
   Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
   -- | Response status
   HTTP.Status ->
+  Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
 respondJsonA status = respondJsonA' status "application/json"
 
@@ -237,7 +240,8 @@ respondJsonA' ::
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
+  Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
-respondJsonA' status mediaType = proc body -> do
-  r <- mkResponse status -< ()
+respondJsonA' status mediaType doc = proc body -> do
+  r <- mkResponse status doc -< ()
   setJSONBody' mediaType -< (r, body)

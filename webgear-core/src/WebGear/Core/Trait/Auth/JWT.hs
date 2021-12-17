@@ -84,7 +84,7 @@ import qualified Crypto.JWT as JWT
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
 import WebGear.Core.Handler
-import WebGear.Core.Modifiers (Existence (..))
+import WebGear.Core.Modifiers (Documentation, Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait
@@ -103,6 +103,8 @@ data JWTAuth' (x :: Existence) (scheme :: Symbol) m e a = JWTAuth'
     jwkSet :: JWT.JWKSet
   , -- | Convert the claims set to the trait attribute or an error
     toJWTAttribute :: JWT.ClaimsSet -> m (Either e a)
+  , -- | Documentation for the authentication scheme
+    authDocumentation :: Documentation
   }
 
 -- | Trait for JWT authentication with the \"Bearer\" scheme

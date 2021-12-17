@@ -23,6 +23,7 @@ data Documentation = Documentation
   { docSummary :: Maybe Text
   , docDescription :: Maybe Text
   }
+  deriving stock (Eq, Ord, Show, Read)
 
 instance Semigroup Documentation where
   doc1 <> doc2 =

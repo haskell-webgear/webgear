@@ -7,6 +7,7 @@ import Data.OpenApi
 import Data.Proxy (Proxy (..))
 import Data.String (fromString)
 import GHC.TypeLits (KnownSymbol, symbolVal)
+import WebGear.Core.Modifiers (Documentation (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), Linked, TraitAbsence (Absence))
 import WebGear.Core.Trait.Auth.Basic (BasicAuth' (..))
@@ -17,11 +18,11 @@ instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) 
   getTrait ::
     BasicAuth' x scheme m e a ->
     OpenApiHandler m (Linked ts Request) (Either (Absence (BasicAuth' x scheme m e a) Request) (Attribute (BasicAuth' x scheme m e a) Request))
-  getTrait _ =
+  getTrait BasicAuth'{authDocumentation} =
     let schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
         securityScheme =
           SecurityScheme
             { _securitySchemeType = SecuritySchemeHttp HttpSchemeBasic
-            , _securitySchemeDescription = Nothing
+            , _securitySchemeDescription = docDescription authDocumentation
             }
      in OpenApiHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)

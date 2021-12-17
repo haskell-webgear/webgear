@@ -13,14 +13,16 @@ import Control.Applicative ((<|>))
 import Control.Arrow (Arrow (..), ArrowChoice (..), ArrowPlus (..), ArrowZero (..))
 import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
-import Control.Lens (at, (%~), (&), (<>~), (?~))
+import Control.Lens (at, (%~), (&), (.~), (<>~), (?~))
 import qualified Data.HashMap.Strict.InsOrd as Map
+import Data.Maybe (fromMaybe)
 import Data.OpenApi
 import Data.OpenApi.Internal.Utils (swaggerMappend)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
+import WebGear.Core (Documentation (Documentation, docDescription))
 import WebGear.Core.Handler (Handler (..), RouteMismatch, RoutePath (..))
 
 -- | A tree where internal nodes have one or two children.
@@ -41,7 +43,7 @@ data DocNode
   | DocPathElem Text
   | DocPathVar Param
   | DocQueryParam Param
-  | DocStatus HTTP.Status
+  | DocStatus HTTP.Status Documentation
   deriving stock (Show)
 
 -- | Generate a tree with a single node
@@ -204,9 +206,14 @@ mergeDoc (DocPathVar param) child doc =
 mergeDoc (DocQueryParam param) child doc =
   postOrder child doc $ \doc' ->
     doc' & allOperations . parameters <>~ [Inline param]
-mergeDoc (DocStatus status) child doc =
+mergeDoc (DocStatus status Documentation{docDescription}) child doc =
   preOrder child doc $ \doc' ->
-    let opr = mempty @Operation & at (HTTP.statusCode status) ?~ Inline (mempty @Response)
+    let resp =
+          mempty @Response
+            & description .~ fromMaybe mempty docDescription
+        opr =
+          mempty @Operation
+            & at (HTTP.statusCode status) ?~ Inline resp
         pathItem =
           mempty @PathItem
             & get ?~ opr

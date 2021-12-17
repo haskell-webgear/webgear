@@ -7,6 +7,7 @@ import Data.OpenApi
 import Data.String (fromString)
 import Data.Typeable (Proxy (..))
 import GHC.TypeLits (KnownSymbol, symbolVal)
+import WebGear.Core.Modifiers (Documentation (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), Linked, TraitAbsence (..))
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..))
@@ -20,11 +21,11 @@ instance
   getTrait ::
     JWTAuth' x scheme m e a ->
     OpenApiHandler m (Linked ts Request) (Either (Absence (JWTAuth' x scheme m e a) Request) (Attribute (JWTAuth' x scheme m e a) Request))
-  getTrait _ =
+  getTrait JWTAuth'{authDocumentation} =
     let schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
         securityScheme =
           SecurityScheme
             { _securitySchemeType = SecuritySchemeHttp (HttpSchemeBearer (Just "JWT"))
-            , _securitySchemeDescription = Nothing
+            , _securitySchemeDescription = docDescription authDocumentation
             }
      in OpenApiHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)
