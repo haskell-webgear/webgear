@@ -13,7 +13,7 @@ import WebGear.Server.Handler (ServerHandler)
 instance Monad m => Get (ServerHandler m) Method Request where
   {-# INLINEABLE getTrait #-}
   getTrait :: Method -> ServerHandler m (Linked ts Request) (Either MethodMismatch HTTP.StdMethod)
-  getTrait (Method method) = proc request -> do
+  getTrait (Method method _) = proc request -> do
     let expectedMethod = HTTP.renderStdMethod method
         actualMethod = requestMethod $ unlink request
     if actualMethod == expectedMethod

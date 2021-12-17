@@ -22,7 +22,7 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
-import WebGear.Core (Documentation (Documentation, docDescription))
+import WebGear.Core (Documentation (Documentation, docDescription, docSummary))
 import WebGear.Core.Handler (Handler (..), RouteMismatch, RoutePath (..))
 
 -- | A tree where internal nodes have one or two children.
@@ -39,7 +39,7 @@ data DocNode
   | DocResponseBody (Definitions Schema) MediaType MediaTypeObject
   | DocRequestHeader Param
   | DocResponseHeader HeaderName Header
-  | DocMethod HTTP.StdMethod
+  | DocMethod HTTP.StdMethod Documentation
   | DocPathElem Text
   | DocPathVar Param
   | DocQueryParam Param
@@ -194,9 +194,12 @@ mergeDoc (DocRequestBody defs body) child doc =
 mergeDoc (DocRequestHeader param) child doc =
   postOrder child doc $ \doc' ->
     doc' & allOperations . parameters <>~ [Inline param]
-mergeDoc (DocMethod m) child doc =
+mergeDoc (DocMethod m Documentation{..}) child doc =
   postOrder child doc $ \doc' ->
-    doc' & paths %~ Map.map (removeOtherMethods m)
+    doc'
+      & paths %~ Map.map (removeOtherMethods m)
+      & allOperations . summary .~ docSummary
+      & allOperations . description .~ docDescription
 mergeDoc (DocPathElem path) child doc =
   postOrder child doc $ prependPath (Text.unpack path)
 mergeDoc (DocPathVar param) child doc =

@@ -24,6 +24,7 @@ import qualified Data.List as List
 import Data.List.NonEmpty (NonEmpty (..), filter, toList)
 import Data.Text (Text)
 import GHC.TypeLits (Symbol)
+import Language.Haskell.TH (appE, conE, varE)
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
@@ -128,6 +129,10 @@ pathEnd nextHandler = probe PathEnd >>> routeMismatch ||| nextHandler
  +---------------------------------------+---------------------------------------------------------------------------------+
  | @[match| GET \/a\/b\/objId:Int\/d |]@ | @'method' GET . 'path' \"\/a\/b\" . 'pathVar' \@\"objId\" \@Int . 'path' \"d\"@ |
  +---------------------------------------+---------------------------------------------------------------------------------+
+
+ You can optionally include some documentation for the route using the
+ syntax @[match| GET \/a\/b\/c doc |]@ where @doc@ is of type
+ 'Documentation'.
 -}
 match :: QuasiQuoter
 match =
@@ -158,6 +163,10 @@ match =
  +---------------------------------------+----------------------------------------------------------------------------------------------+
  | @[route| GET \/a\/b\/objId:Int\/d |]@ | @'method' GET . 'path' \"\/a\/b\" . 'pathVar' \@\"objId\" \@Int . 'path' \"d\" . 'pathEnd')@ |
  +---------------------------------------+----------------------------------------------------------------------------------------------+
+
+ You can optionally include some documentation for the route using the
+ syntax @[route| GET \/a\/b\/c doc |]@ where @doc@ is of type
+ 'Documentation'.
 -}
 route :: QuasiQuoter
 route =
@@ -175,15 +184,19 @@ toRouteExp s = do
 
 toMatchExp :: String -> Q Exp
 toMatchExp s = case List.words s of
-  [m, p] -> do
-    let methodExp = AppE (VarE 'method) (ConE $ mkName m)
-    pathExps <- toPathExps p
-    pure $ List.foldr1 compose $ methodExp :| pathExps
+  [m, p, doc] -> toMethodAndPathExps m p doc
+  [m, p] -> toMethodAndPathExps m p "mempty"
   [p] -> do
     pathExps <- toPathExps p
     pure $ List.foldr1 compose pathExps
   _ -> fail "Expected an HTTP method and a path or just a path"
   where
+    toMethodAndPathExps :: String -> String -> String -> Q Exp
+    toMethodAndPathExps m p doc = do
+      methodExp <- [|method|] `appE` conE (mkName m) `appE` varE (mkName doc)
+      pathExps <- toPathExps p
+      pure $ List.foldr1 compose $ methodExp :| pathExps
+
     toPathExps :: String -> Q [Exp]
     toPathExps p =
       splitOn '/' p
