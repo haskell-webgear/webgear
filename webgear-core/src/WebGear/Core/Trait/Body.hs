@@ -60,7 +60,10 @@ import WebGear.Core.Trait.Header (Header (..), RequiredHeader)
 import WebGear.Core.Trait.Status (Status, mkResponse)
 
 -- | Request or response body with a type @t@.
-newtype Body (t :: Type) = Body (Maybe HTTP.MediaType)
+data Body (t :: Type) = Body
+  { bodyMediaType :: Maybe HTTP.MediaType
+  , bodyDocumentation :: Documentation
+  }
 
 instance Trait (Body t) Request where
   type Attribute (Body t) Request = t
@@ -72,7 +75,10 @@ instance Trait (Body t) Response where
   type Attribute (Body t) Response = t
 
 -- | A 'Trait' for converting a JSON formatted body into a value.
-newtype JSONBody (t :: Type) = JSONBody (Maybe HTTP.MediaType)
+data JSONBody (t :: Type) = JSONBody
+  { jsonBodyMediaType :: Maybe HTTP.MediaType
+  , jsonBodyDocumentation :: Documentation
+  }
 
 instance Trait (JSONBody t) Request where
   type Attribute (JSONBody t) Request = t
@@ -97,11 +103,13 @@ requestBody ::
   (Get h (Body t) Request, ArrowChoice h) =>
   -- | Optional media type of the body
   Maybe HTTP.MediaType ->
+  -- | Documentation for the body
+  Documentation ->
   -- | Error handler in case body cannot be retrieved
   h (Linked req Request, Text) Response ->
   Middleware h req (Body t : req)
-requestBody mediaType errorHandler nextHandler = proc request -> do
-  result <- probe (Body mediaType) -< request
+requestBody mediaType doc errorHandler nextHandler = proc request -> do
+  result <- probe (Body mediaType doc) -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
@@ -121,11 +129,13 @@ jsonRequestBody' ::
   (Get h (JSONBody t) Request, ArrowChoice h) =>
   -- | Optional media type of the body
   Maybe HTTP.MediaType ->
+  -- | Documentation for the body
+  Documentation ->
   -- | Error handler in case body cannot be retrieved
   h (Linked req Request, Text) Response ->
   Middleware h req (JSONBody t : req)
-jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
-  result <- probe (JSONBody mediaType) -< request
+jsonRequestBody' mediaType doc errorHandler nextHandler = proc request -> do
+  result <- probe (JSONBody mediaType doc) -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
@@ -134,6 +144,8 @@ jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
 jsonRequestBody ::
   forall t h req.
   (Get h (JSONBody t) Request, ArrowChoice h) =>
+  -- | Documentation for the body
+  Documentation ->
   -- | error handler
   h (Linked req Request, Text) Response ->
   Middleware h req (JSONBody t : req)
@@ -150,7 +162,7 @@ setBody ::
   HTTP.MediaType ->
   h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : Body body : ts) Response)
 setBody mediaType = proc (r, body) -> do
-  r' <- plant (Body (Just mediaType)) -< (r, body)
+  r' <- plant (Body (Just mediaType) mempty) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   returnA <<< plant (Header mempty) -< (r', mt)
 
@@ -159,7 +171,7 @@ setBodyWithoutContentType ::
   forall body h ts.
   Set h (Body body) Response =>
   h (Linked ts Response, body) (Linked (Body body : ts) Response)
-setBodyWithoutContentType = plant (Body Nothing)
+setBodyWithoutContentType = plant (Body Nothing mempty)
 
 {- | Set the response body to a JSON value along with a media type.
 
@@ -172,7 +184,7 @@ setJSONBody' ::
   HTTP.MediaType ->
   h (Linked ts Response, body) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
 setJSONBody' mediaType = proc (r, body) -> do
-  r' <- plant (JSONBody (Just mediaType)) -< (r, body)
+  r' <- plant (JSONBody (Just mediaType) mempty) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   returnA <<< plant (Header mempty) -< (r', mt)
 
@@ -193,7 +205,7 @@ setJSONBodyWithoutContentType ::
   forall body h ts.
   Set h (JSONBody body) Response =>
   h (Linked ts Response, body) (Linked (JSONBody body : ts) Response)
-setJSONBodyWithoutContentType = plant (JSONBody Nothing)
+setJSONBodyWithoutContentType = plant (JSONBody Nothing mempty)
 
 {- | A convenience arrow to generate a response specifying a status and body.
 
@@ -207,6 +219,7 @@ respondA ::
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
+  -- | Documentation for the response
   Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, Body body, Status] Response)
 respondA status mediaType doc = proc body -> do
@@ -223,6 +236,7 @@ respondJsonA ::
   Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
   -- | Response status
   HTTP.Status ->
+  -- | Documentation for the response
   Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
 respondJsonA status = respondJsonA' status "application/json"
@@ -240,6 +254,7 @@ respondJsonA' ::
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
+  -- | Documentation for the response
   Documentation ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
 respondJsonA' status mediaType doc = proc body -> do

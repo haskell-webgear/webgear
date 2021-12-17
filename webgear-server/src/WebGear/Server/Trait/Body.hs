@@ -21,7 +21,7 @@ import WebGear.Server.Handler (ServerHandler)
 instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Request where
   {-# INLINEABLE getTrait #-}
   getTrait :: Body val -> ServerHandler m (Linked ts Request) (Either Text val)
-  getTrait (Body _) = arrM $ \request -> do
+  getTrait (Body _ _) = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
     pure $ case runParser' parser (fromChunks chunks) of
       Left e -> Left $ pack e
@@ -33,7 +33,7 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
     Body val ->
     (Linked ts Response -> Response -> val -> Linked (Body val : ts) Response) ->
     ServerHandler m (Linked ts Response, val) (Linked (Body val : ts) Response)
-  setTrait (Body mediaType) f = proc (linkedResponse, val) -> do
+  setTrait (Body mediaType _) f = proc (linkedResponse, val) -> do
     let response = (unlink linkedResponse)
         response' =
           response
@@ -49,7 +49,7 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
 instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody val) Request where
   {-# INLINEABLE getTrait #-}
   getTrait :: JSONBody val -> ServerHandler m (Linked ts Request) (Either Text val)
-  getTrait (JSONBody _) = arrM $ \request -> do
+  getTrait (JSONBody _ _) = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
     pure $ case Aeson.eitherDecode' (fromChunks chunks) of
       Left e -> Left $ pack e
@@ -61,7 +61,7 @@ instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Res
     JSONBody val ->
     (Linked ts Response -> Response -> val -> Linked (JSONBody val : ts) Response) ->
     ServerHandler m (Linked ts Response, val) (Linked (JSONBody val : ts) Response)
-  setTrait (JSONBody mediaType) f = proc (linkedResponse, val) -> do
+  setTrait (JSONBody mediaType _) f = proc (linkedResponse, val) -> do
     let response = unlink linkedResponse
         ctype = maybe "application/json" renderHeader mediaType
         response' =
