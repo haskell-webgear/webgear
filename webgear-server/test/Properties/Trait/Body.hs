@@ -20,7 +20,7 @@ import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.Body ()
 
 jsonBody :: JSONBody t
-jsonBody = JSONBody (Just "application/json") mempty
+jsonBody = JSONBody (Just "application/json")
 
 bodyToRequest :: (MonadIO m, Show a) => a -> m (Linked '[] Request)
 bodyToRequest x = do

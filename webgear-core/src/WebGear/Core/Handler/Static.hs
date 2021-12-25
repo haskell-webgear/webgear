@@ -39,7 +39,7 @@ serveDir root index = proc _request -> consumeRoute go -< ()
   where
     go = proc path -> do
       case (path, index) of
-        (RoutePath [], Nothing) -> unlinkA <<< notFound404 mempty -< ()
+        (RoutePath [], Nothing) -> unlinkA <<< notFound404 -< ()
         (RoutePath [], Just f) -> serveFile -< root </> f
         (RoutePath ps, _) -> serveFile -< root </> joinPath (Text.unpack <$> ps)
 
@@ -53,11 +53,11 @@ serveFile ::
 serveFile = proc file -> do
   maybeContents <- readFile -< file
   case maybeContents of
-    Nothing -> unlinkA <<< notFound404 mempty -< ()
+    Nothing -> unlinkA <<< notFound404 -< ()
     Just contents -> do
       let contentType = Mime.defaultMimeLookup $ Text.pack $ takeFileName file
-      r <- ok200 mempty -< ()
+      r <- ok200 -< ()
       r' <- setBodyWithoutContentType -< (r, contents)
-      unlinkA <<< setHeader @"Content-Type" mempty -< (r', contentType)
+      unlinkA <<< setHeader @"Content-Type" -< (r', contentType)
   where
     readFile = arrM $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)

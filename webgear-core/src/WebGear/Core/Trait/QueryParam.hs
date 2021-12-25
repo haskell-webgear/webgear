@@ -40,7 +40,7 @@ import Data.Text (Text)
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
 import WebGear.Core.Handler (Middleware)
-import WebGear.Core.Modifiers (Documentation, Existence (..), ParseStyle (..))
+import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
@@ -51,7 +51,7 @@ import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
  @p@ determines whether the conversion is applied strictly or
  leniently.
 -}
-newtype QueryParam (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = QueryParam Documentation
+data QueryParam (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = QueryParam
 
 -- | `QueryParam` that is required and parsed strictly
 type RequiredQueryParam = QueryParam Required Strict
@@ -94,11 +94,10 @@ instance TraitAbsence (QueryParam Optional Lenient name val) Request where
 queryParamHandler ::
   forall name val e p h req.
   (Get h (QueryParam e p name val) Request, ArrowChoice h) =>
-  Documentation ->
   h (Linked req Request, Absence (QueryParam e p name val) Request) Response ->
   Middleware h req (QueryParam e p name val : req)
-queryParamHandler doc errorHandler nextHandler = proc request -> do
-  result <- probe (QueryParam doc) -< request
+queryParamHandler errorHandler nextHandler = proc request -> do
+  result <- probe QueryParam -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right val -> nextHandler -< val
@@ -115,7 +114,6 @@ queryParamHandler doc errorHandler nextHandler = proc request -> do
 queryParam ::
   forall name val h req.
   (Get h (QueryParam Required Strict name val) Request, ArrowChoice h) =>
-  Documentation ->
   h (Linked req Request, Either ParamNotFound ParamParseError) Response ->
   Middleware h req (QueryParam Required Strict name val : req)
 queryParam = queryParamHandler
@@ -133,7 +131,6 @@ queryParam = queryParamHandler
 optionalQueryParam ::
   forall name val h req.
   (Get h (QueryParam Optional Strict name val) Request, ArrowChoice h) =>
-  Documentation ->
   h (Linked req Request, ParamParseError) Response ->
   Middleware h req (QueryParam Optional Strict name val : req)
 optionalQueryParam = queryParamHandler
@@ -151,7 +148,6 @@ optionalQueryParam = queryParamHandler
 lenientQueryParam ::
   forall name val h req.
   (Get h (QueryParam Required Lenient name val) Request, ArrowChoice h) =>
-  Documentation ->
   h (Linked req Request, ParamNotFound) Response ->
   Middleware h req (QueryParam Required Lenient name val : req)
 lenientQueryParam = queryParamHandler
@@ -169,6 +165,5 @@ lenientQueryParam = queryParamHandler
 optionalLenientQueryParam ::
   forall name val h req.
   (Get h (QueryParam Optional Lenient name val) Request, ArrowChoice h) =>
-  Documentation ->
   Middleware h req (QueryParam Optional Lenient name val : req)
-optionalLenientQueryParam doc = queryParamHandler doc $ arr (absurd . snd)
+optionalLenientQueryParam = queryParamHandler $ arr (absurd . snd)

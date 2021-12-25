@@ -15,4 +15,4 @@ instance Set (OpenApiHandler m) Status Response where
     Status ->
     (Linked ts Response -> Response -> HTTP.Status -> Linked (Status : ts) Response) ->
     OpenApiHandler m (Linked ts Response, HTTP.Status) (Linked (Status : ts) Response)
-  setTrait (Status status doc) _ = OpenApiHandler $ singletonNode (DocStatus status doc)
+  setTrait (Status status) _ = OpenApiHandler $ singletonNode (DocStatus status)

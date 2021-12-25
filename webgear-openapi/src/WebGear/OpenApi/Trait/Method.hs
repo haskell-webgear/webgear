@@ -10,4 +10,4 @@ import WebGear.OpenApi.Handler (DocNode (DocMethod), OpenApiHandler (OpenApiHand
 
 instance Get (OpenApiHandler m) Method Request where
   {-# INLINEABLE getTrait #-}
-  getTrait (Method method doc) = OpenApiHandler $ singletonNode (DocMethod method doc)
+  getTrait (Method method) = OpenApiHandler $ singletonNode (DocMethod method)

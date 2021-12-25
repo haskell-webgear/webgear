@@ -33,7 +33,7 @@ prop_methodMatch :: Property
 prop_methodMatch = property $ \(MethodWrapper v) ->
   let req = linkzero $ Request $ defaultRequest{requestMethod = renderStdMethod v}
    in runIdentity $ do
-        res <- runServerHandler (getTrait (Method GET mempty)) [""] req
+        res <- runServerHandler (getTrait (Method GET)) [""] req
         pure $ case res of
           Right (Right _) -> v === GET
           Right (Left e) -> expectedMethod e === methodGet .&&. actualMethod e =/= methodGet

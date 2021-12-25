@@ -22,7 +22,7 @@ prop_paramParseError = property $ \hval ->
   let hval' = "test-" <> hval
       req = linkzero $ Request $ defaultRequest{queryString = [("foo", Just $ encodeUtf8 hval')]}
    in runIdentity $ do
-        res <- runServerHandler (getTrait (QueryParam mempty :: QueryParam Required Strict "foo" Int)) [""] req
+        res <- runServerHandler (getTrait (QueryParam :: QueryParam Required Strict "foo" Int)) [""] req
         pure $ case res of
           Right (Left e) ->
             e === Right (ParamParseError $ "could not parse: `" <> hval' <> "' (input does not start with a digit)")
@@ -32,7 +32,7 @@ prop_paramParseSuccess :: Property
 prop_paramParseSuccess = property $ \(n :: Int) ->
   let req = linkzero $ Request $ defaultRequest{queryString = [("foo", Just $ fromString $ show n)]}
    in runIdentity $ do
-        res <- runServerHandler (getTrait (QueryParam mempty :: QueryParam Required Strict "foo" Int)) [""] req
+        res <- runServerHandler (getTrait (QueryParam :: QueryParam Required Strict "foo" Int)) [""] req
         pure $ case res of
           Right (Right n') -> n === n'
           e -> counterexample ("Unexpected result: " <> show e) (property False)

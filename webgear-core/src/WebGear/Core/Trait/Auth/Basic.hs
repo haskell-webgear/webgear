@@ -84,18 +84,16 @@ import Data.String (IsString)
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
 import WebGear.Core.Handler
-import WebGear.Core.Modifiers (Documentation, Existence (..))
+import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait
 import WebGear.Core.Trait.Auth.Common
 
 -- | Trait for HTTP basic authentication: https://tools.ietf.org/html/rfc7617
-data BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'
+newtype BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'
   { -- | Convert the credentials to the trait attribute or an error
     toBasicAttribute :: Credentials -> m (Either e a)
-  , -- | Documentation for the authentication scheme
-    authDocumentation :: Documentation
   }
 
 -- | Trait for HTTP basic authentication with the "Basic" scheme.
