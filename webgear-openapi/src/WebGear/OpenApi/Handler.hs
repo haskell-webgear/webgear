@@ -6,6 +6,7 @@ module WebGear.OpenApi.Handler (
   DocNode (..),
   Tree,
   singletonNode,
+  nullNode,
   toOpenApi,
 ) where
 
@@ -13,7 +14,7 @@ import Control.Applicative ((<|>))
 import Control.Arrow (Arrow (..), ArrowChoice (..), ArrowPlus (..), ArrowZero (..))
 import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
-import Control.Lens (at, (%~), (&), (<>~), (?~))
+import Control.Lens (at, (%~), (&), (.~), (<>~), (?~))
 import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi
 import Data.OpenApi.Internal.Utils (swaggerMappend)
@@ -21,7 +22,7 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
-import WebGear.Core.Handler (Handler (..), RouteMismatch, RoutePath (..))
+import WebGear.Core.Handler (Description (..), Handler (..), RouteMismatch, RoutePath (..), Summary (..))
 
 -- | A tree where internal nodes have one or two children.
 data Tree a
@@ -42,11 +43,32 @@ data DocNode
   | DocPathVar Param
   | DocQueryParam Param
   | DocStatus HTTP.Status
+  | DocSummary Summary
+  | DocDescription Description
+  deriving stock (Show)
+
+-- | Documentation elements after compaction
+data CompactDocNode
+  = CDocSecurityScheme Text SecurityScheme
+  | CDocRequestBody (Definitions Schema) RequestBody
+  | CDocResponseBody (Definitions Schema) MediaType MediaTypeObject
+  | CDocRequestHeader Param
+  | CDocResponseHeader HeaderName Header
+  | CDocMethod HTTP.StdMethod
+  | CDocPathElem Text
+  | CDocPathVar Param
+  | CDocRouteDoc (Maybe Summary) (Maybe Description)
+  | CDocQueryParam Param
+  | CDocStatus HTTP.Status (Maybe Description)
   deriving stock (Show)
 
 -- | Generate a tree with a single node
-singletonNode :: DocNode -> Tree DocNode
-singletonNode doc = SingleNode doc NullNode
+singletonNode :: a -> Tree a
+singletonNode a = SingleNode a NullNode
+
+-- | Generate an empty tree
+nullNode :: Tree a
+nullNode = NullNode
 
 {- | A handler that captured `OpenApi` documentation of API
  specifications.
@@ -124,23 +146,85 @@ instance Monad m => Handler (OpenApiHandler m) m where
   consumeRoute :: OpenApiHandler m RoutePath a -> OpenApiHandler m () a
   consumeRoute (OpenApiHandler doc) = OpenApiHandler doc
 
+  {-# INLINEABLE setDescription #-}
+  setDescription :: Description -> OpenApiHandler m a a
+  setDescription = OpenApiHandler . singletonNode . DocDescription
+
+  {-# INLINEABLE setSummary #-}
+  setSummary :: Summary -> OpenApiHandler m a a
+  setSummary = OpenApiHandler . singletonNode . DocSummary
+
 -- | Generate OpenApi documentation from a handler
 toOpenApi :: OpenApiHandler m a b -> OpenApi
-toOpenApi = go . openApiDoc
+toOpenApi = go . compact . openApiDoc
   where
     go t = case t of
       NullNode -> mempty
       SingleNode parent child -> mergeDoc parent child mempty
       BinaryNode t1 t2 -> go t1 `combineOpenApi` go t2
 
-postOrder :: Tree DocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
+compact :: Tree DocNode -> Tree CompactDocNode
+compact t = let (_, _, t') = go t in t'
+  where
+    go = \case
+      NullNode -> (Nothing, Nothing, NullNode)
+      BinaryNode t1 t2 ->
+        let (descr1, summ1, t1') = go t1
+            (descr2, summ2, t2') = go t2
+         in (descr1 <|> descr2, summ1 <|> summ2, BinaryNode t1' t2')
+      SingleNode node child -> compactDoc node child
+
+    compactDoc :: DocNode -> Tree DocNode -> (Maybe Description, Maybe Summary, Tree CompactDocNode)
+    compactDoc (DocSecurityScheme schemeName scheme) child =
+      let (descr, summ, child') = go child
+          scheme' = scheme & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocSecurityScheme schemeName scheme') child')
+    compactDoc (DocRequestBody defs body) child =
+      let (descr, summ, child') = go child
+          body' = body & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocRequestBody defs body') child')
+    compactDoc (DocResponseBody defs mediaType mediaTypeObject) child =
+      SingleNode (CDocResponseBody defs mediaType mediaTypeObject) <$> go child
+    compactDoc (DocRequestHeader param) child =
+      let (descr, summ, child') = go child
+          param' = param & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocRequestHeader param') child')
+    compactDoc (DocResponseHeader headerName header) child =
+      let (descr, summ, child') = go child
+          header' = header & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocResponseHeader headerName header') child')
+    compactDoc (DocMethod m) child =
+      (Nothing, Nothing, addRouteDoc (CDocMethod m) child)
+    compactDoc (DocPathElem path) child =
+      (Nothing, Nothing, addRouteDoc (CDocPathElem path) child)
+    compactDoc (DocPathVar param) child =
+      (Nothing, Nothing, addRouteDoc (CDocPathVar param) child)
+    compactDoc (DocQueryParam param) child =
+      let (descr, summ, child') = go child
+          param' = param & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocQueryParam param') child')
+    compactDoc (DocStatus status) child =
+      let (descr, summ, child') = go child
+       in (Nothing, summ, SingleNode (CDocStatus status descr) child')
+    compactDoc (DocSummary summ) child =
+      let (descr, _, child') = go child
+       in (descr, Just summ, child')
+    compactDoc (DocDescription descr) child =
+      let (_, summ, child') = go child
+       in (Just descr, summ, child')
+
+    addRouteDoc :: CompactDocNode -> Tree DocNode -> Tree CompactDocNode
+    addRouteDoc node child = case go child of
+      (Nothing, Nothing, child') -> SingleNode node child'
+      (descr, summ, child') -> SingleNode (CDocRouteDoc summ descr) (SingleNode node child')
+
+postOrder :: Tree CompactDocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
 postOrder NullNode doc f = f doc
 postOrder (SingleNode node child) doc f = f $ mergeDoc node child doc
 postOrder (BinaryNode t1 t2) doc f =
-  f $
-    postOrder t1 doc id `combineOpenApi` postOrder t2 doc id
+  f $ postOrder t1 doc id `combineOpenApi` postOrder t2 doc id
 
-preOrder :: Tree DocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
+preOrder :: Tree CompactDocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
 preOrder NullNode doc f = f doc
 preOrder (SingleNode node child) doc f = mergeDoc node child (f doc)
 preOrder (BinaryNode t1 t2) doc f =
@@ -176,37 +260,48 @@ combineOpenApi s t =
     , _openApiExternalDocs = _openApiExternalDocs s <|> _openApiExternalDocs t
     }
 
-mergeDoc :: DocNode -> Tree DocNode -> OpenApi -> OpenApi
-mergeDoc (DocSecurityScheme schemeName scheme) child doc =
+mergeDoc :: CompactDocNode -> Tree CompactDocNode -> OpenApi -> OpenApi
+mergeDoc (CDocSecurityScheme schemeName scheme) child doc =
   let secSchemes = [(schemeName, scheme)] :: Definitions SecurityScheme
       secReqs = [SecurityRequirement [(schemeName, [])]] :: [SecurityRequirement]
    in postOrder child doc $ \doc' ->
         doc'
           & components . securitySchemes <>~ secSchemes
-          & security <>~ secReqs
-mergeDoc (DocRequestBody defs body) child doc =
+          & allOperations . security <>~ secReqs
+mergeDoc (CDocRequestBody defs body) child doc =
   postOrder child doc $ \doc' ->
     doc'
       & allOperations . requestBody ?~ Inline body
       & components . schemas %~ (<> defs)
-mergeDoc (DocRequestHeader param) child doc =
+mergeDoc (CDocRequestHeader param) child doc =
   postOrder child doc $ \doc' ->
     doc' & allOperations . parameters <>~ [Inline param]
-mergeDoc (DocMethod m) child doc =
+mergeDoc (CDocMethod m) child doc =
   postOrder child doc $ \doc' ->
     doc' & paths %~ Map.map (removeOtherMethods m)
-mergeDoc (DocPathElem path) child doc =
+mergeDoc (CDocPathElem path) child doc =
   postOrder child doc $ prependPath (Text.unpack path)
-mergeDoc (DocPathVar param) child doc =
+mergeDoc (CDocPathVar param) child doc =
   postOrder child doc $ \doc' ->
     prependPath ("{" <> Text.unpack (_paramName param) <> "}") doc'
       & allOperations . parameters <>~ [Inline param]
-mergeDoc (DocQueryParam param) child doc =
+mergeDoc (CDocRouteDoc summ descr) child doc =
+  postOrder child doc $ \doc' ->
+    doc'
+      -- keep any existing documentation
+      & allOperations . summary %~ (<|> fmap getSummary summ)
+      & allOperations . description %~ (<|> fmap getDescription descr)
+mergeDoc (CDocQueryParam param) child doc =
   postOrder child doc $ \doc' ->
     doc' & allOperations . parameters <>~ [Inline param]
-mergeDoc (DocStatus status) child doc =
+mergeDoc (CDocStatus status descr) child doc =
   preOrder child doc $ \doc' ->
-    let opr = mempty @Operation & at (HTTP.statusCode status) ?~ Inline (mempty @Response)
+    let resp =
+          mempty @Response
+            & description .~ maybe "" getDescription descr
+        opr =
+          mempty @Operation
+            & at (HTTP.statusCode status) ?~ Inline resp
         pathItem =
           mempty @PathItem
             & get ?~ opr
@@ -218,13 +313,13 @@ mergeDoc (DocStatus status) child doc =
             & patch ?~ opr
             & trace ?~ opr
      in doc' & paths <>~ [("/", pathItem)]
-mergeDoc (DocResponseBody defs mediaType mediaTypeObject) child doc =
+mergeDoc (CDocResponseBody defs mediaType mediaTypeObject) child doc =
   postOrder child doc $ \doc' ->
     let resp = mempty @Response & content <>~ [(mediaType, mediaTypeObject)]
      in doc'
           & allOperations . responses . responses %~ Map.map (`swaggerMappend` Inline resp)
           & components . schemas %~ (<> defs)
-mergeDoc (DocResponseHeader headerName header) child doc =
+mergeDoc (CDocResponseHeader headerName header) child doc =
   postOrder child doc $ \doc' ->
     let resp = mempty @Response & headers <>~ [(headerName, Inline header)]
      in doc' & allOperations . responses . responses %~ Map.map (`swaggerMappend` Inline resp)

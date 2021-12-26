@@ -24,6 +24,7 @@ import qualified Data.List as List
 import Data.List.NonEmpty (NonEmpty (..), filter, toList)
 import Data.Text (Text)
 import GHC.TypeLits (Symbol)
+import Language.Haskell.TH (appE, conE)
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
@@ -175,15 +176,18 @@ toRouteExp s = do
 
 toMatchExp :: String -> Q Exp
 toMatchExp s = case List.words s of
-  [m, p] -> do
-    let methodExp = AppE (VarE 'method) (ConE $ mkName m)
-    pathExps <- toPathExps p
-    pure $ List.foldr1 compose $ methodExp :| pathExps
+  [m, p] -> toMethodAndPathExps m p
   [p] -> do
     pathExps <- toPathExps p
     pure $ List.foldr1 compose pathExps
   _ -> fail "Expected an HTTP method and a path or just a path"
   where
+    toMethodAndPathExps :: String -> String -> Q Exp
+    toMethodAndPathExps m p = do
+      methodExp <- [|method|] `appE` conE (mkName m)
+      pathExps <- toPathExps p
+      pure $ List.foldr1 compose $ methodExp :| pathExps
+
     toPathExps :: String -> Q [Exp]
     toPathExps p =
       splitOn '/' p

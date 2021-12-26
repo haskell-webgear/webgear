@@ -20,6 +20,8 @@ import Test.QuickCheck (
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
+import WebGear.Core.Request (Request (..))
+import WebGear.Core.Trait (Linked, getTrait, linkzero, probe)
 import WebGear.Core.Trait.Auth.Basic (
   BasicAuth,
   BasicAuth' (..),
@@ -29,8 +31,6 @@ import WebGear.Core.Trait.Auth.Basic (
  )
 import WebGear.Core.Trait.Auth.Common (AuthorizationHeader)
 import WebGear.Core.Trait.Header (Header (..))
-import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (Linked, getTrait, linkzero, probe)
 import WebGear.Server.Handler (ServerHandler, runServerHandler)
 import WebGear.Server.Trait.Auth.Basic ()
 import WebGear.Server.Trait.Header ()
@@ -50,11 +50,8 @@ prop_basicAuth = property f
               r <- probe Header -< linkzero req
               returnA -< fromRight undefined r
 
-            toBasicAttribute :: Credentials -> Identity (Either () Credentials)
-            toBasicAttribute = pure . Right
-
             authCfg :: BasicAuth Identity () Credentials
-            authCfg = BasicAuth'{..}
+            authCfg = BasicAuth'{toBasicAttribute = pure . Right}
          in runIdentity $ do
               res <- runServerHandler (mkRequest >>> getTrait authCfg) [""] ()
               pure $ case res of

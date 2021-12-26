@@ -20,7 +20,7 @@ import Data.Version (showVersion)
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.Wai as Wai
 import Paths_webgear_server (version)
-import WebGear.Core.Handler (Handler (..), RouteMismatch (..), RoutePath (..))
+import WebGear.Core.Handler (Description, Handler (..), RouteMismatch (..), RoutePath (..), Summary)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), toWaiResponse)
 import WebGear.Core.Trait (Linked, linkzero)
@@ -114,6 +114,14 @@ instance Monad m => Handler (ServerHandler m) m where
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a
   consumeRoute (ServerHandler h) = ServerHandler $
     \((), path) -> h (path, RoutePath [])
+
+  {-# INLINEABLE setDescription #-}
+  setDescription :: Description -> ServerHandler m a a
+  setDescription _ = Cat.id
+
+  {-# INLINEABLE setSummary #-}
+  setSummary :: Summary -> ServerHandler m a a
+  setSummary _ = Cat.id
 
 -- | Run a ServerHandler to produce a result or a route mismatch error.
 runServerHandler ::

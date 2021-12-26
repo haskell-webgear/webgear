@@ -9,12 +9,12 @@ import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Modifiers
+import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Set (..), Trait, TraitAbsence)
 import qualified WebGear.Core.Trait.Header as WG
-import WebGear.OpenApi.Handler (DocNode (..), OpenApiHandler (..), singletonNode)
+import WebGear.OpenApi.Handler (DocNode (..), OpenApiHandler (..), nullNode, singletonNode)
 
 mkParam ::
   forall name val.
@@ -48,7 +48,9 @@ instance (KnownSymbol name, ToSchema val, Trait (WG.Header Required ps name val)
           mempty @Header
             & required ?~ True
             & schema ?~ Inline (toSchema $ Proxy @val)
-     in OpenApiHandler $ singletonNode (DocResponseHeader headerName header)
+     in if headerName == "Content-Type"
+          then OpenApiHandler nullNode
+          else OpenApiHandler $ singletonNode (DocResponseHeader headerName header)
 
 instance (KnownSymbol name, ToSchema val, Trait (WG.Header Optional ps name val) Response) => Set (OpenApiHandler m) (WG.Header Optional ps name val) Response where
   {-# INLINEABLE setTrait #-}
