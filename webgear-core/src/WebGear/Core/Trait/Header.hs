@@ -191,23 +191,29 @@ instance Trait (Header Optional Strict name val) Response where
  > response' <- setHeader @"Content-Length" -< (response, 42)
 -}
 setHeader ::
-  forall name val h res.
+  forall name val a h res.
   Set h (Header Required Strict name val) Response =>
-  h (Linked res Response, val) (Linked (Header Required Strict name val : res) Response)
-setHeader = plant Header
+  h a (Linked res Response) ->
+  h (val, a) (Linked (Header Required Strict name val : res) Response)
+setHeader prevHandler = proc (val, a) -> do
+  r <- prevHandler -< a
+  plant Header -< (r, val)
 
 {- | Set an optional header value in a response.
 
  Setting the header to 'Nothing' will remove it from the response if
  it was previously set. The header will be considered as optional in
- all relevant places such as documentation.
+ all relevant places (such as documentation).
 
  Example usage:
 
  > response' <- setOptionalHeader @"Content-Length" -< (response, Just 42)
 -}
 setOptionalHeader ::
-  forall name val h res.
+  forall name val a h res.
   Set h (Header Optional Strict name val) Response =>
-  h (Linked res Response, Maybe val) (Linked (Header Optional Strict name val : res) Response)
-setOptionalHeader = plant Header
+  h a (Linked res Response) ->
+  h (Maybe val, a) (Linked (Header Optional Strict name val : res) Response)
+setOptionalHeader prevHandler = proc (val, a) -> do
+  r <- prevHandler -< a
+  plant Header -< (r, val)

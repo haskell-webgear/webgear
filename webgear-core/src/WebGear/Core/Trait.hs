@@ -126,7 +126,7 @@ probe t = proc l -> do
 
 -- | Set a trait attribute on linked value to produce another linked
 -- value
-plant :: Set h t a => t -> h (Linked ts a, Attribute t a) (Linked (t : ts) a)
+plant :: forall t ts h a. Set h t a => t -> h (Linked ts a, Attribute t a) (Linked (t : ts) a)
 plant t = proc (l, attr) -> do
   setTrait t link -< (l, attr)
   where

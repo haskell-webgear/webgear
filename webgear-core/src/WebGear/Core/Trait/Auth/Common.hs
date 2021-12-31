@@ -94,5 +94,7 @@ respondUnauthorized ::
   h a Response
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
-  r <- respondA HTTP.unauthorized401 "text/plain" -< "Unauthorized" :: Text
-  unlinkA <<< setHeader @"WWW-Authenticate" -< (r, headerVal)
+  unlinkA
+    <<< setHeader @"WWW-Authenticate" (respondA HTTP.unauthorized401 "text/plain")
+    -<
+      (headerVal, "Unauthorized" :: Text)
