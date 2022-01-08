@@ -56,8 +56,6 @@ serveFile = proc file -> do
     Nothing -> unlinkA <<< notFound404 -< ()
     Just contents -> do
       let contentType = Mime.defaultMimeLookup $ Text.pack $ takeFileName file
-      r <- ok200 -< ()
-      r' <- setBodyWithoutContentType -< (r, contents)
-      unlinkA <<< setHeader @"Content-Type" -< (r', contentType)
+      unlinkA <<< setHeader @"Content-Type" (setBodyWithoutContentType ok200) -< (contentType, (contents, ()))
   where
     readFile = arrM $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)
