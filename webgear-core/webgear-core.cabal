@@ -6,8 +6,8 @@ synopsis:            Composable, type-safe library to build HTTP APIs
 description:
         WebGear is a library to for building composable, type-safe HTTP APIs.
         See the documentation of WebGear.Core module to get started.
-homepage:            https://github.com/haskell-webgear/webgear-core#readme
-bug-reports:         https://github.com/haskell-webgear/webgear-core/issues
+homepage:            https://github.com/haskell-webgear/webgear#readme
+bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
 copyright:           2020-2021 Raghu Kaippully
@@ -21,7 +21,7 @@ extra-source-files:  README.md
 
 source-repository head
   type:      git
-  location:  https://github.com/haskell-webgear/webgear-core
+  location:  https://github.com/haskell-webgear/webgear
 
 
 common webgear-common

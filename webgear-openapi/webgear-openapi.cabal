@@ -7,8 +7,8 @@ description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
     This package can be used to generate OpenAPI specifications from WebGear
     applications.
-homepage:            https://github.com/haskell-webgear/webgear-openapi#readme
-bug-reports:         https://github.com/haskell-webgear/webgear-openapi/issues
+homepage:            https://github.com/haskell-webgear/webgear#readme
+bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
 copyright:           2020 Raghu Kaippully
@@ -22,7 +22,7 @@ extra-source-files:  README.md
 
 source-repository head
   type:      git
-  location:  https://github.com/haskell-webgear/webgear-openapi
+  location:  https://github.com/haskell-webgear/webgear
 
 
 library
