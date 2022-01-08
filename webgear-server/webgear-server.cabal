@@ -71,7 +71,6 @@ common webgear-common
                       -Wmissing-deriving-strategies
                       -Wpartial-fields
                       -Wredundant-constraints
-                      -Werror
                       -fshow-warning-groups
 
   if impl(ghc >= 8.10)
