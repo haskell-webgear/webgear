@@ -1,6 +1,8 @@
 # Changelog for webgear-server
 
-## Unreleased changes
+## [Unreleased]
+
+## [1.0.0] - 2022-01-08
 
 ### Changed
 - New home at https://github.com/haskell-webgear/webgear
@@ -29,7 +31,8 @@
 - Automated tests
 - Documentation
 
-[Unreleased]: https://github.com/haskell-webgear/webgear-server/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.0.0
 [0.2.1]: https://github.com/haskell-webgear/webgear-server/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/haskell-webgear/webgear-server/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/haskell-webgear/webgear-server/releases/tag/v0.1.0
