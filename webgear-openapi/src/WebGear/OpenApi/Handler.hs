@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- | An implementation of `Handler` to generate `OpenApi` documentation
  from WebGear API specifications.
 -}
@@ -262,8 +263,13 @@ combineOpenApi s t =
 
 mergeDoc :: CompactDocNode -> Tree CompactDocNode -> OpenApi -> OpenApi
 mergeDoc (CDocSecurityScheme schemeName scheme) child doc =
-  let secSchemes = [(schemeName, scheme)] :: Definitions SecurityScheme
-      secReqs = [SecurityRequirement [(schemeName, [])]] :: [SecurityRequirement]
+  let
+#if MIN_VERSION_openapi3(3, 2, 0)
+    secSchemes = SecurityDefinitions [(schemeName, scheme)]
+#else
+    secSchemes = [(schemeName, scheme)] :: Definitions SecurityScheme
+#endif
+    secReqs = [SecurityRequirement [(schemeName, [])]] :: [SecurityRequirement]
    in postOrder child doc $ \doc' ->
         doc'
           & components . securitySchemes <>~ secSchemes
