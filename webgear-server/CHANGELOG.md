@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2022-01-09
+
+### Changed
+- Update dependency bounds (#7)
+
 ## [1.0.0] - 2022-01-08
 
 ### Changed
