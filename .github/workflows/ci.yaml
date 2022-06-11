@@ -20,30 +20,30 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ghc:
-          - 9.0.1
+          - 9.2.2
+          - 9.0.2
           - 8.10.7
-          - 8.8.4
         exclude:
           - os: macos-latest
-            ghc: 8.10.7
+            ghc: 9.0.2
           - os: macos-latest
-            ghc: 8.8.4
+            ghc: 8.10.7
 
     env:
       STACK_YAML: stack-${{ matrix.ghc }}.yaml
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout Source Code
 
-      - uses: haskell/actions/setup@v1
+      - uses: haskell/actions/setup@v2
         name: Setup Haskell Build Environment
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-          stack-version: 2.7.3
+          stack-version: 2.7.5
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Cache dependencies
         with:
           path: ~/.stack
@@ -67,7 +67,7 @@ jobs:
         run: stack sdist --system-ghc --ignore-check
 
       - name: Upload to Hackage
-        if: matrix.ghc == '9.0.1' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+        if: matrix.ghc == '9.2.2' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
         run: |
           export HACKAGE_KEY="${{ secrets.HACKAGE_TOKEN }}"
           stack upload --system-ghc --ignore-check webgear-core
@@ -83,23 +83,23 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         ghc:
-          - 9.0.1
+          - 9.2.2
+          - 9.0.2
           - 8.10.7
-          - 8.8.4
         exclude:
           - os: macos-latest
-            ghc: 8.10.7
+            ghc: 9.0.2
           - os: macos-latest
-            ghc: 8.8.4
+            ghc: 8.10.7
 
     env:
       CONFIG: "--enable-tests --enable-benchmarks"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout Source Code
 
-      - uses: haskell/actions/setup@v1
+      - uses: haskell/actions/setup@v2
         name: Setup Haskell Build Environment
         with:
           ghc-version: ${{ matrix.ghc }}
@@ -111,7 +111,7 @@ jobs:
       - name: Generate freeze file
         run: cabal freeze $CONFIG
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Cache dependencies
         with:
           path: |
