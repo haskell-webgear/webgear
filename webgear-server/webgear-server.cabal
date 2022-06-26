@@ -59,7 +59,7 @@ common webgear-common
                     , http-types ==0.12.*
                     , text >=1.2.0.0 && <2.1
                     , wai ==3.2.*
-                    , webgear-core ==1.0.2
+                    , webgear-core ==1.0.3
   ghc-options:        -Wall
                       -Wno-unticked-promoted-constructors
                       -Wcompat
