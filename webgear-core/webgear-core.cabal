@@ -1,7 +1,7 @@
 cabal-version:       2.4
 
 name:                webgear-core
-version:             1.0.2
+version:             1.0.3
 synopsis:            Composable, type-safe library to build HTTP APIs
 description:
         WebGear is a library to for building composable, type-safe HTTP APIs.
@@ -57,7 +57,7 @@ common webgear-common
                     , bytestring >=0.10.10.1 && <0.12
                     , case-insensitive ==1.2.*
                     , filepath ==1.4.*
-                    , http-api-data ==0.4.*
+                    , http-api-data >=0.4.2 && <0.6
                     , http-media ==0.8.*
                     , http-types ==0.12.*
                     , network ==3.1.*
