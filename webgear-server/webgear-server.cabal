@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                webgear-server
-version:             1.0.2
+version:             1.0.3
 synopsis:            Composable, type-safe library to build HTTP API servers
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -92,10 +92,10 @@ library
   other-modules:      Paths_webgear_server
   autogen-modules:    Paths_webgear_server
   hs-source-dirs:     src
-  build-depends:      aeson >=1.4 && <2.1
+  build-depends:      aeson >=1.4 && <1.6 || >=2.0 && <2.1
                     , arrows ==0.4.*
                     , bytestring-conversion ==0.3.*
-                    , http-api-data ==0.4.*
+                    , http-api-data >=0.4.2 && <0.6
                     , http-media ==0.8.*
                     , jose >=0.8.3.1 && <0.10
                     , monad-time ==0.3.*
