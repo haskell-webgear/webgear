@@ -88,14 +88,14 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ghc:
-          - 924
-          - 902
-          - 8107
+          - 9.2.4
+          - 9.0.2
+          - 8.10.7
         exclude:
           - os: macos-latest
-            ghc: 902
+            ghc: 9.0.2
           - os: macos-latest
-            ghc: 8107
+            ghc: 8.10.7
 
     steps:
       - uses: actions/checkout@v3
@@ -111,4 +111,6 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Build Packages
-        run: nix build -L --no-link .#webgear-core-ghc${{ matrix.ghc }} .#webgear-server-ghc${{ matrix.ghc }} .#webgear-openapi-ghc${{ matrix.ghc }}
+        run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
+          nix build -L --no-link .#webgear-core-ghc${GHC_VERSION} .#webgear-server-ghc${GHC_VERSION} .#webgear-openapi-ghc${GHC_VERSION}
