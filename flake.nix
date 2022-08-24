@@ -2,46 +2,34 @@
   description = "WebGear Project";
 
   inputs = {
-    # nixos-22.05 on 2022-06-25
-    nixpkgs.url = "github:NixOS/nixpkgs/ccf8bdf72624521358be6bb7d9b524c4cbcf7aff";
-    # master on 2022-06-25
-    flake-utils.url = "github:numtide/flake-utils/bee6a7250dd1b01844a2de7e02e4df7d8a0a206c";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    gitignore = {
+      url = "github:hercules-ci/gitignore.nix";
+      # Use the same nixpkgs
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, gitignore }:
+    {
+      overlays.default = import ./nix/overlays/haskell.nix { inherit gitignore; };
+    }
+    // flake-utils.lib.eachSystem ["x86_64-linux" "x86_64-darwin"] (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-
-        haskellPackages = pkgs.haskell.packages.ghc922.override {
-          overrides = final: prev: {
-            bytestring-conversion = final.callPackage ./nix/haskell-modules/bytestring-conversion-0.3.2.nix {};
-          };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ self.overlays.default ];
         };
+
+        mkVersionedPackages = hsVersion:
+          pkgs.lib.attrsets.mapAttrs' (name: _: {
+            name = "${name}-${hsVersion}";
+            value = pkgs.haskell.packages.${hsVersion}.${name};
+          }) pkgs.localHsPackages;
       in {
-        packages = rec {
-          webgear-core = haskellPackages.callCabal2nix "webgear-core" ./webgear-core {};
+        packages = pkgs.lib.mapcat mkVersionedPackages pkgs.hsVersions;
 
-          webgear-server = haskellPackages.callCabal2nix "webgear-server" ./webgear-server {
-            inherit webgear-core;
-          };
-
-          webgear-openapi = haskellPackages.callCabal2nix "webgear-openapi" ./webgear-openapi {
-            inherit webgear-core;
-          };
-        };
-
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            cabal2nix
-            cabal-install
-            ghcid
-            haskellPackages.haskell-language-server
-            # haskellPackages.packdeps
-            stack
-          ];
-
-          inputsFrom = builtins.attrValues self.packages.${system};
-        };
+        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.hsVersions;
       });
 }

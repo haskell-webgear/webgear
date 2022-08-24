@@ -3,20 +3,20 @@ cradle:
     - path: "./webgear-core/src"
       config:
         cradle:
-          stack:
-            component: "webgear-core:lib"
+          cabal:
+            component: "lib:webgear-core"
     - path: "./webgear-server/src"
       config:
         cradle:
-          stack:
-            component: "webgear-server:lib"
+          cabal:
+            component: "lib:webgear-server"
     - path: "./webgear-server/test"
       config:
         cradle:
-          stack:
-            component: "webgear-server:test:webgear-server-test"
+          cabal:
+            component: "webgear-server:webgear-server-test"
     - path: "./webgear-openapi/src"
       config:
         cradle:
-          stack:
-            component: "webgear-openapi:lib"
+          cabal:
+            component: "lib:webgear-openapi"
