@@ -21,3 +21,19 @@ Examples of WebGear applications can be found at:
 - https://github.com/haskell-webgear/webgear-example-realworld
 
 Documentation is available at https://haskell-webgear.github.io
+
+## Development
+
+Use Nix to start a reproducible development environment:
+
+```shell
+nix develop .#webgear-dev-ghc<GHC-VERSION>
+```
+
+You can use the standard cabal commands in the development shell.
+
+You can build packages using Nix:
+
+```shell
+nix build .#webgear-core-ghc<GHC-VERSION> .#webgear-server-ghc<GHC-VERSION> .#webgear-openapi-ghc<GHC-VERSION>
+```
