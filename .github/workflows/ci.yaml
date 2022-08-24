@@ -1,12 +1,15 @@
-name: Haskell CI
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   release:
-    types: [published]
+    types:
+      - published
 
 jobs:
   stack-build:
@@ -74,61 +77,38 @@ jobs:
           stack upload --system-ghc --ignore-check webgear-server
           stack upload --system-ghc --ignore-check webgear-openapi
 
-  cabal-build:
-    name: Cabal - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
+  nix-build:
+    name: Nix - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os:
+          - ubuntu-latest
+          - macos-latest
         ghc:
-          - 9.2.2
-          - 9.0.2
-          - 8.10.7
+          - 923
+          - 902
+          - 8107
         exclude:
           - os: macos-latest
-            ghc: 9.0.2
+            ghc: 902
           - os: macos-latest
-            ghc: 8.10.7
-
-    env:
-      CONFIG: "--enable-tests --enable-benchmarks"
+            ghc: 8107
 
     steps:
       - uses: actions/checkout@v3
         name: Checkout Source Code
 
-      - uses: haskell/actions/setup@v2
-        name: Setup Haskell Build Environment
+      - uses: cachix/install-nix-action@v17
+        name: Install Nix
+
+      - uses: cachix/cachix-action@v10
+        name: Set up Cachix
         with:
-          ghc-version: ${{ matrix.ghc }}
-          enable-stack: false
+          name: haskell-webgear
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-      - name: Update package index
-        run: cabal update $CONFIG
-
-      - name: Generate freeze file
-        run: cabal freeze $CONFIG
-
-      - uses: actions/cache@v3
-        name: Cache dependencies
-        with:
-          path: |
-            ~/.cabal/store
-            dist-newstyle
-          key: ${{ runner.os }}-${{ matrix.ghc }}-cabal-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.ghc }}-cabal-
-
-      - name: Build
-        run: cabal build all --enable-documentation $CONFIG
-
-      - name: Test
-        run: cabal test all --test-show-details=always --test-options='--quickcheck-tests 100000' $CONFIG
-
-      - name: Haddock
-        run: cabal haddock all --enable-documentation $CONFIG
-
-      - name: Prepare sdist
-        run: cabal sdist all
+      - name: Build Packages
+        run: nix build -L --no-link .#webgear-core-ghc${{ matrix.ghc }} .#webgear-server-ghc${{ matrix.ghc }} .#webgear-openapi-ghc${{ matrix.ghc }}
