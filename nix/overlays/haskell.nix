@@ -30,7 +30,7 @@ let
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
           // {
             # Add any package overrides here
-            # package-name = final.callPackage ../haskell-modules/package-name-version.nix {};
+            # package-name = final.callPackage ../haskell-packages/package-name-version.nix {};
           };
       };
     }) hsVersions;
@@ -45,9 +45,10 @@ let
           packages = pkgs: map (name: pkgs.${name}) (builtins.attrNames localHsPackages);
 
           buildInputs = [
-            hsPkgs.ghc
-            haskell.packages.${hsDefaultVersion}.fourmolu
             final.cabal-install
+            final.cabal2nix
+            haskell.packages.${hsDefaultVersion}.fourmolu
+            hsPkgs.ghc
             final.hlint
             final.haskell-language-server
             final.stack

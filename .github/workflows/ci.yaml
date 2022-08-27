@@ -23,7 +23,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ghc:
-          - 9.2.2
+          - 9.2.3
           - 9.0.2
           - 8.10.7
         exclude:
@@ -70,7 +70,7 @@ jobs:
         run: stack sdist --system-ghc --ignore-check
 
       - name: Upload to Hackage
-        if: matrix.ghc == '9.2.2' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+        if: matrix.ghc == '9.2.3' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
         run: |
           export HACKAGE_KEY="${{ secrets.HACKAGE_TOKEN }}"
           stack upload --system-ghc --ignore-check webgear-core
