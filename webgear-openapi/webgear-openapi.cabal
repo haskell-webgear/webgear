@@ -1,7 +1,7 @@
 cabal-version:       2.4
 
 name:                webgear-openapi
-version:             1.0.3
+version:             1.0.4
 synopsis:            Composable, type-safe library to build HTTP API servers
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -67,11 +67,11 @@ library
                       TypeFamilies
                       TypeOperators
   build-depends:      arrows ==0.4.*
-                    , base >=4.13.0.0 && <4.17
+                    , base >=4.13.0.0 && <4.18
                     , http-media ==0.8.*
                     , http-types ==0.12.*
                     , insert-ordered-containers ==0.2.*
-                    , lens >=4.18.1 && <5.2
+                    , lens >=4.18.1 && <5.3
                     , openapi3 >=3.1.0 && <3.3
                     , text >=1.2.0.0 && <2.1
                     , webgear-core ==1.0.3
