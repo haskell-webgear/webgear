@@ -1,4 +1,4 @@
- {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- | Traits are optional attributes associated with a value. For
  example, a list containing totally ordered values might have a
@@ -77,14 +77,16 @@ class (Arrow h, Trait t a) => Set h (t :: Type) a where
     -- with other traits
     h (Linked ts a, Attribute t a) (Linked (t : ts) a)
 
--- | @Gets h ts a@ is equivalent to @(Get h t1 a, Get h t2 a, ..., Get
--- h tn a)@ where @ts = [t1, t2, ..., tn]@.
+{- | @Gets h ts a@ is equivalent to @(Get h t1 a, Get h t2 a, ..., Get
+ h tn a)@ where @ts = [t1, t2, ..., tn]@.
+-}
 type family Gets h ts a :: Constraint where
   Gets h '[] a = ()
   Gets h (t : ts) a = (Get h t a, Gets h ts a)
 
--- | @Sets h ts a@ is equivalent to @(Set h t1 a, Set h t2 a, ..., Set
--- h tn a)@ where @ts = [t1, t2, ..., tn]@.
+{- | @Sets h ts a@ is equivalent to @(Set h t1 a, Set h t2 a, ..., Set
+ h tn a)@ where @ts = [t1, t2, ..., tn]@.
+-}
 type family Sets h ts a :: Constraint where
   Sets h '[] a = ()
   Sets h (t : ts) a = (Set h t a, Sets h ts a)
@@ -92,8 +94,8 @@ type family Sets h ts a :: Constraint where
 -- | A value linked with a type-level list of traits.
 data Linked (ts :: [Type]) a = Linked
   { linkAttribute :: !(LinkedAttributes ts a)
-  , -- | Retrive the value from a linked value
-    unlink :: !a
+  , unlink :: !a
+  -- ^ Retrive the value from a linked value
   }
 
 type family LinkedAttributes (ts :: [Type]) (a :: Type) where
@@ -103,10 +105,12 @@ type family LinkedAttributes (ts :: [Type]) (a :: Type) where
 -- | Wrap a value with an empty list of traits.
 linkzero :: a -> Linked '[] a
 linkzero = Linked ()
+{-# INLINE linkzero #-}
 
 -- | Forget the head trait
 linkminus :: Linked (t : ts) a -> Linked ts a
 linkminus (Linked (_, rv) a) = Linked rv a
+{-# INLINE linkminus #-}
 
 {- | Attempt to link an additional trait with an already linked
  value. This can fail indicating an 'Absence' of the trait.
@@ -123,15 +127,18 @@ probe t = proc l -> do
     link :: (Linked ts a, Either e (Attribute t a)) -> Either e (Linked (t : ts) a)
     link (_, Left e) = Left e
     link (Linked{..}, Right attr) = Right $ Linked{linkAttribute = (attr, linkAttribute), ..}
+{-# INLINE probe #-}
 
--- | Set a trait attribute on linked value to produce another linked
--- value
+{- | Set a trait attribute on linked value to produce another linked
+ value
+-}
 plant :: forall t ts h a. Set h t a => t -> h (Linked ts a, Attribute t a) (Linked (t : ts) a)
 plant t = proc (l, attr) -> do
   setTrait t link -< (l, attr)
   where
     link :: Linked ts a -> a -> Attribute t a -> Linked (t : ts) a
     link Linked{..} a' attr = Linked{linkAttribute = (attr, linkAttribute), unlink = a'}
+{-# INLINE plant #-}
 
 {- | Constraint that proves that the trait @t@ is present in the list
  of traits @ts@.
@@ -157,6 +164,7 @@ instance {-# OVERLAPPABLE #-} HasTrait t ts => HasTrait t (t' : ts) where
 -}
 pick :: Tagged t a -> a
 pick = untag
+{-# INLINE pick #-}
 
 -- For better type errors
 instance TypeError (MissingTrait t) => HasTrait t '[] where
