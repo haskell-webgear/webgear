@@ -45,3 +45,4 @@ method ::
   HTTP.StdMethod ->
   Middleware h req (Method : req)
 method m nextHandler = probe (Method m) >>> routeMismatch ||| nextHandler
+{-# INLINE method #-}

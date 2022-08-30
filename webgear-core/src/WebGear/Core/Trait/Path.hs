@@ -85,6 +85,7 @@ path ::
   Text ->
   Middleware h req (Path : req)
 path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
+{-# INLINE path #-}
 
 {- | A middleware that captures a path variable from a single path
  component.
@@ -103,12 +104,14 @@ pathVar ::
   (Get h (PathVar tag val) Request, ArrowChoice h, ArrowError RouteMismatch h) =>
   Middleware h req (PathVar tag val : req)
 pathVar nextHandler = probe PathVar >>> routeMismatch ||| nextHandler
+{-# INLINE pathVar #-}
 
 -- | A middleware that verifies that end of path is reached.
 pathEnd ::
   (Get h PathEnd Request, ArrowChoice h, ArrowError RouteMismatch h) =>
   Middleware h req (PathEnd : req)
 pathEnd nextHandler = probe PathEnd >>> routeMismatch ||| nextHandler
+{-# INLINE pathEnd #-}
 
 {- | Produces middleware(s) to match an optional HTTP method and some
  path components.
