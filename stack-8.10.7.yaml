@@ -5,3 +5,7 @@ packages:
   - ./webgear-server
   - ./webgear-openapi
   - ./webgear-benchmarks
+
+extra-deps:
+  - servant-0.19@sha256:8d1119c20d6eccb56e308642ec376eaa1b267a8dd761aa85a10e299e64371e3c,5562
+  - servant-server-0.19.1@sha256:e5788f21872a045ab588f2c93d538791f21623f5c1b9885952348a147a095aa1,5709
