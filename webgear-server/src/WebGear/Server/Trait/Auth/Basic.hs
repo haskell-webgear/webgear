@@ -33,7 +33,7 @@ instance
   ) =>
   Get (ServerHandler m) (BasicAuth' Required scheme m e a) Request
   where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' Required scheme m e a ->
     ServerHandler m (Linked ts Request) (Either (BasicAuthError e) a)
@@ -64,7 +64,7 @@ instance
   ) =>
   Get (ServerHandler m) (BasicAuth' Optional scheme m e a) Request
   where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' Optional scheme m e a ->
     ServerHandler m (Linked ts Request) (Either Void (Either (BasicAuthError e) a))

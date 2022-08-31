@@ -20,7 +20,7 @@ import WebGear.Core.Trait.QueryParam (QueryParam (..))
 import WebGear.OpenApi.Handler (DocNode (DocQueryParam), OpenApiHandler (..), singletonNode)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Required ps name val) Request) => Get (OpenApiHandler m) (QueryParam Required ps name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait _ =
     let param =
           (mempty :: Param)
@@ -32,7 +32,7 @@ instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Required ps n
      in OpenApiHandler $ singletonNode (DocQueryParam param)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Optional ps name val) Request) => Get (OpenApiHandler m) (QueryParam Optional ps name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait _ =
     let param =
           (mempty :: Param)

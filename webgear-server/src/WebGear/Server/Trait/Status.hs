@@ -11,7 +11,7 @@ import WebGear.Core.Trait.Status (Status (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance Monad m => Set (ServerHandler m) Status Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Status ->
     (Linked ts Response -> Response -> HTTP.Status -> Linked (Status : ts) Response) ->

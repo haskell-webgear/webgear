@@ -29,7 +29,7 @@ extractRequestHeader proxy = proc req -> do
   returnA -< parseHeader <$> requestHeader headerName (unlink req)
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Header Required Strict name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     Header Required Strict name val ->
     ServerHandler m (Linked ts Request) (Either (Either HeaderNotFound HeaderParseError) val)
@@ -41,7 +41,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Right x) -> Right x
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Header Optional Strict name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     Header Optional Strict name val ->
     ServerHandler m (Linked ts Request) (Either HeaderParseError (Maybe val))
@@ -53,7 +53,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Right x) -> Right $ Just x
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Header Required Lenient name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     Header Required Lenient name val ->
     ServerHandler m (Linked ts Request) (Either HeaderNotFound (Either Text val))
@@ -65,7 +65,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Right x) -> Right $ Right x
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Header Optional Lenient name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     Header Optional Lenient name val ->
     ServerHandler m (Linked ts Request) (Either Void (Maybe (Either Text val)))
@@ -77,7 +77,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Right x) -> Right $ Just $ Right x
 
 instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) (Header Required Strict name val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Header Required Strict name val ->
     (Linked ts Response -> Response -> val -> Linked (Header Required Strict name val : ts) Response) ->
@@ -89,7 +89,7 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
     returnA -< f l response' val
 
 instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) (Header Optional Strict name val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Header Optional Strict name val ->
     (Linked ts Response -> Response -> Maybe val -> Linked (Header Optional Strict name val : ts) Response) ->
