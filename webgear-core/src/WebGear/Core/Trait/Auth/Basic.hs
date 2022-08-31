@@ -147,6 +147,7 @@ basicAuthMiddleware authCfg errorHandler nextHandler =
     case result of
       Left err -> errorHandler -< (request, err)
       Right val -> nextHandler -< val
+{-# INLINE basicAuthMiddleware #-}
 
 {- | Middleware to add basic authentication protection for a handler.
 
@@ -167,6 +168,7 @@ basicAuth ::
   h (Linked req Request, BasicAuthError e) Response ->
   Middleware h req (BasicAuth m e t : req)
 basicAuth = basicAuth'
+{-# INLINE basicAuth #-}
 
 {- | Similar to `basicAuth` but supports a custom authentication scheme.
 
@@ -183,6 +185,7 @@ basicAuth' ::
   h (Linked req Request, BasicAuthError e) Response ->
   Middleware h req (BasicAuth' Required scheme m e t : req)
 basicAuth' = basicAuthMiddleware
+{-# INLINE basicAuth' #-}
 
 {- | Middleware to add optional basic authentication protection for a handler.
 
@@ -202,6 +205,7 @@ optionalBasicAuth ::
   BasicAuth' Optional "Basic" m e t ->
   Middleware h req (BasicAuth' Optional "Basic" m e t : req)
 optionalBasicAuth = optionalBasicAuth'
+{-# INLINE optionalBasicAuth #-}
 
 {- | Similar to `optionalBasicAuth` but supports a custom authentication
    scheme.
@@ -217,3 +221,4 @@ optionalBasicAuth' ::
   BasicAuth' Optional scheme m e t ->
   Middleware h req (BasicAuth' Optional scheme m e t : req)
 optionalBasicAuth' cfg = basicAuthMiddleware cfg $ arr (absurd . snd)
+{-# INLINE optionalBasicAuth' #-}

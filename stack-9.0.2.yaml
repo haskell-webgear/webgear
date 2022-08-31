@@ -4,3 +4,4 @@ packages:
   - ./webgear-core
   - ./webgear-server
   - ./webgear-openapi
+  - ./webgear-benchmarks

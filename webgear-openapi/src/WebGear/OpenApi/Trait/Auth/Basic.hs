@@ -13,7 +13,7 @@ import WebGear.Core.Trait.Auth.Basic (BasicAuth' (..))
 import WebGear.OpenApi.Handler (DocNode (DocSecurityScheme), OpenApiHandler (..), singletonNode)
 
 instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) => Get (OpenApiHandler m) (BasicAuth' x scheme m e a) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' x scheme m e a ->
     OpenApiHandler m (Linked ts Request) (Either (Absence (BasicAuth' x scheme m e a) Request) (Attribute (BasicAuth' x scheme m e a) Request))

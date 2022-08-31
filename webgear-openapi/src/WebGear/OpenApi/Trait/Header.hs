@@ -31,17 +31,17 @@ mkParam _ _ isRequired =
     & schema ?~ Inline (toSchema $ Proxy @val)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.Header Required ps name val) Request) => Get (OpenApiHandler m) (WG.Header Required ps name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait WG.Header =
     OpenApiHandler $ singletonNode (DocRequestHeader $ mkParam (Proxy @name) (Proxy @val) True)
 
 instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.Header Optional ps name val) Request) => Get (OpenApiHandler m) (WG.Header Optional ps name val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait WG.Header =
     OpenApiHandler $ singletonNode (DocRequestHeader $ mkParam (Proxy @name) (Proxy @val) False)
 
 instance (KnownSymbol name, ToSchema val, Trait (WG.Header Required ps name val) Response) => Set (OpenApiHandler m) (WG.Header Required ps name val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait WG.Header _ =
     let headerName = fromString $ symbolVal $ Proxy @name
         header =
@@ -53,7 +53,7 @@ instance (KnownSymbol name, ToSchema val, Trait (WG.Header Required ps name val)
           else OpenApiHandler $ singletonNode (DocResponseHeader headerName header)
 
 instance (KnownSymbol name, ToSchema val, Trait (WG.Header Optional ps name val) Response) => Set (OpenApiHandler m) (WG.Header Optional ps name val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait WG.Header _ =
     let headerName = fromString $ symbolVal $ Proxy @name
         header =

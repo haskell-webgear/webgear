@@ -19,7 +19,7 @@ import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: Body val -> ServerHandler m (Linked ts Request) (Either Text val)
   getTrait (Body _) = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
@@ -28,7 +28,7 @@ instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Req
       Right t -> Right t
 
 instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Body val ->
     (Linked ts Response -> Response -> val -> Linked (Body val : ts) Response) ->
@@ -47,7 +47,7 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
     returnA -< f linkedResponse response' val
 
 instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: JSONBody val -> ServerHandler m (Linked ts Request) (Either Text val)
   getTrait (JSONBody _) = arrM $ \request -> do
     chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
@@ -56,7 +56,7 @@ instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody val)
       Right t -> Right t
 
 instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     JSONBody val ->
     (Linked ts Response -> Response -> val -> Linked (JSONBody val : ts) Response) ->

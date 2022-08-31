@@ -104,6 +104,7 @@ requestBody mediaType errorHandler nextHandler = proc request -> do
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
+{-# INLINE requestBody #-}
 
 {- | Parse the request body as JSON and convert it to a value of type
    @t@.
@@ -128,6 +129,7 @@ jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
+{-# INLINE jsonRequestBody' #-}
 
 -- | Same as 'jsonRequestBody'' but with a media type @application/json@.
 jsonRequestBody ::
@@ -137,6 +139,7 @@ jsonRequestBody ::
   h (Linked req Request, Text) Response ->
   Middleware h req (JSONBody t : req)
 jsonRequestBody = jsonRequestBody' (Just "application/json")
+{-# INLINE jsonRequestBody #-}
 
 {- | Set the response body along with a media type.
 
@@ -154,6 +157,7 @@ setBody mediaType prevHandler = proc (body, a) -> do
   r' <- plant (Body (Just mediaType)) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   plant Header -< (r', mt)
+{-# INLINE setBody #-}
 
 -- | Set the response body without specifying any media type.
 setBodyWithoutContentType ::
@@ -164,6 +168,7 @@ setBodyWithoutContentType ::
 setBodyWithoutContentType prevHandler = proc (body, a) -> do
   r <- prevHandler -< a
   plant (Body Nothing) -< (r, body)
+{-# INLINE setBodyWithoutContentType #-}
 
 {- | Set the response body to a JSON value along with a media type.
 
@@ -181,6 +186,7 @@ setJSONBody' mediaType prevHandler = proc (body, a) -> do
   r' <- plant (JSONBody (Just mediaType)) -< (r, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
   plant Header -< (r', mt)
+{-# INLINE setJSONBody' #-}
 
 {- | Set the response body to a JSON value.
 
@@ -192,6 +198,7 @@ setJSONBody ::
   h a (Linked ts Response) ->
   h (body, a) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
 setJSONBody = setJSONBody' "application/json"
+{-# INLINE setJSONBody #-}
 
 {- | Set the response body to a JSON value without specifying any
  media type.
@@ -204,6 +211,7 @@ setJSONBodyWithoutContentType ::
 setJSONBodyWithoutContentType prevHandler = proc (body, a) -> do
   r <- prevHandler -< a
   plant (JSONBody Nothing) -< (r, body)
+{-# INLINE setJSONBodyWithoutContentType #-}
 
 {- | A convenience arrow to generate a response specifying a status and body.
 
@@ -220,6 +228,7 @@ respondA ::
   h body (Linked [RequiredHeader "Content-Type" Text, Body body, Status] Response)
 respondA status mediaType = proc body ->
   setBody mediaType (mkResponse status) -< (body, ())
+{-# INLINE respondA #-}
 
 {- | A convenience arrow to generate a response specifying a status and
    JSON body.
@@ -233,6 +242,7 @@ respondJsonA ::
   HTTP.Status ->
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
 respondJsonA status = respondJsonA' status "application/json"
+{-# INLINE respondJsonA #-}
 
 {- | A convenience arrow to generate a response specifying a status and
    JSON body.
@@ -250,3 +260,4 @@ respondJsonA' ::
   h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
 respondJsonA' status mediaType = proc body ->
   setJSONBody' mediaType (mkResponse status) -< (body, ())
+{-# INLINE respondJsonA' #-}

@@ -20,7 +20,7 @@ import WebGear.OpenApi.Handler (
  )
 
 instance ToSchema val => Get (OpenApiHandler m) (Body val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: Body val -> OpenApiHandler m (Linked ts Request) (Either Text val)
   getTrait (Body maybeMediaType) =
     let mediaType = fromMaybe "*/*" maybeMediaType
@@ -31,7 +31,7 @@ instance ToSchema val => Get (OpenApiHandler m) (Body val) Request where
      in OpenApiHandler $ singletonNode (DocRequestBody defs body)
 
 instance ToSchema val => Set (OpenApiHandler m) (Body val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Body val ->
     (Linked ts Response -> Response -> val -> Linked (Body val : ts) Response) ->
@@ -43,12 +43,12 @@ instance ToSchema val => Set (OpenApiHandler m) (Body val) Response where
      in OpenApiHandler $ singletonNode (DocResponseBody defs mediaType body)
 
 instance ToSchema val => Get (OpenApiHandler m) (JSONBody val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: JSONBody val -> OpenApiHandler m (Linked ts Request) (Either Text val)
   getTrait (JSONBody maybeMediaType) = getTrait (Body @val maybeMediaType)
 
 instance ToSchema val => Set (OpenApiHandler m) (JSONBody val) Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     JSONBody val ->
     (Linked ts Response -> Response -> t -> Linked (JSONBody val : ts) Response) ->

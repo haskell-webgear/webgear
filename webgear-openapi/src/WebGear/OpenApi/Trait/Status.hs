@@ -10,7 +10,7 @@ import WebGear.Core.Trait.Status (Status (..))
 import WebGear.OpenApi.Handler (DocNode (DocStatus), OpenApiHandler (..), singletonNode)
 
 instance Set (OpenApiHandler m) Status Response where
-  {-# INLINEABLE setTrait #-}
+  {-# INLINE setTrait #-}
   setTrait ::
     Status ->
     (Linked ts Response -> Response -> HTTP.Status -> Linked (Status : ts) Response) ->

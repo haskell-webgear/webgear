@@ -11,7 +11,7 @@ import WebGear.Core.Trait.Method (Method (..), MethodMismatch (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance Monad m => Get (ServerHandler m) Method Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: Method -> ServerHandler m (Linked ts Request) (Either MethodMismatch HTTP.StdMethod)
   getTrait (Method method) = proc request -> do
     let expectedMethod = HTTP.renderStdMethod method

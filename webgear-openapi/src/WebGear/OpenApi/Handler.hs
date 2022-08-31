@@ -128,30 +128,30 @@ instance ArrowChoice (OpenApiHandler m) where
   OpenApiHandler doc1 ||| OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
 
 instance ArrowError RouteMismatch (OpenApiHandler m) where
-  {-# INLINEABLE raise #-}
+  {-# INLINE raise #-}
   raise = OpenApiHandler{openApiDoc = NullNode}
 
-  {-# INLINEABLE handle #-}
+  {-# INLINE handle #-}
   OpenApiHandler doc1 `handle` OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
 
-  {-# INLINEABLE tryInUnless #-}
+  {-# INLINE tryInUnless #-}
   tryInUnless (OpenApiHandler doc1) (OpenApiHandler doc2) (OpenApiHandler doc3) =
     OpenApiHandler $ BinaryNode (BinaryNode doc1 doc2) doc3
 
 instance Monad m => Handler (OpenApiHandler m) m where
-  {-# INLINEABLE arrM #-}
+  {-# INLINE arrM #-}
   arrM :: (a -> m b) -> OpenApiHandler m a b
   arrM _ = OpenApiHandler{openApiDoc = NullNode}
 
-  {-# INLINEABLE consumeRoute #-}
+  {-# INLINE consumeRoute #-}
   consumeRoute :: OpenApiHandler m RoutePath a -> OpenApiHandler m () a
   consumeRoute (OpenApiHandler doc) = OpenApiHandler doc
 
-  {-# INLINEABLE setDescription #-}
+  {-# INLINE setDescription #-}
   setDescription :: Description -> OpenApiHandler m a a
   setDescription = OpenApiHandler . singletonNode . DocDescription
 
-  {-# INLINEABLE setSummary #-}
+  {-# INLINE setSummary #-}
   setSummary :: Summary -> OpenApiHandler m a a
   setSummary = OpenApiHandler . singletonNode . DocSummary
 

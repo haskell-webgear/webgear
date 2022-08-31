@@ -20,3 +20,8 @@ cradle:
         cradle:
           cabal:
             component: "lib:webgear-openapi"
+    - path: "./webgear-benchmarks/src"
+      config:
+        cradle:
+          cabal:
+            component: "exe:users"

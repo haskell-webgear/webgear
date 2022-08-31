@@ -1,0 +1,73 @@
+cabal-version:       2.4
+name:                webgear-benchmarks
+version:             1.0.4
+description:         Benchmarks for webgear
+homepage:            https://github.com/haskell-webgear/webgear-benchmarks#readme
+bug-reports:         https://github.com/haskell-webgear/webgear-benchmarks/issues
+author:              Raghu Kaippully
+maintainer:          rkaippully@gmail.com
+copyright:           2020-2022 Raghu Kaippully
+license:             MPL-2.0
+license-file:        LICENSE
+build-type:          Simple
+extra-source-files:  README.md
+
+
+source-repository head
+  type:      git
+  location:  https://github.com/haskell-webgear/webgear-benchmarks
+
+executable users
+  default-language:   Haskell2010
+  build-depends:      aeson >=1.5 && <2.1
+                    , base >=4.14.0.0 && <5
+                    , bytestring >=0.10 && <0.12
+                    , criterion ==1.5.*
+                    , hashable >=1.3 && <1.5
+                    , http-types ==0.12.3
+                    , mtl ==2.2.2
+                    , text ==1.2.*
+                    , time
+                    , unordered-containers ==0.2.*
+                    , servant ==0.19
+                    , servant-server ==0.19.1
+                    , scotty ==0.12
+                    , wai ==3.2.3
+                    , webgear-server ==1.0.4
+  default-extensions: Arrows
+                      DataKinds
+                      DeriveAnyClass
+                      DeriveGeneric
+                      DerivingVia
+                      FlexibleContexts
+                      GeneralizedNewtypeDeriving
+                      LambdaCase
+                      OverloadedStrings
+                      QuasiQuotes
+                      RankNTypes
+                      ScopedTypeVariables
+                      TypeApplications
+                      TypeOperators
+  hs-source-dirs:     src/users
+  main-is:            Main.hs
+  other-modules:      Model
+                    , WebGear
+                    , Servant
+                    , Scotty
+  ghc-options:        -O2
+                      -threaded
+                      -rtsopts
+                      -Wall
+                      -Wno-unticked-promoted-constructors
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wmissing-fields
+                      -Wmissing-home-modules
+                      -Wmissing-deriving-strategies
+                      -Wpartial-fields
+                      -Wredundant-constraints
+                      -Wunused-packages
+                      -Werror
+                      -fshow-warning-groups

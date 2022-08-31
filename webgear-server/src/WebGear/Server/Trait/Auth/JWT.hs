@@ -23,7 +23,7 @@ import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..), JWTAuthError (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Required scheme m e a) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     JWTAuth' Required scheme m e a ->
     ServerHandler m (Linked ts Request) (Either (JWTAuthError e) a)
@@ -46,7 +46,7 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
         lift (toJWTAttribute claims) >>= either (throwError . JWTAuthAttributeError) pure
 
 instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Optional scheme m e a) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     JWTAuth' Optional scheme m e a ->
     ServerHandler m (Linked ts Request) (Either Void (Either (JWTAuthError e) a))

@@ -12,6 +12,7 @@ let
     "webgear-core" = ../../webgear-core;
     "webgear-server" = ../../webgear-server;
     "webgear-openapi" = ../../webgear-openapi;
+    "webgear-benchmarks" = ../../webgear-benchmarks;
   };
 
   mkLocalDerivation = hspkgs: name: path:

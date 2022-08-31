@@ -16,7 +16,7 @@ instance
   (TraitAbsence (JWTAuth' x scheme m e a) Request, KnownSymbol scheme) =>
   Get (OpenApiHandler m) (JWTAuth' x scheme m e a) Request
   where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait ::
     JWTAuth' x scheme m e a ->
     OpenApiHandler m (Linked ts Request) (Either (Absence (JWTAuth' x scheme m e a) Request) (Attribute (JWTAuth' x scheme m e a) Request))

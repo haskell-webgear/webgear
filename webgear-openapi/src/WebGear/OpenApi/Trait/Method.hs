@@ -9,5 +9,5 @@ import WebGear.Core.Trait.Method (Method (..))
 import WebGear.OpenApi.Handler (DocNode (DocMethod), OpenApiHandler (OpenApiHandler), singletonNode)
 
 instance Get (OpenApiHandler m) Method Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait (Method method) = OpenApiHandler $ singletonNode (DocMethod method)

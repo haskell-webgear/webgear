@@ -17,12 +17,12 @@ import WebGear.OpenApi.Handler (
  )
 
 instance Get (OpenApiHandler m) Path Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: Path -> OpenApiHandler m (Linked ts Request) (Either () ())
   getTrait (Path p) = OpenApiHandler $ singletonNode (DocPathElem p)
 
 instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag val) Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: PathVar tag val -> OpenApiHandler m (Linked ts Request) (Either PathVarError val)
   getTrait PathVar =
     let param =
@@ -35,6 +35,6 @@ instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag 
      in OpenApiHandler $ singletonNode (DocPathVar param)
 
 instance Get (OpenApiHandler m) PathEnd Request where
-  {-# INLINEABLE getTrait #-}
+  {-# INLINE getTrait #-}
   getTrait :: PathEnd -> OpenApiHandler m (Linked ts Request) (Either () ())
   getTrait PathEnd = OpenApiHandler $ singletonNode (DocPathElem "/")

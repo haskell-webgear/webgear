@@ -109,6 +109,7 @@ headerHandler errorHandler nextHandler = proc request -> do
   case result of
     Left err -> errorHandler -< (request, err)
     Right val -> nextHandler -< val
+{-# INLINE headerHandler #-}
 
 {- | Extract a header value and convert it to a value of type @val@.
 
@@ -125,6 +126,7 @@ header ::
   h (Linked req Request, Either HeaderNotFound HeaderParseError) Response ->
   Middleware h req (Header Required Strict name val : req)
 header = headerHandler
+{-# INLINE header #-}
 
 {- | Extract an optional header value and convert it to a value of type
  @val@.
@@ -143,6 +145,7 @@ optionalHeader ::
   h (Linked req Request, HeaderParseError) Response ->
   Middleware h req (Header Optional Strict name val : req)
 optionalHeader = headerHandler
+{-# INLINE optionalHeader #-}
 
 {- | Extract a header value and convert it to a value of type @val@.
 
@@ -161,6 +164,7 @@ lenientHeader ::
   h (Linked req Request, HeaderNotFound) Response ->
   Middleware h req (Header Required Lenient name val : req)
 lenientHeader = headerHandler
+{-# INLINE lenientHeader #-}
 
 {- | Extract a header value and convert it to a value of type @val@.
 
@@ -177,6 +181,7 @@ optionalLenientHeader ::
   (Get h (Header Optional Lenient name val) Request, ArrowChoice h) =>
   Middleware h req (Header Optional Lenient name val : req)
 optionalLenientHeader = headerHandler $ arr (absurd . snd)
+{-# INLINE optionalLenientHeader #-}
 
 instance Trait (Header Required Strict name val) Response where
   type Attribute (Header Required Strict name val) Response = val
@@ -198,6 +203,7 @@ setHeader ::
 setHeader prevHandler = proc (val, a) -> do
   r <- prevHandler -< a
   plant Header -< (r, val)
+{-# INLINE setHeader #-}
 
 {- | Set an optional header value in a response.
 
@@ -217,3 +223,4 @@ setOptionalHeader ::
 setOptionalHeader prevHandler = proc (val, a) -> do
   r <- prevHandler -< a
   plant Header -< (r, val)
+{-# INLINE setOptionalHeader #-}

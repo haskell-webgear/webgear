@@ -34,10 +34,10 @@ import WebGear.Core.Trait (Linked, linkzero)
 newtype ServerHandler m a b = ServerHandler {unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath)}
 
 instance Monad m => Cat.Category (ServerHandler m) where
-  {-# INLINEABLE id #-}
+  {-# INLINE id #-}
   id = ServerHandler $ \(a, s) -> pure (Right a, s)
 
-  {-# INLINEABLE (.) #-}
+  {-# INLINE (.) #-}
   ServerHandler f . ServerHandler g = ServerHandler $ \(a, s) ->
     g (a, s) >>= \case
       (Left e, s') -> pure (Left e, s')
@@ -46,31 +46,31 @@ instance Monad m => Cat.Category (ServerHandler m) where
 instance Monad m => Arrow (ServerHandler m) where
   arr f = ServerHandler (\(a, s) -> pure (Right (f a), s))
 
-  {-# INLINEABLE first #-}
+  {-# INLINE first #-}
   first (ServerHandler f) = ServerHandler $ \((a, c), s) ->
     f (a, s) >>= \case
       (Left e, s') -> pure (Left e, s')
       (Right b, s') -> pure (Right (b, c), s')
 
-  {-# INLINEABLE second #-}
+  {-# INLINE second #-}
   second (ServerHandler f) = ServerHandler $ \((c, a), s) ->
     f (a, s) >>= \case
       (Left e, s') -> pure (Left e, s')
       (Right b, s') -> pure (Right (c, b), s')
 
 instance Monad m => ArrowZero (ServerHandler m) where
-  {-# INLINEABLE zeroArrow #-}
+  {-# INLINE zeroArrow #-}
   zeroArrow = ServerHandler (\(_a, s) -> pure (Left mempty, s))
 
 instance Monad m => ArrowPlus (ServerHandler m) where
-  {-# INLINEABLE (<+>) #-}
+  {-# INLINE (<+>) #-}
   ServerHandler f <+> ServerHandler g = ServerHandler $ \(a, s) ->
     f (a, s) >>= \case
       (Left _e, _s') -> g (a, s)
       (Right b, s') -> pure (Right b, s')
 
 instance Monad m => ArrowChoice (ServerHandler m) where
-  {-# INLINEABLE left #-}
+  {-# INLINE left #-}
   left (ServerHandler f) = ServerHandler $ \(bd, s) ->
     case bd of
       Right d -> pure (Right (Right d), s)
@@ -79,7 +79,7 @@ instance Monad m => ArrowChoice (ServerHandler m) where
           (Left e, s') -> pure (Left e, s')
           (Right c, s') -> pure (Right (Left c), s')
 
-  {-# INLINEABLE right #-}
+  {-# INLINE right #-}
   right (ServerHandler f) = ServerHandler $ \(db, s) ->
     case db of
       Left d -> pure (Right (Left d), s)
@@ -89,16 +89,16 @@ instance Monad m => ArrowChoice (ServerHandler m) where
           (Right c, s') -> pure (Right (Right c), s')
 
 instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
-  {-# INLINEABLE raise #-}
+  {-# INLINE raise #-}
   raise = ServerHandler $ \(e, s) -> pure (Left e, s)
 
-  {-# INLINEABLE handle #-}
+  {-# INLINE handle #-}
   (ServerHandler action) `handle` (ServerHandler errHandler) = ServerHandler $ \(a, s) ->
     action (a, s) >>= \case
       (Left e, s') -> errHandler ((a, e), s')
       (Right b, s') -> pure (Right b, s')
 
-  {-# INLINEABLE tryInUnless #-}
+  {-# INLINE tryInUnless #-}
   tryInUnless (ServerHandler action) (ServerHandler resHandler) (ServerHandler errHandler) =
     ServerHandler $ \(a, s) ->
       action (a, s) >>= \case
@@ -106,20 +106,20 @@ instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
         (Right b, s') -> resHandler ((a, b), s')
 
 instance Monad m => Handler (ServerHandler m) m where
-  {-# INLINEABLE arrM #-}
+  {-# INLINE arrM #-}
   arrM :: (a -> m b) -> ServerHandler m a b
   arrM f = ServerHandler $ \(a, s) -> f a >>= \b -> pure (Right b, s)
 
-  {-# INLINEABLE consumeRoute #-}
+  {-# INLINE consumeRoute #-}
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a
   consumeRoute (ServerHandler h) = ServerHandler $
     \((), path) -> h (path, RoutePath [])
 
-  {-# INLINEABLE setDescription #-}
+  {-# INLINE setDescription #-}
   setDescription :: Description -> ServerHandler m a a
   setDescription _ = Cat.id
 
-  {-# INLINEABLE setSummary #-}
+  {-# INLINE setSummary #-}
   setSummary :: Summary -> ServerHandler m a a
   setSummary _ = Cat.id
 
@@ -135,6 +135,7 @@ runServerHandler ::
   -- | The result of the arrow
   m (Either RouteMismatch b)
 runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
+{-# INLINE runServerHandler #-}
 
 -- | Convert a ServerHandler to a WAI application
 toApplication :: ServerHandler IO (Linked '[] Request) Response -> Wai.Application
@@ -153,6 +154,10 @@ toApplication h rqt cont =
 
     addServerHeader :: Response -> Response
     addServerHeader resp@Response{..} = resp{responseHeaders = responseHeaders <> webGearServerHeader}
+
+    webGearServerHeader :: HM.HashMap HTTP.HeaderName ByteString
+    webGearServerHeader = HM.singleton HTTP.hServer (fromString $ "WebGear/" ++ showVersion version)
+{-# INLINE toApplication #-}
 
 {- | Transform a `ServerHandler` running in one monad to another monad.
 
@@ -178,6 +183,4 @@ transform ::
   ServerHandler n a b
 transform f (ServerHandler g) =
   ServerHandler $ f . g
-
-webGearServerHeader :: HM.HashMap HTTP.HeaderName ByteString
-webGearServerHeader = HM.singleton HTTP.hServer (fromString $ "WebGear/" ++ showVersion version)
+{-# INLINE transform #-}
