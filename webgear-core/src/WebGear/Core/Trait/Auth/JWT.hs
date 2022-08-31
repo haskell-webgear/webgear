@@ -152,6 +152,7 @@ jwtAuth ::
   h (WebGear.Core.Trait.Linked req Request, JWTAuthError e) Response ->
   Middleware h req (JWTAuth m e t : req)
 jwtAuth = jwtAuth' @"Bearer"
+{-# INLINE jwtAuth #-}
 
 {- | Middleware to add optional JWT authentication protection for a
  handler. Expects the JWT to be available via a standard bearer
@@ -176,6 +177,7 @@ optionalJWTAuth ::
   JWTAuth' Optional "Bearer" m e t ->
   Middleware h req (JWTAuth' Optional "Bearer" m e t : req)
 optionalJWTAuth = optionalJWTAuth' @"Bearer"
+{-# INLINE optionalJWTAuth #-}
 
 jwtAuthMiddleware ::
   forall s e t x h m req.
@@ -191,6 +193,7 @@ jwtAuthMiddleware authCfg errorHandler nextHandler =
     case result of
       Left err -> errorHandler -< (request, err)
       Right val -> nextHandler -< val
+{-# INLINE jwtAuthMiddleware #-}
 
 {- | Middleware to add JWT authentication protection for a
  handler. Expects the JWT to be available via an authorization header
@@ -217,6 +220,7 @@ jwtAuth' ::
   h (WebGear.Core.Trait.Linked req Request, JWTAuthError e) Response ->
   Middleware h req (JWTAuth' Required s m e t : req)
 jwtAuth' = jwtAuthMiddleware
+{-# INLINE jwtAuth' #-}
 
 {- | Middleware to add JWT authentication protection for a
  handler. Expects the JWT to be available via an authorization header
@@ -242,3 +246,4 @@ optionalJWTAuth' ::
   JWTAuth' Optional s m e t ->
   Middleware h req (JWTAuth' Optional s m e t : req)
 optionalJWTAuth' cfg = jwtAuthMiddleware cfg $ arr (absurd . snd)
+{-# INLINE optionalJWTAuth' #-}

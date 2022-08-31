@@ -46,6 +46,7 @@ getAuthorizationHeaderTrait ::
 getAuthorizationHeaderTrait = proc request -> do
   result <- getTrait (Header :: Header Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result
+{-# INLINE getAuthorizationHeaderTrait #-}
 
 -- | The protection space for authentication
 newtype Realm = Realm ByteString
@@ -62,6 +63,7 @@ data AuthToken (scheme :: Symbol) = AuthToken
 instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
   parseUrlPiece = parseHeader . encodeUtf8
 
+  {-# INLINE parseHeader #-}
   parseHeader hdr =
     case break (== ' ') hdr of
       (scm, tok) ->
@@ -98,3 +100,4 @@ respondUnauthorized scheme (Realm realm) = proc _ -> do
     <<< setHeader @"WWW-Authenticate" (respondA HTTP.unauthorized401 "text/plain")
     -<
       (headerVal, "Unauthorized" :: Text)
+{-# INLINE respondUnauthorized #-}

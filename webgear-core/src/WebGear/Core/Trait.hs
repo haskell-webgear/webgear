@@ -150,10 +150,12 @@ class HasTrait t ts where
 instance HasTrait t (t : ts) where
   from :: Linked (t : ts) a -> Tagged t (Attribute t a)
   from (Linked (lv, _) _) = Tagged lv
+  {-# INLINE from #-}
 
 instance {-# OVERLAPPABLE #-} HasTrait t ts => HasTrait t (t' : ts) where
   from :: Linked (t' : ts) a -> Tagged t (Attribute t a)
   from l = from $ linkminus l
+  {-# INLINE from #-}
 
 {- | Retrieve a trait.
 

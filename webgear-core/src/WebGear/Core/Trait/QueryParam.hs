@@ -101,6 +101,7 @@ queryParamHandler errorHandler nextHandler = proc request -> do
   case result of
     Left err -> errorHandler -< (request, err)
     Right val -> nextHandler -< val
+{-# INLINE queryParamHandler #-}
 
 {- | Extract a query parameter and convert it to a value of type
  @val@.
@@ -117,6 +118,7 @@ queryParam ::
   h (Linked req Request, Either ParamNotFound ParamParseError) Response ->
   Middleware h req (QueryParam Required Strict name val : req)
 queryParam = queryParamHandler
+{-# INLINE queryParam #-}
 
 {- | Extract an optional query parameter and convert it to a value of
  type @val@.
@@ -134,6 +136,7 @@ optionalQueryParam ::
   h (Linked req Request, ParamParseError) Response ->
   Middleware h req (QueryParam Optional Strict name val : req)
 optionalQueryParam = queryParamHandler
+{-# INLINE optionalQueryParam #-}
 
 {- | Extract a query parameter and convert it to a value of type @val@.
 
@@ -151,6 +154,7 @@ lenientQueryParam ::
   h (Linked req Request, ParamNotFound) Response ->
   Middleware h req (QueryParam Required Lenient name val : req)
 lenientQueryParam = queryParamHandler
+{-# INLINE lenientQueryParam #-}
 
 {- | Extract a query parameter and convert it to a value of type @val@.
 
@@ -167,3 +171,4 @@ optionalLenientQueryParam ::
   (Get h (QueryParam Optional Lenient name val) Request, ArrowChoice h) =>
   Middleware h req (QueryParam Optional Lenient name val : req)
 optionalLenientQueryParam = queryParamHandler $ arr (absurd . snd)
+{-# INLINE optionalLenientQueryParam #-}

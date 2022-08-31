@@ -82,7 +82,9 @@ instance Monoid RouteMismatch where
 -- | Indicates that the request does not match the current handler.
 routeMismatch :: ArrowError RouteMismatch h => h a b
 routeMismatch = proc _a -> raise -< RouteMismatch
+{-# INLINE routeMismatch #-}
 
 -- | Lifts `unlink` into a handler arrow.
 unlinkA :: Handler h m => h (Linked ts Response) Response
 unlinkA = arr unlink
+{-# INLINE unlinkA #-}
