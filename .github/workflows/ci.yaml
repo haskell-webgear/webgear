@@ -97,9 +97,6 @@ jobs:
           - os: macos-latest
             ghc: 8.10.7
 
-    env:
-      GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
-
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v3
@@ -115,6 +112,7 @@ jobs:
 
       - name: Build Packages
         run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link   \
             .#webgear-core-ghc${GHC_VERSION}       \
             .#webgear-server-ghc${GHC_VERSION}     \
@@ -123,5 +121,6 @@ jobs:
 
       - name: Benchmark
         run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           BENCHMARK=$(nix build --no-link --json .#webgear-benchmarks-ghc${GHC_VERSION} | jq -r .[].outputs.out)
           ${BENCHMARK}/bin/users
