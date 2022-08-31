@@ -67,187 +67,234 @@ mkResponse :: Set h Status Response => HTTP.Status -> h () (Linked '[Status] Res
 mkResponse status = proc () -> do
   let response = linkzero $ Response status [] Nothing
   plant (Status status) -< (response, status)
+{-# INLINE mkResponse #-}
 
 -- | Continue 100 response
 continue100 :: Set h Status Response => h () (Linked '[Status] Response)
 continue100 = mkResponse HTTP.continue100
+{-# INLINE continue100 #-}
 
 -- | Switching Protocols 101 response
 switchingProtocols101 :: Set h Status Response => h () (Linked '[Status] Response)
 switchingProtocols101 = mkResponse HTTP.switchingProtocols101
+{-# INLINE switchingProtocols101 #-}
 
 -- | OK 200 response
 ok200 :: Set h Status Response => h () (Linked '[Status] Response)
 ok200 = mkResponse HTTP.ok200
+{-# INLINE ok200 #-}
 
 -- | Created 201 response
 created201 :: Set h Status Response => h () (Linked '[Status] Response)
 created201 = mkResponse HTTP.created201
+{-# INLINE created201 #-}
 
 -- | Accepted 202 response
 accepted202 :: Set h Status Response => h () (Linked '[Status] Response)
 accepted202 = mkResponse HTTP.accepted202
+{-# INLINE accepted202 #-}
 
 -- | Non-Authoritative 203 response
 nonAuthoritative203 :: Set h Status Response => h () (Linked '[Status] Response)
 nonAuthoritative203 = mkResponse HTTP.nonAuthoritative203
+{-# INLINE nonAuthoritative203 #-}
 
 -- | No Content 204 response
 noContent204 :: Set h Status Response => h () (Linked '[Status] Response)
 noContent204 = mkResponse HTTP.noContent204
+{-# INLINE noContent204 #-}
 
 -- | Reset Content 205 response
 resetContent205 :: Set h Status Response => h () (Linked '[Status] Response)
 resetContent205 = mkResponse HTTP.resetContent205
+{-# INLINE resetContent205 #-}
 
 -- | Partial Content 206 response
 partialContent206 :: Set h Status Response => h () (Linked '[Status] Response)
 partialContent206 = mkResponse HTTP.partialContent206
+{-# INLINE partialContent206 #-}
 
 -- | Multiple Choices 300 response
 multipleChoices300 :: Set h Status Response => h () (Linked '[Status] Response)
 multipleChoices300 = mkResponse HTTP.multipleChoices300
+{-# INLINE multipleChoices300 #-}
 
 -- | Moved Permanently 301 response
 movedPermanently301 :: Set h Status Response => h () (Linked '[Status] Response)
 movedPermanently301 = mkResponse HTTP.movedPermanently301
+{-# INLINE movedPermanently301 #-}
 
 -- | Found 302 response
 found302 :: Set h Status Response => h () (Linked '[Status] Response)
 found302 = mkResponse HTTP.found302
+{-# INLINE found302 #-}
 
 -- | See Other 303 response
 seeOther303 :: Set h Status Response => h () (Linked '[Status] Response)
 seeOther303 = mkResponse HTTP.seeOther303
+{-# INLINE seeOther303 #-}
 
 -- | Not Modified 304 response
 notModified304 :: Set h Status Response => h () (Linked '[Status] Response)
 notModified304 = mkResponse HTTP.notModified304
+{-# INLINE notModified304 #-}
 
 -- | Temporary Redirect 307 response
 temporaryRedirect307 :: Set h Status Response => h () (Linked '[Status] Response)
 temporaryRedirect307 = mkResponse HTTP.temporaryRedirect307
+{-# INLINE temporaryRedirect307 #-}
 
 -- | Permanent Redirect 308 response
 permanentRedirect308 :: Set h Status Response => h () (Linked '[Status] Response)
 permanentRedirect308 = mkResponse HTTP.permanentRedirect308
+{-# INLINE permanentRedirect308 #-}
 
 -- | Bad Request 400 response
 badRequest400 :: Set h Status Response => h () (Linked '[Status] Response)
 badRequest400 = mkResponse HTTP.badRequest400
+{-# INLINE badRequest400 #-}
 
 -- | Unauthorized 401 response
 unauthorized401 :: Set h Status Response => h () (Linked '[Status] Response)
 unauthorized401 = mkResponse HTTP.unauthorized401
+{-# INLINE unauthorized401 #-}
 
 -- | Payment Required 402 response
 paymentRequired402 :: Set h Status Response => h () (Linked '[Status] Response)
 paymentRequired402 = mkResponse HTTP.paymentRequired402
+{-# INLINE paymentRequired402 #-}
 
 -- | Forbidden 403 response
 forbidden403 :: Set h Status Response => h () (Linked '[Status] Response)
 forbidden403 = mkResponse HTTP.forbidden403
+{-# INLINE forbidden403 #-}
 
 -- | Not Found 404 response
 notFound404 :: Set h Status Response => h () (Linked '[Status] Response)
 notFound404 = mkResponse HTTP.notFound404
+{-# INLINE notFound404 #-}
 
 -- | Method Not Allowed 405 response
 methodNotAllowed405 :: Set h Status Response => h () (Linked '[Status] Response)
 methodNotAllowed405 = mkResponse HTTP.methodNotAllowed405
+{-# INLINE methodNotAllowed405 #-}
 
 -- | Not Acceptable 406 response
 notAcceptable406 :: Set h Status Response => h () (Linked '[Status] Response)
 notAcceptable406 = mkResponse HTTP.notAcceptable406
+{-# INLINE notAcceptable406 #-}
 
 -- | Proxy Authentication Required 407 response
 proxyAuthenticationRequired407 :: Set h Status Response => h () (Linked '[Status] Response)
 proxyAuthenticationRequired407 = mkResponse HTTP.proxyAuthenticationRequired407
+{-# INLINE proxyAuthenticationRequired407 #-}
 
 -- | Request Timeout 408 response
 requestTimeout408 :: Set h Status Response => h () (Linked '[Status] Response)
 requestTimeout408 = mkResponse HTTP.requestTimeout408
+{-# INLINE requestTimeout408 #-}
 
 -- | Conflict 409 response
 conflict409 :: Set h Status Response => h () (Linked '[Status] Response)
 conflict409 = mkResponse HTTP.conflict409
+{-# INLINE conflict409 #-}
 
 -- | Gone 410 response
 gone410 :: Set h Status Response => h () (Linked '[Status] Response)
 gone410 = mkResponse HTTP.gone410
+{-# INLINE gone410 #-}
 
 -- | Length Required 411 response
 lengthRequired411 :: Set h Status Response => h () (Linked '[Status] Response)
 lengthRequired411 = mkResponse HTTP.lengthRequired411
+{-# INLINE lengthRequired411 #-}
 
 -- | Precondition Failed 412 response
 preconditionFailed412 :: Set h Status Response => h () (Linked '[Status] Response)
 preconditionFailed412 = mkResponse HTTP.preconditionFailed412
+{-# INLINE preconditionFailed412 #-}
 
 -- | Request Entity Too Large 413 response
 requestEntityTooLarge413 :: Set h Status Response => h () (Linked '[Status] Response)
 requestEntityTooLarge413 = mkResponse HTTP.requestEntityTooLarge413
+{-# INLINE requestEntityTooLarge413 #-}
 
 -- | Request URI Too Long 414 response
 requestURITooLong414 :: Set h Status Response => h () (Linked '[Status] Response)
 requestURITooLong414 = mkResponse HTTP.requestURITooLong414
+{-# INLINE requestURITooLong414 #-}
 
 -- | Unsupported Media Type 415 response
 unsupportedMediaType415 :: Set h Status Response => h () (Linked '[Status] Response)
 unsupportedMediaType415 = mkResponse HTTP.unsupportedMediaType415
+{-# INLINE unsupportedMediaType415 #-}
 
 -- | Requested Range Not Satisfiable 416 response
 requestedRangeNotSatisfiable416 :: Set h Status Response => h () (Linked '[Status] Response)
 requestedRangeNotSatisfiable416 = mkResponse HTTP.requestedRangeNotSatisfiable416
+{-# INLINE requestedRangeNotSatisfiable416 #-}
 
 -- | Expectation Failed 417 response
 expectationFailed417 :: Set h Status Response => h () (Linked '[Status] Response)
 expectationFailed417 = mkResponse HTTP.expectationFailed417
+{-# INLINE expectationFailed417 #-}
 
 -- | I'm A Teapot 418 response
 imATeapot418 :: Set h Status Response => h () (Linked '[Status] Response)
 imATeapot418 = mkResponse HTTP.imATeapot418
+{-# INLINE imATeapot418 #-}
 
 -- | Unprocessable Entity 422 response
 unprocessableEntity422 :: Set h Status Response => h () (Linked '[Status] Response)
 unprocessableEntity422 = mkResponse HTTP.unprocessableEntity422
+{-# INLINE unprocessableEntity422 #-}
 
 -- | Precondition Required 428 response
 preconditionRequired428 :: Set h Status Response => h () (Linked '[Status] Response)
 preconditionRequired428 = mkResponse HTTP.preconditionRequired428
+{-# INLINE preconditionRequired428 #-}
 
 -- | Too Many Requests 429 response
 tooManyRequests429 :: Set h Status Response => h () (Linked '[Status] Response)
 tooManyRequests429 = mkResponse HTTP.tooManyRequests429
+{-# INLINE tooManyRequests429 #-}
 
 -- | Request Header Fields Too Large 431 response
 requestHeaderFieldsTooLarge431 :: Set h Status Response => h () (Linked '[Status] Response)
 requestHeaderFieldsTooLarge431 = mkResponse HTTP.requestHeaderFieldsTooLarge431
+{-# INLINE requestHeaderFieldsTooLarge431 #-}
 
 -- | Internal Server Error 500 response
 internalServerError500 :: Set h Status Response => h () (Linked '[Status] Response)
 internalServerError500 = mkResponse HTTP.internalServerError500
+{-# INLINE internalServerError500 #-}
 
 -- | Not Implemented 501 response
 notImplemented501 :: Set h Status Response => h () (Linked '[Status] Response)
 notImplemented501 = mkResponse HTTP.notImplemented501
+{-# INLINE notImplemented501 #-}
 
 -- | Bad Gateway 502 response
 badGateway502 :: Set h Status Response => h () (Linked '[Status] Response)
 badGateway502 = mkResponse HTTP.badGateway502
+{-# INLINE badGateway502 #-}
 
 -- | Service Unavailable 503 response
 serviceUnavailable503 :: Set h Status Response => h () (Linked '[Status] Response)
 serviceUnavailable503 = mkResponse HTTP.serviceUnavailable503
+{-# INLINE serviceUnavailable503 #-}
 
 -- | Gateway Timeout 504 response
 gatewayTimeout504 :: Set h Status Response => h () (Linked '[Status] Response)
 gatewayTimeout504 = mkResponse HTTP.gatewayTimeout504
+{-# INLINE gatewayTimeout504 #-}
 
 -- | HTTP Version Not Supported 505 response
 httpVersionNotSupported505 :: Set h Status Response => h () (Linked '[Status] Response)
 httpVersionNotSupported505 = mkResponse HTTP.httpVersionNotSupported505
+{-# INLINE httpVersionNotSupported505 #-}
 
 -- | Network Authentication Required 511 response
 networkAuthenticationRequired511 :: Set h Status Response => h () (Linked '[Status] Response)
 networkAuthenticationRequired511 = mkResponse HTTP.networkAuthenticationRequired511
+{-# INLINE networkAuthenticationRequired511 #-}

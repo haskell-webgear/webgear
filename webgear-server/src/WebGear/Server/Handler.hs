@@ -135,6 +135,7 @@ runServerHandler ::
   -- | The result of the arrow
   m (Either RouteMismatch b)
 runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
+{-# INLINE runServerHandler #-}
 
 -- | Convert a ServerHandler to a WAI application
 toApplication :: ServerHandler IO (Linked '[] Request) Response -> Wai.Application
@@ -153,6 +154,10 @@ toApplication h rqt cont =
 
     addServerHeader :: Response -> Response
     addServerHeader resp@Response{..} = resp{responseHeaders = responseHeaders <> webGearServerHeader}
+
+    webGearServerHeader :: HM.HashMap HTTP.HeaderName ByteString
+    webGearServerHeader = HM.singleton HTTP.hServer (fromString $ "WebGear/" ++ showVersion version)
+{-# INLINE toApplication #-}
 
 {- | Transform a `ServerHandler` running in one monad to another monad.
 
@@ -178,6 +183,4 @@ transform ::
   ServerHandler n a b
 transform f (ServerHandler g) =
   ServerHandler $ f . g
-
-webGearServerHeader :: HM.HashMap HTTP.HeaderName ByteString
-webGearServerHeader = HM.singleton HTTP.hServer (fromString $ "WebGear/" ++ showVersion version)
+{-# INLINE transform #-}
