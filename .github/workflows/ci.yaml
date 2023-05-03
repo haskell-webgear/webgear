@@ -23,10 +23,13 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ghc:
-          - 9.2.3
+          - 9.4.4
+          - 9.2.6
           - 9.0.2
           - 8.10.7
         exclude:
+          - os: macos-latest
+            ghc: 9.2.6
           - os: macos-latest
             ghc: 9.0.2
           - os: macos-latest
@@ -44,7 +47,7 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-          stack-version: 2.7.5
+          stack-version: 2.9.3
 
       - uses: actions/cache@v3
         name: Cache dependencies
@@ -70,7 +73,7 @@ jobs:
         run: stack sdist --system-ghc --ignore-check
 
       - name: Upload to Hackage
-        if: matrix.ghc == '9.2.3' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+        if: matrix.ghc == '9.6.1' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
         run: |
           export HACKAGE_KEY="${{ secrets.HACKAGE_TOKEN }}"
           stack upload --system-ghc --ignore-check webgear-core
@@ -88,10 +91,16 @@ jobs:
           - ubuntu-latest
           - macos-latest
         ghc:
-          - 9.2.4
+          - 9.6.1
+          - 9.4.4
+          - 9.2.6
           - 9.0.2
           - 8.10.7
         exclude:
+          - os: macos-latest
+            ghc: 9.4.4
+          - os: macos-latest
+            ghc: 9.2.6
           - os: macos-latest
             ghc: 9.0.2
           - os: macos-latest

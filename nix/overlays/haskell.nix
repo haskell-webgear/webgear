@@ -5,8 +5,8 @@ final: prev:
 let
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  hsVersions = ["ghc924" "ghc902" "ghc8107"];
-  hsDefaultVersion = "ghc924";
+  hsVersions = ["ghc961" "ghc944" "ghc926" "ghc902" "ghc8107"];
+  hsDefaultVersion = "ghc961";
 
   localHsPackages = {
     "webgear-core" = ../../webgear-core;
@@ -30,8 +30,7 @@ let
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
           // {
-            # Add any package overrides here
-            # package-name = final.callPackage ../haskell-packages/package-name-version.nix {};
+            openapi3 = hfinal.callPackage ../haskell-packages/openapi3-3.2.3.nix {};
           };
       };
     }) hsVersions;

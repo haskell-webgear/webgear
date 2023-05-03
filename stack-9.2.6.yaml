@@ -1,4 +1,4 @@
-resolver: lts-19.33
+resolver: lts-20.12
 
 packages:
   - ./webgear-core
