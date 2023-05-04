@@ -5,8 +5,8 @@ final: prev:
 let
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  hsVersions = ["ghc961" "ghc944" "ghc926" "ghc902" "ghc8107"];
-  hsDefaultVersion = "ghc961";
+  hsVersions = ["ghc944" "ghc926" "ghc902" "ghc8107"];
+  hsDefaultVersion = "ghc944";
 
   localHsPackages = {
     "webgear-core" = ../../webgear-core;
