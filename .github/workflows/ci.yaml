@@ -63,6 +63,17 @@ jobs:
           BENCHMARK=$(nix build --no-link --json .#webgear-benchmarks-ghc${GHC_VERSION} | jq -r .[].outputs.out)
           ${BENCHMARK}/bin/users +RTS -N -RTS
 
+      - name: Haddock
+        run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
+          nix develop .#webgear-dev-ghc${GHC_VERSION} --command cabal haddock all
+
+      - name: Upload to Hackage
+        if: matrix.ghc == '9.4.4' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
+          nix develop .#webgear-dev-ghc${GHC_VERSION} --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
+
   stack-build:
     name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
 
@@ -119,14 +130,3 @@ jobs:
 
       - name: Haddock
         run: stack haddock --system-ghc
-
-      - name : Prepare sdist
-        run: stack sdist --system-ghc --ignore-check
-
-      - name: Upload to Hackage
-        if: matrix.ghc == '9.4.4' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
-        run: |
-          export HACKAGE_KEY="${{ secrets.HACKAGE_TOKEN }}"
-          stack upload --system-ghc --ignore-check webgear-core
-          stack upload --system-ghc --ignore-check webgear-server
-          stack upload --system-ghc --ignore-check webgear-openapi
