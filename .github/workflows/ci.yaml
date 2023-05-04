@@ -21,19 +21,11 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
         ghc:
           - 9.4.4
           - 9.2.6
           - 9.0.2
           - 8.10.7
-        exclude:
-          - os: macos-latest
-            ghc: 9.2.6
-          - os: macos-latest
-            ghc: 9.0.2
-          - os: macos-latest
-            ghc: 8.10.7
 
     steps:
       - name: Checkout Source Code
@@ -63,6 +55,17 @@ jobs:
           BENCHMARK=$(nix build --no-link --json .#webgear-benchmarks-ghc${GHC_VERSION} | jq -r .[].outputs.out)
           ${BENCHMARK}/bin/users +RTS -N -RTS
 
+      - name: Haddock
+        run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
+          nix develop .#webgear-dev-ghc${GHC_VERSION} --command cabal haddock all
+
+      - name: Upload to Hackage
+        if: matrix.ghc == '9.4.4' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
+          nix develop .#webgear-dev-ghc${GHC_VERSION} --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
+
   stack-build:
     name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
 
@@ -72,19 +75,12 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
         ghc:
-          - 9.4.4
+          # Stack 9.4.4 is broken because bytestring-conversion is missing from snapshot
+          # - 9.4.4
           - 9.2.6
           - 9.0.2
           - 8.10.7
-        exclude:
-          - os: macos-latest
-            ghc: 9.2.6
-          - os: macos-latest
-            ghc: 9.0.2
-          - os: macos-latest
-            ghc: 8.10.7
 
     env:
       STACK_YAML: stack-${{ matrix.ghc }}.yaml
@@ -109,24 +105,10 @@ jobs:
             ${{ runner.os }}-${{ matrix.ghc }}-stack-
 
       - name: Build
-        run: |
-          # Workaround for random errors on macos
-          rm -rf ~/.stack/setup-exe-src ~/.stack/setup-exe-cache
-          stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+        run: stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
 
       - name: Test
         run: stack test --system-ghc --ta '--quickcheck-tests 100000'
 
       - name: Haddock
         run: stack haddock --system-ghc
-
-      - name : Prepare sdist
-        run: stack sdist --system-ghc --ignore-check
-
-      - name: Upload to Hackage
-        if: matrix.ghc == '9.4.4' && matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
-        run: |
-          export HACKAGE_KEY="${{ secrets.HACKAGE_TOKEN }}"
-          stack upload --system-ghc --ignore-check webgear-core
-          stack upload --system-ghc --ignore-check webgear-server
-          stack upload --system-ghc --ignore-check webgear-openapi

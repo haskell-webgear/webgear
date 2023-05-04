@@ -4,7 +4,7 @@
 [![Hackage](https://img.shields.io/hackage/v/webgear-server)](https://hackage.haskell.org/package/webgear-server)
 [![Hackage](https://img.shields.io/hackage/v/webgear-openapi)](https://hackage.haskell.org/package/webgear-openapi)
 
-[![Build Status](https://img.shields.io/github/workflow/status/haskell-webgear/webgear/Haskell%20CI/main)](https://github.com/haskell-webgear/webgear/actions?query=workflow%3A%22Haskell+CI%22+branch%3Amain)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/haskell-webgear/webgear/ci.yaml?branch=main)](https://github.com/haskell-webgear/webgear/actions/workflows/ci.yaml)
 
 WebGear is a Haskell library for building composable, type-safe HTTP APIs.
 
