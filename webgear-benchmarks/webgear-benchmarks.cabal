@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                webgear-benchmarks
-version:             1.0.4
+version:             1.0.5
 description:         Benchmarks for webgear
 homepage:            https://github.com/haskell-webgear/webgear-benchmarks#readme
 bug-reports:         https://github.com/haskell-webgear/webgear-benchmarks/issues
@@ -33,7 +33,7 @@ executable users
                     , servant-server ==0.19.2
                     , scotty ==0.12.1
                     , wai ==3.2.3
-                    , webgear-server ==1.0.4
+                    , webgear-server ==1.0.5
   default-extensions: Arrows
                       DataKinds
                       DeriveAnyClass
