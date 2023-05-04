@@ -30,6 +30,7 @@ mkDerivation {
     unordered-containers utf8-string vector
   ];
   testToolDepends = [ hspec-discover ];
+  doCheck = false;
   homepage = "https://github.com/biocad/openapi3";
   description = "OpenAPI 3.0 data model";
   license = lib.licenses.bsd3;

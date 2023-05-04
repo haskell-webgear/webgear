@@ -30,7 +30,9 @@ let
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
           // {
-            openapi3 = hfinal.callPackage ../haskell-packages/openapi3-3.2.3.nix {};
+            bytestring-conversion = hfinal.callPackage ../haskell-packages/bytestring-conversion-0.3.2.nix {}; # jailbreak for text > 2.0
+            generics-sop = hfinal.callPackage ../haskell-packages/generics-sop-0.5.1.3.nix {}; # For ghc-9.6 support
+            openapi3 = hfinal.callPackage ../haskell-packages/openapi3-3.2.3.nix {}; # For doCheck = false. Doctests fail on GHC >9.2
           };
       };
     }) hsVersions;
@@ -47,18 +49,19 @@ let
           buildInputs = [
             final.cabal-install
             final.cabal2nix
-            haskell.packages.${hsDefaultVersion}.fourmolu
             hsPkgs.ghc
             final.hlint
             final.haskell-language-server
             final.stack
+          ] ++ final.lib.optionals (hsVersion == hsDefaultVersion) [
+            haskell.packages.${hsDefaultVersion}.fourmolu
           ];
 
           src = null;
         };
     in { ${shell.name} = shell; };
 in {
-  inherit hsVersions hsDefaultVersion;
+  inherit hsVersions;
 
   lib = prev.lib // {
     inherit mapcat;
