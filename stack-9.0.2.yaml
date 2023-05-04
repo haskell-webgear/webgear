@@ -1,7 +1,10 @@
-resolver: lts-19.20
+resolver: lts-19.33
 
 packages:
   - ./webgear-core
   - ./webgear-server
   - ./webgear-openapi
   - ./webgear-benchmarks
+
+extra-deps:
+  - scotty-0.12.1@sha256:ba1b01d21b0ba3c65bdd82961b22710350158c8edd7943bd14c02a364ade8412,5437
