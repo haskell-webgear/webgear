@@ -5,6 +5,3 @@ packages:
   - ./webgear-server
   - ./webgear-openapi
   - ./webgear-benchmarks
-
-extra-deps:
-  - bytestring-conversion-0.3.2@sha256:68b59222713fb2dc0a299374a660b97e110cbc61557438ba196c06bbc046ca70,2451

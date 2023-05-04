@@ -3,14 +3,7 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: bytestring-conversion-0.3.2@sha256:68b59222713fb2dc0a299374a660b97e110cbc61557438ba196c06bbc046ca70,2451
-    pantry-tree:
-      sha256: 17c156216adb4bc79caeb757a830bd9caa7ef028688c8721f7f013890024ed32
-      size: 700
-  original:
-    hackage: bytestring-conversion-0.3.2@sha256:68b59222713fb2dc0a299374a660b97e110cbc61557438ba196c06bbc046ca70,2451
+packages: []
 snapshots:
 - completed:
     sha256: b64045aa29de03a25d28d73e23944246e5baa612fad48241fb20081a695baff0
