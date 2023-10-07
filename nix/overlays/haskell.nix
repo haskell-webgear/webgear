@@ -5,8 +5,8 @@ final: prev:
 let
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  hsVersions = ["ghc944" "ghc926" "ghc902" "ghc8107"];
-  hsDefaultVersion = "ghc944";
+  hsVersions = ["ghc962" "ghc946" "ghc928" "ghc902" "ghc8107"];
+  hsDefaultVersion = "ghc962";
 
   localHsPackages = {
     "webgear-core" = ../../webgear-core;
@@ -29,11 +29,20 @@ let
       ${hsVersion} = prev.haskell.packages.${hsVersion}.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
-          // {
-            bytestring-conversion = hfinal.callPackage ../haskell-packages/bytestring-conversion-0.3.2.nix {}; # jailbreak for text > 2.0
-            generics-sop = hfinal.callPackage ../haskell-packages/generics-sop-0.5.1.3.nix {}; # For ghc-9.6 support
-            openapi3 = hfinal.callPackage ../haskell-packages/openapi3-3.2.3.nix {}; # For doCheck = false. Doctests fail on GHC >9.2
-          };
+          //
+          (let
+            hsLib = final.haskell.lib;
+          in {
+            # jailbreak for text > 2.0
+            bytestring-conversion = hsLib.doJailbreak (hsLib.unmarkBroken hprev.bytestring-conversion);
+
+            # For ghc-9.6 support
+            generics-sop = hsLib.doJailbreak hprev.generics-sop;
+            optics-th = hsLib.doJailbreak hprev.optics-th;
+
+            # Tests fail on GHC >9.2
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
+          });
       };
     }) hsVersions;
   };

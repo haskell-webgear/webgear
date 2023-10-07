@@ -22,8 +22,9 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.4.4
-          - 9.2.6
+          - 9.6.2
+          - 9.4.6
+          - 9.2.8
           - 9.0.2
           - 8.10.7
 
@@ -76,9 +77,10 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          # Stack 9.4.4 is broken because bytestring-conversion is missing from snapshot
+          - 9.6.3
+          # Stack 9.4 is broken because bytestring-conversion is missing from snapshot
           # - 9.4.4
-          - 9.2.6
+          - 9.2.8
           - 9.0.2
           - 8.10.7
 
