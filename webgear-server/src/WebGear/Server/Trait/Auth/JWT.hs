@@ -5,8 +5,9 @@
 module WebGear.Server.Trait.Auth.JWT where
 
 import Control.Arrow (arr, returnA, (>>>))
-import Control.Monad.Except (MonadError (throwError), lift, runExceptT, withExceptT)
+import Control.Monad.Except (MonadError (throwError), runExceptT, withExceptT)
 import Control.Monad.Time (MonadTime)
+import Control.Monad.Trans (lift)
 import qualified Crypto.JWT as JWT
 import Data.ByteString.Lazy (fromStrict)
 import Data.Void (Void)
