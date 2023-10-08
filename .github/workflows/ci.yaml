@@ -115,4 +115,4 @@ jobs:
         run: stack test --system-ghc --ta '--quickcheck-tests 100000'
 
       - name: Haddock
-        run: stack haddock --system-ghc
+        run: stack haddock --system-ghc webgear-core webgear-server webgear-openapi
