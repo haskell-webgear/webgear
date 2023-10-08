@@ -5,8 +5,8 @@ final: prev:
 let
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  hsVersions = ["ghc962" "ghc946" "ghc928" "ghc902" "ghc8107"];
-  hsDefaultVersion = "ghc962";
+  ghcVersions = ["962" "946" "928" "902" "8107"];
+  defaultGHCVersion = "962";
 
   localHsPackages = {
     "webgear-core" = ../../webgear-core;
@@ -25,8 +25,8 @@ let
       });
 
   haskell = prev.haskell // {
-    packages = prev.haskell.packages // mapcat (hsVersion: {
-      ${hsVersion} = prev.haskell.packages.${hsVersion}.override {
+    packages = prev.haskell.packages // mapcat (ghcVersion: {
+      "ghc${ghcVersion}" = prev.haskell.packages."ghc${ghcVersion}".override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
           //
@@ -49,13 +49,18 @@ let
             scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
           });
       };
-    }) hsVersions;
+    }) ghcVersions;
   };
 
-  mkDevShell = hsVersion:
-    let hsPkgs = haskell.packages.${hsVersion};
+  mkDevShell = ghcVersion:
+    let hsPkgs = haskell.packages."ghc${ghcVersion}";
+
+        haskell-language-server = prev.haskell-language-server.override {
+          supportedGhcVersions = [ ghcVersion ];
+        };
+
         shell = hsPkgs.shellFor {
-          name = "webgear-dev-${hsVersion}";
+          name = "webgear-dev-ghc${ghcVersion}";
           doBenchmark = true;
 
           packages = pkgs: map (name: pkgs.${name}) (builtins.attrNames localHsPackages);
@@ -63,19 +68,19 @@ let
           buildInputs = [
             final.cabal-install
             final.cabal2nix
+            haskell-language-server
             hsPkgs.ghc
             final.hlint
-            final.haskell-language-server
             final.stack
-          ] ++ final.lib.optionals (hsVersion == hsDefaultVersion) [
-            haskell.packages.${hsDefaultVersion}.fourmolu
+          ] ++ final.lib.optionals (ghcVersion == defaultGHCVersion) [
+            haskell.packages."ghc${defaultGHCVersion}".fourmolu
           ];
 
           src = null;
         };
     in { ${shell.name} = shell; };
 in {
-  inherit hsVersions;
+  inherit ghcVersions;
 
   lib = prev.lib // {
     inherit mapcat;
