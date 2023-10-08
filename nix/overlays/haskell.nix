@@ -31,7 +31,7 @@ let
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
           //
           (let
-            hsLib = final.haskell.lib;
+            hsLib = final.haskell.lib.compose;
           in {
             # jailbreak for text > 2.0
             bytestring-conversion = hsLib.doJailbreak (hsLib.unmarkBroken hprev.bytestring-conversion);
@@ -44,9 +44,9 @@ let
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
             # Need specific versions for benchmarking
-            servant = hfinal.callPackage ../haskell-packages/servant.nix {};
-            servant-server = hfinal.callPackage ../haskell-packages/servant-server.nix {};
-            scotty = hfinal.callPackage ../haskell-packages/scotty.nix {};
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
           });
       };
     }) hsVersions;
