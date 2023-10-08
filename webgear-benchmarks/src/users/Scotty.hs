@@ -14,14 +14,14 @@ application store = scottyApp $ do
 
 getUser :: UserStore -> ActionM ()
 getUser store = do
-  uid <- param "userId"
+  uid <- captureParam "userId"
   lookupUser store (UserId uid) >>= \case
     Just user -> json user
     Nothing -> respondNotFound
 
 putUser :: UserStore -> ActionM ()
 putUser store = do
-  uid <- param "userId"
+  uid <- captureParam "userId"
   user <- jsonData
   let user' = user{userId = UserId uid}
   addUser store user'
@@ -29,7 +29,7 @@ putUser store = do
 
 deleteUser :: UserStore -> ActionM ()
 deleteUser store = do
-  uid <- param "userId"
+  uid <- captureParam "userId"
   found <- removeUser store (UserId uid)
   if found
     then status noContent204 >> raw ""

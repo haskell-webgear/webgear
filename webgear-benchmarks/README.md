@@ -9,7 +9,7 @@ command:
 
 ```shell
 nix develop .#webgear-dev-ghc<GHC-VERSION>
-cabal run users
+cabal run webgear-benchmarks:users
 ```
 
 ### Sample Results
