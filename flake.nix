@@ -27,13 +27,9 @@
             name = "${name}-ghc${ghcVersion}";
             value = pkgs.haskell.packages."ghc${ghcVersion}".${name};
           }) pkgs.localHsPackages;
-
-        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.ghcVersions;
       in {
         packages = pkgs.lib.mapcat mkVersionedPackages pkgs.ghcVersions;
 
-        devShells = devShells // {
-          default = devShells."webgear-dev-ghc${pkgs.defaultGHCVersion}";
-        };
+        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.ghcVersions;
       });
 }
