@@ -81,7 +81,7 @@ jobs:
         ghc:
           - 9.6.3
           # Stack 9.4 is broken because bytestring-conversion is missing from snapshot
-          # - 9.4.4
+          # - 9.4.7
           - 9.2.8
           - 9.0.2
           - 8.10.7
