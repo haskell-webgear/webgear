@@ -42,6 +42,11 @@ let
 
             # Tests fail on GHC >9.2
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
+
+            # Need specific versions for benchmarking
+            servant = hfinal.callPackage ../haskell-packages/servant.nix {};
+            servant-server = hfinal.callPackage ../haskell-packages/servant-server.nix {};
+            scotty = hfinal.callPackage ../haskell-packages/scotty.nix {};
           });
       };
     }) hsVersions;
