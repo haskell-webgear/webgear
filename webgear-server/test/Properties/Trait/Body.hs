@@ -14,7 +14,7 @@ import Test.QuickCheck.Monadic (assert, monadicIO, monitor)
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (Linked, getTrait, linkzero)
+import WebGear.Core.Trait (With, getTrait, wzero)
 import WebGear.Core.Trait.Body (JSONBody (..))
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.Body ()
@@ -22,11 +22,11 @@ import WebGear.Server.Trait.Body ()
 jsonBody :: JSONBody t
 jsonBody = JSONBody (Just "application/json")
 
-bodyToRequest :: (MonadIO m, Show a) => a -> m (Linked '[] Request)
+bodyToRequest :: (MonadIO m, Show a) => a -> m (Request `With` '[])
 bodyToRequest x = do
   body <- liftIO $ newIORef $ Just $ fromString $ show x
   let f = readIORef body >>= maybe (pure "") (\s -> writeIORef body Nothing >> pure s)
-  return $ linkzero $ Request $ defaultRequest{requestBody = f}
+  return $ wzero $ Request $ defaultRequest{requestBody = f}
 
 prop_emptyRequestBodyFails :: Property
 prop_emptyRequestBodyFails = monadicIO $ do

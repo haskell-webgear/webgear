@@ -21,8 +21,8 @@
  indicated in the trait attribute passed to next handler.
 
  A response header can be set using `setHeader` or `setOptionalHeader`
- arrows. They accept a linked response and a header value and sets the
- header in the response. You can generate an input response object
+ arrows. They accept a witnessed response and a header value and sets
+ the header in the response. You can generate an input response object
  using functions from "WebGear.Core.Trait.Status" module.
 -}
 module WebGear.Core.Trait.Header (
@@ -51,7 +51,15 @@ import WebGear.Core.Handler (Middleware)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get (..), Linked, Set, Trait (..), TraitAbsence (..), plant, probe)
+import WebGear.Core.Trait (
+  Get (..),
+  Set,
+  Trait (..),
+  TraitAbsence (..),
+  With,
+  plant,
+  probe,
+ )
 
 -- | Indicates a missing header
 data HeaderNotFound = HeaderNotFound
@@ -102,7 +110,7 @@ headerHandler ::
   forall name val e p h req.
   (Get h (Header e p name val) Request, ArrowChoice h) =>
   -- | error handler
-  h (Linked req Request, Absence (Header e p name val) Request) Response ->
+  h (Request `With` req, Absence (Header e p name val) Request) Response ->
   Middleware h req (Header e p name val : req)
 headerHandler errorHandler nextHandler = proc request -> do
   result <- probe Header -< request
@@ -123,7 +131,7 @@ header ::
   forall name val h req.
   (Get h (Header Required Strict name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Linked req Request, Either HeaderNotFound HeaderParseError) Response ->
+  h (Request `With` req, Either HeaderNotFound HeaderParseError) Response ->
   Middleware h req (Header Required Strict name val : req)
 header = headerHandler
 {-# INLINE header #-}
@@ -142,7 +150,7 @@ optionalHeader ::
   forall name val h req.
   (Get h (Header Optional Strict name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Linked req Request, HeaderParseError) Response ->
+  h (Request `With` req, HeaderParseError) Response ->
   Middleware h req (Header Optional Strict name val : req)
 optionalHeader = headerHandler
 {-# INLINE optionalHeader #-}
@@ -161,7 +169,7 @@ lenientHeader ::
   forall name val h req.
   (Get h (Header Required Lenient name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Linked req Request, HeaderNotFound) Response ->
+  h (Request `With` req, HeaderNotFound) Response ->
   Middleware h req (Header Required Lenient name val : req)
 lenientHeader = headerHandler
 {-# INLINE lenientHeader #-}
@@ -197,9 +205,9 @@ instance Trait (Header Optional Strict name val) Response where
 -}
 setHeader ::
   forall name val a h res.
-  Set h (Header Required Strict name val) Response =>
-  h a (Linked res Response) ->
-  h (val, a) (Linked (Header Required Strict name val : res) Response)
+  (Set h (Header Required Strict name val) Response) =>
+  h a (Response `With` res) ->
+  h (val, a) (Response `With` (Header Required Strict name val : res))
 setHeader prevHandler = proc (val, a) -> do
   r <- prevHandler -< a
   plant Header -< (r, val)
@@ -217,9 +225,9 @@ setHeader prevHandler = proc (val, a) -> do
 -}
 setOptionalHeader ::
   forall name val a h res.
-  Set h (Header Optional Strict name val) Response =>
-  h a (Linked res Response) ->
-  h (Maybe val, a) (Linked (Header Optional Strict name val : res) Response)
+  (Set h (Header Optional Strict name val) Response) =>
+  h a (Response `With` res) ->
+  h (Maybe val, a) (Response `With` (Header Optional Strict name val : res))
 setOptionalHeader prevHandler = proc (val, a) -> do
   r <- prevHandler -< a
   plant Header -< (r, val)

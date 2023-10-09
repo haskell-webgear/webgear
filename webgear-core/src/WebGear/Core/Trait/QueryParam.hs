@@ -43,7 +43,7 @@ import WebGear.Core.Handler (Middleware)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Linked, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait (Get, Trait (..), TraitAbsence (..), With, probe)
 
 {- | Capture a query parameter with a specified @name@ and convert it to
  a value of type @val@. The type parameter @e@ denotes whether the
@@ -94,7 +94,7 @@ instance TraitAbsence (QueryParam Optional Lenient name val) Request where
 queryParamHandler ::
   forall name val e p h req.
   (Get h (QueryParam e p name val) Request, ArrowChoice h) =>
-  h (Linked req Request, Absence (QueryParam e p name val) Request) Response ->
+  h (Request `With` req, Absence (QueryParam e p name val) Request) Response ->
   Middleware h req (QueryParam e p name val : req)
 queryParamHandler errorHandler nextHandler = proc request -> do
   result <- probe QueryParam -< request
@@ -115,7 +115,7 @@ queryParamHandler errorHandler nextHandler = proc request -> do
 queryParam ::
   forall name val h req.
   (Get h (QueryParam Required Strict name val) Request, ArrowChoice h) =>
-  h (Linked req Request, Either ParamNotFound ParamParseError) Response ->
+  h (Request `With` req, Either ParamNotFound ParamParseError) Response ->
   Middleware h req (QueryParam Required Strict name val : req)
 queryParam = queryParamHandler
 {-# INLINE queryParam #-}
@@ -133,7 +133,7 @@ queryParam = queryParamHandler
 optionalQueryParam ::
   forall name val h req.
   (Get h (QueryParam Optional Strict name val) Request, ArrowChoice h) =>
-  h (Linked req Request, ParamParseError) Response ->
+  h (Request `With` req, ParamParseError) Response ->
   Middleware h req (QueryParam Optional Strict name val : req)
 optionalQueryParam = queryParamHandler
 {-# INLINE optionalQueryParam #-}
@@ -151,7 +151,7 @@ optionalQueryParam = queryParamHandler
 lenientQueryParam ::
   forall name val h req.
   (Get h (QueryParam Required Lenient name val) Request, ArrowChoice h) =>
-  h (Linked req Request, ParamNotFound) Response ->
+  h (Request `With` req, ParamNotFound) Response ->
   Middleware h req (QueryParam Required Lenient name val : req)
 lenientQueryParam = queryParamHandler
 {-# INLINE lenientQueryParam #-}

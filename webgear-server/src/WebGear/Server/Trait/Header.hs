@@ -16,23 +16,23 @@ import Web.HttpApiData (FromHttpApiData, parseHeader)
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request, requestHeader)
 import WebGear.Core.Response (Response (..))
-import WebGear.Core.Trait (Get (..), Linked, Set (..), unlink)
+import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
 import WebGear.Core.Trait.Header (Header (..), HeaderNotFound (..), HeaderParseError (..))
 import WebGear.Server.Handler (ServerHandler)
 
 extractRequestHeader ::
   (Monad m, KnownSymbol name, FromHttpApiData val) =>
   Proxy name ->
-  ServerHandler m (Linked ts Request) (Maybe (Either Text val))
+  ServerHandler m (Request `With` ts) (Maybe (Either Text val))
 extractRequestHeader proxy = proc req -> do
   let headerName :: HeaderName = fromString $ symbolVal proxy
-  returnA -< parseHeader <$> requestHeader headerName (unlink req)
+  returnA -< parseHeader <$> requestHeader headerName (unwitness req)
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Header Required Strict name val) Request where
   {-# INLINE getTrait #-}
   getTrait ::
     Header Required Strict name val ->
-    ServerHandler m (Linked ts Request) (Either (Either HeaderNotFound HeaderParseError) val)
+    ServerHandler m (Request `With` ts) (Either (Either HeaderNotFound HeaderParseError) val)
   getTrait Header = extractRequestHeader (Proxy @name) >>> arr f
     where
       f = \case
@@ -44,7 +44,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     Header Optional Strict name val ->
-    ServerHandler m (Linked ts Request) (Either HeaderParseError (Maybe val))
+    ServerHandler m (Request `With` ts) (Either HeaderParseError (Maybe val))
   getTrait Header = extractRequestHeader (Proxy @name) >>> arr f
     where
       f = \case
@@ -56,7 +56,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     Header Required Lenient name val ->
-    ServerHandler m (Linked ts Request) (Either HeaderNotFound (Either Text val))
+    ServerHandler m (Request `With` ts) (Either HeaderNotFound (Either Text val))
   getTrait Header = extractRequestHeader (Proxy @name) >>> arr f
     where
       f = \case
@@ -68,7 +68,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     Header Optional Lenient name val ->
-    ServerHandler m (Linked ts Request) (Either Void (Maybe (Either Text val)))
+    ServerHandler m (Request `With` ts) (Either Void (Maybe (Either Text val)))
   getTrait Header = extractRequestHeader (Proxy @name) >>> arr f
     where
       f = \case
@@ -80,11 +80,11 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
   {-# INLINE setTrait #-}
   setTrait ::
     Header Required Strict name val ->
-    (Linked ts Response -> Response -> val -> Linked (Header Required Strict name val : ts) Response) ->
-    ServerHandler m (Linked ts Response, val) (Linked (Header Required Strict name val : ts) Response)
+    (Response `With` ts -> Response -> val -> Response `With` (Header Required Strict name val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (Header Required Strict name val : ts))
   setTrait Header f = proc (l, val) -> do
     let headerName :: HeaderName = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unlink l
+        response@Response{..} = unwitness l
         response' = response{responseHeaders = HM.insert headerName (toByteString' val) responseHeaders}
     returnA -< f l response' val
 
@@ -92,10 +92,10 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
   {-# INLINE setTrait #-}
   setTrait ::
     Header Optional Strict name val ->
-    (Linked ts Response -> Response -> Maybe val -> Linked (Header Optional Strict name val : ts) Response) ->
-    ServerHandler m (Linked ts Response, Maybe val) (Linked (Header Optional Strict name val : ts) Response)
+    (Response `With` ts -> Response -> Maybe val -> Response `With` (Header Optional Strict name val : ts)) ->
+    ServerHandler m (Response `With` ts, Maybe val) (Response `With` (Header Optional Strict name val : ts))
   setTrait Header f = proc (l, maybeVal) -> do
     let headerName :: HeaderName = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unlink l
+        response@Response{..} = unwitness l
         response' = response{responseHeaders = HM.alter (const $ toByteString' <$> maybeVal) headerName responseHeaders}
     returnA -< f l response' maybeVal

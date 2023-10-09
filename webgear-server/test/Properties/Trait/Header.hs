@@ -11,7 +11,7 @@ import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait (getTrait, wzero)
 import WebGear.Core.Trait.Header (Header (..), HeaderParseError (..), RequiredHeader)
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.Header ()
@@ -19,7 +19,7 @@ import WebGear.Server.Trait.Header ()
 prop_headerParseError :: Property
 prop_headerParseError = property $ \hval ->
   let hval' = "test-" <> hval
-      req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", encodeUtf8 hval')]}
+      req = wzero $ Request $ defaultRequest{requestHeaders = [("foo", encodeUtf8 hval')]}
    in runIdentity $ do
         res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
         pure $ case res of
@@ -29,7 +29,7 @@ prop_headerParseError = property $ \hval ->
 
 prop_headerParseSuccess :: Property
 prop_headerParseSuccess = property $ \(n :: Int) ->
-  let req = linkzero $ Request $ defaultRequest{requestHeaders = [("foo", fromString $ show n)]}
+  let req = wzero $ Request $ defaultRequest{requestHeaders = [("foo", fromString $ show n)]}
    in runIdentity $ do
         res <- runServerHandler (getTrait (Header :: RequiredHeader "foo" Int)) [""] req
         pure $ case res of

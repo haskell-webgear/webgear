@@ -8,7 +8,7 @@ import Data.OpenApi (Param (..), ParamLocation (ParamPath), Referenced (Inline),
 import Data.String (fromString)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.OpenApi.Handler (
   DocNode (DocPathElem, DocPathVar),
@@ -18,12 +18,12 @@ import WebGear.OpenApi.Handler (
 
 instance Get (OpenApiHandler m) Path Request where
   {-# INLINE getTrait #-}
-  getTrait :: Path -> OpenApiHandler m (Linked ts Request) (Either () ())
+  getTrait :: Path -> OpenApiHandler m (Request `With` ts) (Either () ())
   getTrait (Path p) = OpenApiHandler $ singletonNode (DocPathElem p)
 
 instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: PathVar tag val -> OpenApiHandler m (Linked ts Request) (Either PathVarError val)
+  getTrait :: PathVar tag val -> OpenApiHandler m (Request `With` ts) (Either PathVarError val)
   getTrait PathVar =
     let param =
           (mempty :: Param)
@@ -36,5 +36,5 @@ instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag 
 
 instance Get (OpenApiHandler m) PathEnd Request where
   {-# INLINE getTrait #-}
-  getTrait :: PathEnd -> OpenApiHandler m (Linked ts Request) (Either () ())
+  getTrait :: PathEnd -> OpenApiHandler m (Request `With` ts) (Either () ())
   getTrait PathEnd = OpenApiHandler $ singletonNode (DocPathElem "/")

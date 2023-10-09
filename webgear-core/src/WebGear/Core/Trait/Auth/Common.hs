@@ -21,11 +21,11 @@ import Data.Void (absurd)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Types as HTTP
 import Web.HttpApiData (FromHttpApiData (..))
-import WebGear.Core.Handler (Handler, unlinkA)
+import WebGear.Core.Handler (Handler, unwitnessA)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get (..), Linked, Sets)
+import WebGear.Core.Trait (Get (..), Sets, With)
 import WebGear.Core.Trait.Body (Body, respondA)
 import WebGear.Core.Trait.Header (Header (..), RequiredHeader, setHeader)
 import WebGear.Core.Trait.Status (Status)
@@ -40,9 +40,9 @@ type AuthorizationHeader scheme = Header Optional Lenient "Authorization" (AuthT
   The header is split into the scheme and token parts and returned.
 -}
 getAuthorizationHeaderTrait ::
-  forall scheme h ts.
-  Get h (AuthorizationHeader scheme) Request =>
-  h (Linked ts Request) (Maybe (Either Text (AuthToken scheme)))
+  forall scheme h req.
+  (Get h (AuthorizationHeader scheme) Request) =>
+  h (Request `With` req) (Maybe (Either Text (AuthToken scheme)))
 getAuthorizationHeaderTrait = proc request -> do
   result <- getTrait (Header :: Header Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result
@@ -54,13 +54,13 @@ newtype Realm = Realm ByteString
 
 -- | The components of Authorization request header
 data AuthToken (scheme :: Symbol) = AuthToken
-  { -- | Authentication scheme
-    authScheme :: CI ByteString
-  , -- | Authentication token
-    authToken :: ByteString
+  { authScheme :: CI ByteString
+  -- ^ Authentication scheme
+  , authToken :: ByteString
+  -- ^ Authentication token
   }
 
-instance KnownSymbol scheme => FromHttpApiData (AuthToken scheme) where
+instance (KnownSymbol scheme) => FromHttpApiData (AuthToken scheme) where
   parseUrlPiece = parseHeader . encodeUtf8
 
   {-# INLINE parseHeader #-}
@@ -96,7 +96,7 @@ respondUnauthorized ::
   h a Response
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
-  unlinkA
+  unwitnessA
     <<< setHeader @"WWW-Authenticate" (respondA HTTP.unauthorized401 "text/plain")
     -<
       (headerVal, "Unauthorized" :: Text)

@@ -39,7 +39,7 @@
  type ErrorTraits = [Status, RequiredHeader \"Content-Type\" Text, RequiredHeader \"WWW-Authenticate\" Text, Body Text]
 
  errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
-              => h (Linked req Request, 'JWTAuthError' e) Response
+              => h (Request \`With\` req, 'JWTAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Bearer\" \"MyRealm\"
  @
 
@@ -97,12 +97,12 @@ import WebGear.Core.Trait.Auth.Common
  \"Bearer\" scheme.
 -}
 data JWTAuth' (x :: Existence) (scheme :: Symbol) m e a = JWTAuth'
-  { -- | Settings to validate the JWT
-    jwtValidationSettings :: JWT.JWTValidationSettings
-  , -- | JWK to validate the JWT
-    jwkSet :: JWT.JWKSet
-  , -- | Convert the claims set to the trait attribute or an error
-    toJWTAttribute :: JWT.ClaimsSet -> m (Either e a)
+  { jwtValidationSettings :: JWT.JWTValidationSettings
+  -- ^ Settings to validate the JWT
+  , jwkSet :: JWT.JWKSet
+  -- ^ JWK to validate the JWT
+  , toJWTAttribute :: JWT.ClaimsSet -> m (Either e a)
+  -- ^ Convert the claims set to the trait attribute or an error
   }
 
 -- | Trait for JWT authentication with the \"Bearer\" scheme
@@ -116,16 +116,16 @@ data JWTAuthError e
   | JWTAuthAttributeError e
   deriving stock (Eq, Show)
 
-instance WebGear.Core.Trait.Trait (JWTAuth' Required scheme m e a) Request where
+instance Trait (JWTAuth' Required scheme m e a) Request where
   type Attribute (JWTAuth' Required scheme m e a) Request = a
 
-instance WebGear.Core.Trait.TraitAbsence (JWTAuth' Required scheme m e a) Request where
+instance TraitAbsence (JWTAuth' Required scheme m e a) Request where
   type Absence (JWTAuth' Required scheme m e a) Request = JWTAuthError e
 
-instance WebGear.Core.Trait.Trait (JWTAuth' Optional scheme m e a) Request where
+instance Trait (JWTAuth' Optional scheme m e a) Request where
   type Attribute (JWTAuth' Optional scheme m e a) Request = Either (JWTAuthError e) a
 
-instance WebGear.Core.Trait.TraitAbsence (JWTAuth' Optional scheme m e a) Request where
+instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
   type Absence (JWTAuth' Optional scheme m e a) Request = Void
 
 {- | Middleware to add JWT authentication protection for a
@@ -143,13 +143,13 @@ instance WebGear.Core.Trait.TraitAbsence (JWTAuth' Optional scheme m e a) Reques
  retrieved successfully.
 -}
 jwtAuth ::
-  ( WebGear.Core.Trait.Get h (JWTAuth m e t) Request
+  ( Get h (JWTAuth m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration
   JWTAuth m e t ->
   -- | Error handler
-  h (WebGear.Core.Trait.Linked req Request, JWTAuthError e) Response ->
+  h (Request `With` req, JWTAuthError e) Response ->
   Middleware h req (JWTAuth m e t : req)
 jwtAuth = jwtAuth' @"Bearer"
 {-# INLINE jwtAuth #-}
@@ -170,7 +170,7 @@ jwtAuth = jwtAuth' @"Bearer"
  authentication error appropriately.
 -}
 optionalJWTAuth ::
-  ( WebGear.Core.Trait.Get h (JWTAuth' Optional "Bearer" m e t) Request
+  ( Get h (JWTAuth' Optional "Bearer" m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration
@@ -181,15 +181,15 @@ optionalJWTAuth = optionalJWTAuth' @"Bearer"
 
 jwtAuthMiddleware ::
   forall s e t x h m req.
-  ( WebGear.Core.Trait.Get h (JWTAuth' x s m e t) Request
+  ( Get h (JWTAuth' x s m e t) Request
   , ArrowChoice h
   ) =>
   JWTAuth' x s m e t ->
-  h (WebGear.Core.Trait.Linked req Request, WebGear.Core.Trait.Absence (JWTAuth' x s m e t) Request) Response ->
+  h (Request `With` req, Absence (JWTAuth' x s m e t) Request) Response ->
   Middleware h req (JWTAuth' x s m e t : req)
 jwtAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
-    result <- WebGear.Core.Trait.probe authCfg -< request
+    result <- probe authCfg -< request
     case result of
       Left err -> errorHandler -< (request, err)
       Right val -> nextHandler -< val
@@ -211,13 +211,13 @@ jwtAuthMiddleware authCfg errorHandler nextHandler =
 -}
 jwtAuth' ::
   forall s e t h m req.
-  ( WebGear.Core.Trait.Get h (JWTAuth' Required s m e t) Request
+  ( Get h (JWTAuth' Required s m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration
   JWTAuth' Required s m e t ->
   -- | Error handler
-  h (WebGear.Core.Trait.Linked req Request, JWTAuthError e) Response ->
+  h (Request `With` req, JWTAuthError e) Response ->
   Middleware h req (JWTAuth' Required s m e t : req)
 jwtAuth' = jwtAuthMiddleware
 {-# INLINE jwtAuth' #-}
@@ -239,7 +239,7 @@ jwtAuth' = jwtAuthMiddleware
 -}
 optionalJWTAuth' ::
   forall s e t h m req.
-  ( WebGear.Core.Trait.Get h (JWTAuth' Optional s m e t) Request
+  ( Get h (JWTAuth' Optional s m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration

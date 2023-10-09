@@ -14,7 +14,7 @@ import Data.Void (Void)
 import WebGear.Core.Handler (arrM)
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Auth.Common (
   AuthToken (..),
   AuthorizationHeader,
@@ -27,7 +27,7 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
   {-# INLINE getTrait #-}
   getTrait ::
     JWTAuth' Required scheme m e a ->
-    ServerHandler m (Linked ts Request) (Either (JWTAuthError e) a)
+    ServerHandler m (Request `With` ts) (Either (JWTAuthError e) a)
   getTrait JWTAuth'{..} = proc request -> do
     result <- getAuthorizationHeaderTrait @scheme -< request
     case result of
@@ -50,5 +50,5 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
   {-# INLINE getTrait #-}
   getTrait ::
     JWTAuth' Optional scheme m e a ->
-    ServerHandler m (Linked ts Request) (Either Void (Either (JWTAuthError e) a))
+    ServerHandler m (Request `With` ts) (Either Void (Either (JWTAuthError e) a))
   getTrait JWTAuth'{..} = getTrait (JWTAuth'{..} :: JWTAuth' Required scheme m e a) >>> arr Right

@@ -21,7 +21,7 @@ import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (Linked, getTrait, linkzero, probe)
+import WebGear.Core.Trait (With, getTrait, probe, wzero)
 import WebGear.Core.Trait.Auth.Basic (
   BasicAuth,
   BasicAuth' (..),
@@ -42,23 +42,25 @@ prop_basicAuth = property f
     f (username, password)
       | ':' `elem` username = property Discard
       | otherwise =
-        let hval = "Basic " <> encode (username <> ":" <> password)
+          let hval = "Basic " <> encode (username <> ":" <> password)
 
-            mkRequest :: ServerHandler Identity () (Linked '[AuthorizationHeader "Basic"] Request)
-            mkRequest = proc () -> do
-              let req = Request $ defaultRequest{requestHeaders = [("Authorization", hval)]}
-              r <- probe Header -< linkzero req
-              returnA -< fromRight undefined r
+              mkRequest :: ServerHandler Identity () (Request `With` '[AuthorizationHeader "Basic"])
+              mkRequest = proc () -> do
+                let req = Request $ defaultRequest{requestHeaders = [("Authorization", hval)]}
+                r <- probe Header -< wzero req
+                returnA -< fromRight undefined r
 
-            authCfg :: BasicAuth Identity () Credentials
-            authCfg = BasicAuth'{toBasicAttribute = pure . Right}
-         in runIdentity $ do
-              res <- runServerHandler (mkRequest >>> getTrait authCfg) [""] ()
-              pure $ case res of
-                Right (Right creds) ->
-                  credentialsUsername creds === Username username
-                    .&&. credentialsPassword creds === Password password
-                e -> counterexample ("Unexpected failure: " <> show e) (property False)
+              authCfg :: BasicAuth Identity () Credentials
+              authCfg = BasicAuth'{toBasicAttribute = pure . Right}
+           in runIdentity $ do
+                res <- runServerHandler (mkRequest >>> getTrait authCfg) [""] ()
+                pure $ case res of
+                  Right (Right creds) ->
+                    credentialsUsername creds
+                      === Username username
+                      .&&. credentialsPassword creds
+                      === Password password
+                  e -> counterexample ("Unexpected failure: " <> show e) (property False)
 
 -- Hack for TH splicing
 return []

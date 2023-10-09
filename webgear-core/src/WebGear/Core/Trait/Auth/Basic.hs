@@ -35,7 +35,7 @@
  type ErrorTraits = [Status, RequiredHeader \"Content-Type\" Text, RequiredHeader \"WWW-Authenticate\" Text, Body Text]
 
  errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
-              => h (Linked req Request, 'BasicAuthError' e) Response
+              => h (Request \`With\` req, 'BasicAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Basic\" \"MyRealm\"
  @
 
@@ -92,8 +92,8 @@ import WebGear.Core.Trait.Auth.Common
 
 -- | Trait for HTTP basic authentication: https://tools.ietf.org/html/rfc7617
 newtype BasicAuth' (x :: Existence) (scheme :: Symbol) m e a = BasicAuth'
-  { -- | Convert the credentials to the trait attribute or an error
-    toBasicAttribute :: Credentials -> m (Either e a)
+  { toBasicAttribute :: Credentials -> m (Either e a)
+  -- ^ Convert the credentials to the trait attribute or an error
   }
 
 -- | Trait for HTTP basic authentication with the "Basic" scheme.
@@ -139,7 +139,7 @@ instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
 basicAuthMiddleware ::
   (Get h (BasicAuth' x scheme m e t) Request, ArrowChoice h) =>
   BasicAuth' x scheme m e t ->
-  h (Linked req Request, Absence (BasicAuth' x scheme m e t) Request) Response ->
+  h (Request `With` req, Absence (BasicAuth' x scheme m e t) Request) Response ->
   Middleware h req (BasicAuth' x scheme m e t : req)
 basicAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
@@ -165,7 +165,7 @@ basicAuth ::
   -- | Authentication configuration
   BasicAuth m e t ->
   -- | Error handler
-  h (Linked req Request, BasicAuthError e) Response ->
+  h (Request `With` req, BasicAuthError e) Response ->
   Middleware h req (BasicAuth m e t : req)
 basicAuth = basicAuth'
 {-# INLINE basicAuth #-}
@@ -182,7 +182,7 @@ basicAuth' ::
   -- | Authentication configuration
   BasicAuth' Required scheme m e t ->
   -- | Error handler
-  h (Linked req Request, BasicAuthError e) Response ->
+  h (Request `With` req, BasicAuthError e) Response ->
   Middleware h req (BasicAuth' Required scheme m e t : req)
 basicAuth' = basicAuthMiddleware
 {-# INLINE basicAuth' #-}

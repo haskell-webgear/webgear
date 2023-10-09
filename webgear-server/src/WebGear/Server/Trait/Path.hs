@@ -8,13 +8,13 @@ import qualified Data.Text as Text
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (RoutePath (..))
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.Server.Handler (ServerHandler (..))
 
-instance Monad m => Get (ServerHandler m) Path Request where
+instance (Monad m) => Get (ServerHandler m) Path Request where
   {-# INLINE getTrait #-}
-  getTrait :: Path -> ServerHandler m (Linked ts Request) (Either () ())
+  getTrait :: Path -> ServerHandler m (Request `With` ts) (Either () ())
   getTrait (Path p) = ServerHandler $ \(_, path@(RoutePath remaining)) -> do
     let expected = filter (/= "") $ Text.splitOn "/" p
     pure $ case List.stripPrefix expected remaining of
@@ -23,7 +23,7 @@ instance Monad m => Get (ServerHandler m) Path Request where
 
 instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: PathVar tag val -> ServerHandler m (Linked ts Request) (Either PathVarError val)
+  getTrait :: PathVar tag val -> ServerHandler m (Request `With` ts) (Either PathVarError val)
   getTrait PathVar = ServerHandler $ \(_, path@(RoutePath remaining)) -> do
     pure $ case remaining of
       [] -> (Right (Left PathVarNotFound), path)
@@ -32,9 +32,9 @@ instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag va
           Left e -> (Right (Left $ PathVarParseError e), path)
           Right val -> (Right (Right val), RoutePath ps)
 
-instance Monad m => Get (ServerHandler m) PathEnd Request where
+instance (Monad m) => Get (ServerHandler m) PathEnd Request where
   {-# INLINE getTrait #-}
-  getTrait :: PathEnd -> ServerHandler m (Linked ts Request) (Either () ())
+  getTrait :: PathEnd -> ServerHandler m (Request `With` ts) (Either () ())
   getTrait PathEnd = ServerHandler f
     where
       f (_, p@(RoutePath [])) = pure (Right $ Right (), p)
