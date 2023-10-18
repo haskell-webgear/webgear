@@ -80,7 +80,7 @@ let
         };
     in { ${shell.name} = shell; };
 in {
-  inherit ghcVersions;
+  inherit ghcVersions defaultGHCVersion;
 
   lib = prev.lib // {
     inherit mapcat;
