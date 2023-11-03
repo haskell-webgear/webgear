@@ -1,4 +1,4 @@
-module WebGear where
+module WebGear (application) where
 
 import Control.Arrow
 import Control.Monad.Reader (MonadReader (..), ReaderT (..))
@@ -17,18 +17,15 @@ type AppM = ReaderT UserStore IO
 type UserIdPathVar = PathVar "userId" Int
 
 allRoutes ::
-  ( StdHandler
-      h
-      AppM
-      [UserIdPathVar, JSONBody User]
-      [Body Text, RequiredHeader "Content-Type" Text, JSONBody User]
+  ( StdHandler h AppM
+  , Gets h [UserIdPathVar, JSONBody User] Request
+  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User, Body Text] Response
   ) =>
   h (Request `With` '[]) Response
 allRoutes =
-  -- TH version: [route| /v1/users/userId:Int |]
-  path "/v1/users"
-    $ pathVar @"userId" @Int
-    $ pathEnd
+  -- Non-TH version:
+  --   path "/v1/users" $ pathVar @"userId" @Int $ pathEnd
+  [route| /v1/users/userId:Int |]
     $ method GET getUser
     <+> method PUT putUser
     <+> method DELETE deleteUser
@@ -36,7 +33,8 @@ allRoutes =
 getUser ::
   forall h req.
   ( HasTrait UserIdPathVar req
-  , StdHandler h AppM '[] [RequiredHeader "Content-Type" Text, JSONBody User]
+  , StdHandler h AppM
+  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User] Response
   ) =>
   h (Request `With` req) Response
 getUser = findUser >>> respond
@@ -55,11 +53,9 @@ getUser = findUser >>> respond
 putUser ::
   forall h req.
   ( HasTrait UserIdPathVar req
-  , StdHandler
-      h
-      AppM
-      '[JSONBody User]
-      [RequiredHeader "Content-Type" Text, JSONBody User, Body Text]
+  , StdHandler h AppM
+  , Get h (JSONBody User) Request
+  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User, Body Text] Response
   ) =>
   h (Request `With` req) Response
 putUser = jsonRequestBody @User badPayload $ doUpdate >>> respond
@@ -83,7 +79,7 @@ putUser = jsonRequestBody @User badPayload $ doUpdate >>> respond
 
 deleteUser ::
   forall h req.
-  (HasTrait UserIdPathVar req, StdHandler h AppM '[] '[]) =>
+  (HasTrait UserIdPathVar req, StdHandler h AppM) =>
   h (Request `With` req) Response
 deleteUser = doDelete >>> respond
   where

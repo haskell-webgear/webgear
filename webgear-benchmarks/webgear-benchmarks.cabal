@@ -35,6 +35,7 @@ executable users
                     , wai ==3.2.3
                     , webgear-server ==1.1.0
   default-extensions: Arrows
+                      ConstraintKinds
                       DataKinds
                       DeriveAnyClass
                       DeriveGeneric

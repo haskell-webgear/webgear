@@ -26,18 +26,15 @@ import WebGear.Core.Trait.Path
 import WebGear.Core.Trait.QueryParam
 import WebGear.Core.Trait.Status
 
-{- | Constraints that include all common traits.
+{- | Constraints that include a set of common traits for handlers.
 
  The type variables are:
 
  * @h@ - The handler arrow
  * @m@ - The underlying monad of the handler
- * @req@ - List of traits the handler `Gets` from the request
- * @res@ - List of traits the handler `Sets` on the response
 -}
-type StdHandler h m req res =
+type StdHandler h m =
   ( Handler h m
   , Gets h [Method, Path, PathEnd] Request
-  , Gets h req Request
-  , Sets h (Status : res) Response
+  , Sets h '[Status] Response
   )
