@@ -204,13 +204,10 @@ instance Trait (Header Optional Strict name val) Response where
  > response' <- setHeader @"Content-Length" -< (response, 42)
 -}
 setHeader ::
-  forall name val a h res.
+  forall name val h res.
   (Set h (Header Required Strict name val) Response) =>
-  h a (Response `With` res) ->
-  h (val, a) (Response `With` (Header Required Strict name val : res))
-setHeader prevHandler = proc (val, a) -> do
-  r <- prevHandler -< a
-  plant Header -< (r, val)
+  h (Response `With` res, val) (Response `With` (Header Required Strict name val : res))
+setHeader = plant Header
 {-# INLINE setHeader #-}
 
 {- | Set an optional header value in a response.
@@ -224,11 +221,8 @@ setHeader prevHandler = proc (val, a) -> do
  > response' <- setOptionalHeader @"Content-Length" -< (response, Just 42)
 -}
 setOptionalHeader ::
-  forall name val a h res.
+  forall name val h res.
   (Set h (Header Optional Strict name val) Response) =>
-  h a (Response `With` res) ->
-  h (Maybe val, a) (Response `With` (Header Optional Strict name val : res))
-setOptionalHeader prevHandler = proc (val, a) -> do
-  r <- prevHandler -< a
-  plant Header -< (r, val)
+  h (Response `With` res, Maybe val) (Response `With` (Header Optional Strict name val : res))
+setOptionalHeader = plant Header
 {-# INLINE setOptionalHeader #-}

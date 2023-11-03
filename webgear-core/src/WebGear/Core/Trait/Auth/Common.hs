@@ -9,7 +9,7 @@ module WebGear.Core.Trait.Auth.Common (
   respondUnauthorized,
 ) where
 
-import Control.Arrow (returnA, (<<<))
+import Control.Arrow (returnA)
 import Data.ByteString (ByteString, drop)
 import Data.ByteString.Char8 (break)
 import Data.CaseInsensitive (CI, mk, original)
@@ -21,7 +21,7 @@ import Data.Void (absurd)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Types as HTTP
 import Web.HttpApiData (FromHttpApiData (..))
-import WebGear.Core.Handler (Handler, unwitnessA)
+import WebGear.Core.Handler (Handler, unwitnessA, (>->))
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
@@ -96,8 +96,7 @@ respondUnauthorized ::
   h a Response
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
-  unwitnessA
-    <<< setHeader @"WWW-Authenticate" (respondA HTTP.unauthorized401 "text/plain")
-    -<
-      (headerVal, "Unauthorized" :: Text)
+  (respondA HTTP.unauthorized401 "text/plain" -< "Unauthorized" :: Text)
+    >-> (\resp -> setHeader @"WWW-Authenticate" -< (resp, headerVal))
+    >-> (\resp -> unwitnessA -< resp)
 {-# INLINE respondUnauthorized #-}

@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as Text
 import qualified Network.Mime as Mime
 import System.FilePath (joinPath, takeFileName, (</>))
-import WebGear.Core.Handler (Handler (..), RoutePath (..), unwitnessA)
+import WebGear.Core.Handler (Handler (..), RoutePath (..), unwitnessA, (>->))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Sets, With)
@@ -56,6 +56,9 @@ serveFile = proc file -> do
     Nothing -> unwitnessA <<< notFound404 -< ()
     Just contents -> do
       let contentType = Mime.defaultMimeLookup $ Text.pack $ takeFileName file
-      unwitnessA <<< setHeader @"Content-Type" (setBodyWithoutContentType ok200) -< (contentType, (contents, ()))
+      (ok200 -< ())
+        >-> (\resp -> setBodyWithoutContentType -< (resp, contents))
+        >-> (\resp -> setHeader @"Content-Type" -< (resp, contentType))
+        >-> (\resp -> unwitnessA -< resp)
   where
     readFile = arrM $ \f -> liftIO $ (Just <$> LBS.readFile f) `catchIO` const (pure Nothing)

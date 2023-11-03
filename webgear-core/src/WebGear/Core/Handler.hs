@@ -11,9 +11,11 @@ module WebGear.Core.Handler (
   Middleware,
   routeMismatch,
   unwitnessA,
+  (>->),
+  (<-<),
 ) where
 
-import Control.Arrow (ArrowChoice, ArrowPlus, arr)
+import Control.Arrow (Arrow, ArrowChoice, ArrowPlus, arr)
 import Control.Arrow.Operations (ArrowError (..))
 import Data.String (IsString)
 import Data.Text (Text)
@@ -88,3 +90,39 @@ routeMismatch = proc _a -> raise -< RouteMismatch
 unwitnessA :: (Handler h m) => h (Response `With` ts) Response
 unwitnessA = arr unwitness
 {-# INLINE unwitnessA #-}
+
+infixr 1 >->, <-<
+
+{- | Thread a response through commands from left to right.
+
+ For example, an HTTP 200 response with a body and Content-Type header
+ can be generated with:
+
+@
+ (ok200 -< ())
+   >-> (\resp -> setBody "text/plain" -< (resp, "Hello World"))
+   >-> (\resp -> unwitnessA -< resp)
+@
+-}
+(>->) :: (Arrow h) => h (env, stack) a -> h (env, (a, stack)) b -> h (env, stack) b
+f >-> g = proc (env, stack) -> do
+  a <- f -< (env, stack)
+  g -< (env, (a, stack))
+{-# INLINE (>->) #-}
+
+{- | Thread a response through commands from right to left.
+
+ For example, an HTTP 200 response with a body and Content-Type header
+ can be generated with:
+
+@
+ (\resp -> unwitnessA -< resp)
+   <-< (\resp -> setBody "text/plain" -< (resp, "Hello World"))
+   <-< (ok200 -< ())
+@
+-}
+(<-<) :: (Arrow h) => h (env, (a, stack)) b -> h (env, stack) a -> h (env, stack) b
+f <-< g = proc (env, stack) -> do
+  a <- g -< (env, stack)
+  f -< (env, (a, stack))
+{-# INLINE (<-<) #-}
