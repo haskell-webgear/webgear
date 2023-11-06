@@ -3,6 +3,7 @@ resolver: lts-18.28
 packages:
   - ./webgear-core
   - ./webgear-server
+  - ./webgear-swagger
   - ./webgear-openapi
   - ./webgear-benchmarks
 

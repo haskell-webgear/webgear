@@ -1,4 +1,5 @@
 packages: webgear-core/
           webgear-server/
+          webgear-swagger/
           webgear-openapi/
           webgear-benchmarks/

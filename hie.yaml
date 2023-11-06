@@ -15,6 +15,11 @@ cradle:
         cradle:
           cabal:
             component: "webgear-server:webgear-server-test"
+    - path: "./webgear-swagger/src"
+      config:
+        cradle:
+          cabal:
+            component: "lib:webgear-swagger"
     - path: "./webgear-openapi/src"
       config:
         cradle:
