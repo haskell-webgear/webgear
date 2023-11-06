@@ -1,60 +1,60 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | OpenApi implementation of 'Body' trait.
-module WebGear.OpenApi.Trait.Body where
+-- | Swagger implementation of 'Body' trait.
+module WebGear.Swagger.Trait.Body where
 
 import Control.Lens ((&), (.~), (?~))
 import Data.Maybe (fromMaybe)
-import Data.OpenApi hiding (Response)
-import Data.OpenApi.Declare (runDeclare)
 import Data.Proxy (Proxy (..))
+import Data.Swagger hiding (Response)
+import Data.Swagger.Declare (runDeclare)
 import Data.Text (Text)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Set (..), With)
 import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
-import WebGear.OpenApi.Handler (
+import WebGear.Swagger.Handler (
   DocNode (DocRequestBody, DocResponseBody),
-  OpenApiHandler (..),
+  SwaggerHandler (..),
   singletonNode,
  )
 
-instance (ToSchema val) => Get (OpenApiHandler m) (Body val) Request where
+instance (ToSchema val) => Get (SwaggerHandler m) (Body val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: Body val -> OpenApiHandler m (Request `With` ts) (Either Text val)
+  getTrait :: Body val -> SwaggerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body maybeMediaType) =
     let mediaType = fromMaybe "*/*" maybeMediaType
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
         body =
-          (mempty @RequestBody)
-            & content .~ [(mediaType, mempty @MediaTypeObject & schema ?~ ref)]
-     in OpenApiHandler $ singletonNode (DocRequestBody defs body)
+          mempty @Param
+            & schema .~ ParamBody ref
+            & required ?~ True
+            & name .~ "body"
+     in SwaggerHandler $ singletonNode (DocRequestBody defs mimeList body)
 
-instance (ToSchema val) => Set (OpenApiHandler m) (Body val) Response where
+instance (ToSchema val) => Set (SwaggerHandler m) (Body val) Response where
   {-# INLINE setTrait #-}
   setTrait ::
     Body val ->
     (Response `With` ts -> Response -> val -> Response `With` (Body val : ts)) ->
-    OpenApiHandler m (Response `With` ts, val) (Response `With` (Body val : ts))
+    SwaggerHandler m (Response `With` ts, val) (Response `With` (Body val : ts))
   setTrait (Body maybeMediaType) _ =
     let mediaType = fromMaybe "*/*" maybeMediaType
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-        body = mempty @MediaTypeObject & schema ?~ ref
-     in OpenApiHandler $ singletonNode (DocResponseBody defs mediaType body)
+     in SwaggerHandler $ singletonNode (DocResponseBody defs mediaType ref)
 
-instance (ToSchema val) => Get (OpenApiHandler m) (JSONBody val) Request where
+instance (ToSchema val) => Get (SwaggerHandler m) (JSONBody val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: JSONBody val -> OpenApiHandler m (Request `With` ts) (Either Text val)
+  getTrait :: JSONBody val -> SwaggerHandler m (Request `With` ts) (Either Text val)
   getTrait (JSONBody maybeMediaType) = getTrait (Body @val maybeMediaType)
 
-instance (ToSchema val) => Set (OpenApiHandler m) (JSONBody val) Response where
+instance (ToSchema val) => Set (SwaggerHandler m) (JSONBody val) Response where
   {-# INLINE setTrait #-}
   setTrait ::
     JSONBody val ->
     (Response `With` ts -> Response -> t -> Response `With` (JSONBody val : ts)) ->
-    OpenApiHandler m (Response `With` ts, t) (Response `With` (JSONBody val : ts))
+    SwaggerHandler m (Response `With` ts, t) (Response `With` (JSONBody val : ts))
   setTrait (JSONBody maybeMediaType) _ =
     let mediaType = fromMaybe "*/*" maybeMediaType
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-        body = mempty @MediaTypeObject & schema ?~ ref
-     in OpenApiHandler $ singletonNode (DocResponseBody defs mediaType body)
+     in SwaggerHandler $ singletonNode (DocResponseBody defs mediaType ref)

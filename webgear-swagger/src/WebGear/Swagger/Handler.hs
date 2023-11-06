@@ -1,14 +1,13 @@
-{-# LANGUAGE CPP #-}
-{- | An implementation of `Handler` to generate `OpenApi` documentation
+{- | An implementation of `Handler` to generate `Swagger` documentation
  from WebGear API specifications.
 -}
-module WebGear.OpenApi.Handler (
-  OpenApiHandler (..),
+module WebGear.Swagger.Handler (
+  SwaggerHandler (..),
   DocNode (..),
   Tree,
   singletonNode,
   nullNode,
-  toOpenApi,
+  toSwagger,
 ) where
 
 import Control.Applicative ((<|>))
@@ -17,8 +16,8 @@ import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
 import Control.Lens (at, (%~), (&), (.~), (<>~), (?~))
 import qualified Data.HashMap.Strict.InsOrd as Map
-import Data.OpenApi
-import Data.OpenApi.Internal.Utils (swaggerMappend)
+import Data.Swagger
+import Data.Swagger.Internal.Utils (swaggerMappend)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Media.MediaType (MediaType)
@@ -35,8 +34,8 @@ data Tree a
 -- | Different types of documentation elements captured by the handler
 data DocNode
   = DocSecurityScheme Text SecurityScheme
-  | DocRequestBody (Definitions Schema) RequestBody
-  | DocResponseBody (Definitions Schema) MediaType MediaTypeObject
+  | DocRequestBody (Definitions Schema) MediaType Param
+  | DocResponseBody (Definitions Schema) MediaType (Referenced Schema)
   | DocRequestHeader Param
   | DocResponseHeader HeaderName Header
   | DocMethod HTTP.StdMethod
@@ -51,8 +50,8 @@ data DocNode
 -- | Documentation elements after compaction
 data CompactDocNode
   = CDocSecurityScheme Text SecurityScheme
-  | CDocRequestBody (Definitions Schema) RequestBody
-  | CDocResponseBody (Definitions Schema) MediaType MediaTypeObject
+  | CDocRequestBody (Definitions Schema) MediaType Param
+  | CDocResponseBody (Definitions Schema) MediaType (Referenced Schema)
   | CDocRequestHeader Param
   | CDocResponseHeader HeaderName Header
   | CDocMethod HTTP.StdMethod
@@ -71,18 +70,18 @@ singletonNode a = SingleNode a NullNode
 nullNode :: Tree a
 nullNode = NullNode
 
-{- | A handler that captured `OpenApi` documentation of API
+{- | A handler that captured `Swagger` documentation of API
  specifications.
 -}
-newtype OpenApiHandler m a b = OpenApiHandler
-  {openApiDoc :: Tree DocNode}
+newtype SwaggerHandler m a b = SwaggerHandler
+  {swaggerDoc :: Tree DocNode}
 
-instance Cat.Category (OpenApiHandler m) where
-  id :: OpenApiHandler m a a
-  id = OpenApiHandler{openApiDoc = NullNode}
+instance Cat.Category (SwaggerHandler m) where
+  id :: SwaggerHandler m a a
+  id = SwaggerHandler{swaggerDoc = NullNode}
 
-  (.) :: OpenApiHandler m b c -> OpenApiHandler m a b -> OpenApiHandler m a c
-  OpenApiHandler doc2 . OpenApiHandler doc1 = OpenApiHandler $ insertAsLeaf doc1 doc2
+  (.) :: SwaggerHandler m b c -> SwaggerHandler m a b -> SwaggerHandler m a c
+  SwaggerHandler doc2 . SwaggerHandler doc1 = SwaggerHandler $ insertAsLeaf doc1 doc2
     where
       insertAsLeaf :: Tree DocNode -> Tree DocNode -> Tree DocNode
       insertAsLeaf parent child = case parent of
@@ -90,79 +89,79 @@ instance Cat.Category (OpenApiHandler m) where
         SingleNode doc next -> SingleNode doc (insertAsLeaf next child)
         BinaryNode b1 b2 -> BinaryNode (insertAsLeaf b1 child) (insertAsLeaf b2 child)
 
-instance Arrow (OpenApiHandler m) where
-  arr :: (a -> b) -> OpenApiHandler m a b
-  arr _ = OpenApiHandler{openApiDoc = NullNode}
+instance Arrow (SwaggerHandler m) where
+  arr :: (a -> b) -> SwaggerHandler m a b
+  arr _ = SwaggerHandler{swaggerDoc = NullNode}
 
-  first :: OpenApiHandler m b c -> OpenApiHandler m (b, d) (c, d)
-  first (OpenApiHandler doc) = OpenApiHandler doc
+  first :: SwaggerHandler m b c -> SwaggerHandler m (b, d) (c, d)
+  first (SwaggerHandler doc) = SwaggerHandler doc
 
-  second :: OpenApiHandler m b c -> OpenApiHandler m (d, b) (d, c)
-  second (OpenApiHandler doc) = OpenApiHandler doc
+  second :: SwaggerHandler m b c -> SwaggerHandler m (d, b) (d, c)
+  second (SwaggerHandler doc) = SwaggerHandler doc
 
-instance ArrowZero (OpenApiHandler m) where
-  zeroArrow :: OpenApiHandler m b c
-  zeroArrow = OpenApiHandler{openApiDoc = NullNode}
+instance ArrowZero (SwaggerHandler m) where
+  zeroArrow :: SwaggerHandler m b c
+  zeroArrow = SwaggerHandler{swaggerDoc = NullNode}
 
-instance ArrowPlus (OpenApiHandler m) where
-  (<+>) :: OpenApiHandler m b c -> OpenApiHandler m b c -> OpenApiHandler m b c
-  OpenApiHandler NullNode <+> OpenApiHandler doc = OpenApiHandler doc
-  OpenApiHandler doc <+> OpenApiHandler NullNode = OpenApiHandler doc
-  OpenApiHandler doc1 <+> OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
+instance ArrowPlus (SwaggerHandler m) where
+  (<+>) :: SwaggerHandler m b c -> SwaggerHandler m b c -> SwaggerHandler m b c
+  SwaggerHandler NullNode <+> SwaggerHandler doc = SwaggerHandler doc
+  SwaggerHandler doc <+> SwaggerHandler NullNode = SwaggerHandler doc
+  SwaggerHandler doc1 <+> SwaggerHandler doc2 = SwaggerHandler $ BinaryNode doc1 doc2
 
-instance ArrowChoice (OpenApiHandler m) where
-  left :: OpenApiHandler m b c -> OpenApiHandler m (Either b d) (Either c d)
-  left (OpenApiHandler doc) = OpenApiHandler doc
+instance ArrowChoice (SwaggerHandler m) where
+  left :: SwaggerHandler m b c -> SwaggerHandler m (Either b d) (Either c d)
+  left (SwaggerHandler doc) = SwaggerHandler doc
 
-  right :: OpenApiHandler m b c -> OpenApiHandler m (Either d b) (Either d c)
-  right (OpenApiHandler doc) = OpenApiHandler doc
+  right :: SwaggerHandler m b c -> SwaggerHandler m (Either d b) (Either d c)
+  right (SwaggerHandler doc) = SwaggerHandler doc
 
-  (+++) :: OpenApiHandler m b c -> OpenApiHandler m b' c' -> OpenApiHandler m (Either b b') (Either c c')
-  OpenApiHandler doc +++ OpenApiHandler NullNode = OpenApiHandler doc
-  OpenApiHandler NullNode +++ OpenApiHandler doc = OpenApiHandler doc
-  OpenApiHandler doc1 +++ OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
+  (+++) :: SwaggerHandler m b c -> SwaggerHandler m b' c' -> SwaggerHandler m (Either b b') (Either c c')
+  SwaggerHandler doc +++ SwaggerHandler NullNode = SwaggerHandler doc
+  SwaggerHandler NullNode +++ SwaggerHandler doc = SwaggerHandler doc
+  SwaggerHandler doc1 +++ SwaggerHandler doc2 = SwaggerHandler $ BinaryNode doc1 doc2
 
-  (|||) :: OpenApiHandler m b d -> OpenApiHandler m c d -> OpenApiHandler m (Either b c) d
-  OpenApiHandler doc ||| OpenApiHandler NullNode = OpenApiHandler doc
-  OpenApiHandler NullNode ||| OpenApiHandler doc = OpenApiHandler doc
-  OpenApiHandler doc1 ||| OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
+  (|||) :: SwaggerHandler m b d -> SwaggerHandler m c d -> SwaggerHandler m (Either b c) d
+  SwaggerHandler doc ||| SwaggerHandler NullNode = SwaggerHandler doc
+  SwaggerHandler NullNode ||| SwaggerHandler doc = SwaggerHandler doc
+  SwaggerHandler doc1 ||| SwaggerHandler doc2 = SwaggerHandler $ BinaryNode doc1 doc2
 
-instance ArrowError RouteMismatch (OpenApiHandler m) where
+instance ArrowError RouteMismatch (SwaggerHandler m) where
   {-# INLINE raise #-}
-  raise = OpenApiHandler{openApiDoc = NullNode}
+  raise = SwaggerHandler{swaggerDoc = NullNode}
 
   {-# INLINE handle #-}
-  OpenApiHandler doc1 `handle` OpenApiHandler doc2 = OpenApiHandler $ BinaryNode doc1 doc2
+  SwaggerHandler doc1 `handle` SwaggerHandler doc2 = SwaggerHandler $ BinaryNode doc1 doc2
 
   {-# INLINE tryInUnless #-}
-  tryInUnless (OpenApiHandler doc1) (OpenApiHandler doc2) (OpenApiHandler doc3) =
-    OpenApiHandler $ BinaryNode (BinaryNode doc1 doc2) doc3
+  tryInUnless (SwaggerHandler doc1) (SwaggerHandler doc2) (SwaggerHandler doc3) =
+    SwaggerHandler $ BinaryNode (BinaryNode doc1 doc2) doc3
 
-instance Monad m => Handler (OpenApiHandler m) m where
+instance (Monad m) => Handler (SwaggerHandler m) m where
   {-# INLINE arrM #-}
-  arrM :: (a -> m b) -> OpenApiHandler m a b
-  arrM _ = OpenApiHandler{openApiDoc = NullNode}
+  arrM :: (a -> m b) -> SwaggerHandler m a b
+  arrM _ = SwaggerHandler{swaggerDoc = NullNode}
 
   {-# INLINE consumeRoute #-}
-  consumeRoute :: OpenApiHandler m RoutePath a -> OpenApiHandler m () a
-  consumeRoute (OpenApiHandler doc) = OpenApiHandler doc
+  consumeRoute :: SwaggerHandler m RoutePath a -> SwaggerHandler m () a
+  consumeRoute (SwaggerHandler doc) = SwaggerHandler doc
 
   {-# INLINE setDescription #-}
-  setDescription :: Description -> OpenApiHandler m a a
-  setDescription = OpenApiHandler . singletonNode . DocDescription
+  setDescription :: Description -> SwaggerHandler m a a
+  setDescription = SwaggerHandler . singletonNode . DocDescription
 
   {-# INLINE setSummary #-}
-  setSummary :: Summary -> OpenApiHandler m a a
-  setSummary = OpenApiHandler . singletonNode . DocSummary
+  setSummary :: Summary -> SwaggerHandler m a a
+  setSummary = SwaggerHandler . singletonNode . DocSummary
 
--- | Generate OpenApi documentation from a handler
-toOpenApi :: OpenApiHandler m a b -> OpenApi
-toOpenApi = go . compact . openApiDoc
+-- | Generate Swagger documentation from a handler
+toSwagger :: SwaggerHandler m a b -> Swagger
+toSwagger = go . compact . swaggerDoc
   where
     go t = case t of
       NullNode -> mempty
       SingleNode parent child -> mergeDoc parent child mempty
-      BinaryNode t1 t2 -> go t1 `combineOpenApi` go t2
+      BinaryNode t1 t2 -> go t1 `combineSwagger` go t2
 
 compact :: Tree DocNode -> Tree CompactDocNode
 compact t = let (_, _, t') = go t in t'
@@ -180,12 +179,12 @@ compact t = let (_, _, t') = go t in t'
       let (descr, summ, child') = go child
           scheme' = scheme & description .~ fmap getDescription descr
        in (Nothing, summ, SingleNode (CDocSecurityScheme schemeName scheme') child')
-    compactDoc (DocRequestBody defs body) child =
+    compactDoc (DocRequestBody defs mediaType bodyParam) child =
       let (descr, summ, child') = go child
-          body' = body & description .~ fmap getDescription descr
-       in (Nothing, summ, SingleNode (CDocRequestBody defs body') child')
-    compactDoc (DocResponseBody defs mediaType mediaTypeObject) child =
-      SingleNode (CDocResponseBody defs mediaType mediaTypeObject) <$> go child
+          bodyParam' = bodyParam & description .~ fmap getDescription descr
+       in (Nothing, summ, SingleNode (CDocRequestBody defs mediaType bodyParam') child')
+    compactDoc (DocResponseBody defs mediaType responseSchema) child =
+      SingleNode (CDocResponseBody defs mediaType responseSchema) <$> go child
     compactDoc (DocRequestHeader param) child =
       let (descr, summ, child') = go child
           param' = param & description .~ fmap getDescription descr
@@ -219,18 +218,18 @@ compact t = let (_, _, t') = go t in t'
       (Nothing, Nothing, child') -> SingleNode node child'
       (descr, summ, child') -> SingleNode (CDocRouteDoc summ descr) (SingleNode node child')
 
-postOrder :: Tree CompactDocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
+postOrder :: Tree CompactDocNode -> Swagger -> (Swagger -> Swagger) -> Swagger
 postOrder NullNode doc f = f doc
 postOrder (SingleNode node child) doc f = f $ mergeDoc node child doc
 postOrder (BinaryNode t1 t2) doc f =
-  f $ postOrder t1 doc id `combineOpenApi` postOrder t2 doc id
+  f $ postOrder t1 doc id `combineSwagger` postOrder t2 doc id
 
-preOrder :: Tree CompactDocNode -> OpenApi -> (OpenApi -> OpenApi) -> OpenApi
+preOrder :: Tree CompactDocNode -> Swagger -> (Swagger -> Swagger) -> Swagger
 preOrder NullNode doc f = f doc
 preOrder (SingleNode node child) doc f = mergeDoc node child (f doc)
 preOrder (BinaryNode t1 t2) doc f =
   let doc' = f doc
-   in postOrder t1 doc' id `combineOpenApi` postOrder t2 doc' id
+   in postOrder t1 doc' id `combineSwagger` postOrder t2 doc' id
 
 combinePathItem :: PathItem -> PathItem -> PathItem
 combinePathItem s t =
@@ -242,43 +241,48 @@ combinePathItem s t =
     , _pathItemOptions = _pathItemOptions s <> _pathItemOptions t
     , _pathItemHead = _pathItemHead s <> _pathItemHead t
     , _pathItemPatch = _pathItemPatch s <> _pathItemPatch t
-    , _pathItemTrace = _pathItemTrace s <> _pathItemTrace t
     , _pathItemParameters = _pathItemParameters s <> _pathItemParameters t
-    , _pathItemSummary = _pathItemSummary s <|> _pathItemSummary t
-    , _pathItemDescription = _pathItemDescription s <|> _pathItemDescription t
-    , _pathItemServers = _pathItemServers s <> _pathItemServers t
     }
 
-combineOpenApi :: OpenApi -> OpenApi -> OpenApi
-combineOpenApi s t =
-  OpenApi
-    { _openApiInfo = _openApiInfo s <> _openApiInfo t
-    , _openApiServers = _openApiServers s <> _openApiServers t
-    , _openApiPaths = Map.unionWith combinePathItem (_openApiPaths s) (_openApiPaths t)
-    , _openApiComponents = _openApiComponents s <> _openApiComponents t
-    , _openApiSecurity = _openApiSecurity s <> _openApiSecurity t
-    , _openApiTags = _openApiTags s <> _openApiTags t
-    , _openApiExternalDocs = _openApiExternalDocs s <|> _openApiExternalDocs t
+combineSwagger :: Swagger -> Swagger -> Swagger
+combineSwagger s t =
+  Swagger
+    { _swaggerInfo = _swaggerInfo s <> _swaggerInfo t
+    , _swaggerHost = _swaggerHost s <|> _swaggerHost t
+    , _swaggerBasePath = _swaggerBasePath s <> _swaggerBasePath t
+    , _swaggerSchemes = _swaggerSchemes s <> _swaggerSchemes t
+    , _swaggerConsumes = _swaggerConsumes s <> _swaggerConsumes t
+    , _swaggerProduces = _swaggerProduces s <> _swaggerProduces t
+    , _swaggerDefinitions = _swaggerDefinitions s <> _swaggerDefinitions t
+    , _swaggerParameters = _swaggerParameters s <> _swaggerParameters t
+    , _swaggerResponses = _swaggerResponses s <> _swaggerResponses t
+    , _swaggerSecurityDefinitions = _swaggerSecurityDefinitions s <> _swaggerSecurityDefinitions t
+    , _swaggerPaths = Map.unionWith combinePathItem (_swaggerPaths s) (_swaggerPaths t)
+    , _swaggerSecurity = _swaggerSecurity s <> _swaggerSecurity t
+    , _swaggerTags = _swaggerTags s <> _swaggerTags t
+    , _swaggerExternalDocs = _swaggerExternalDocs s <|> _swaggerExternalDocs t
     }
 
-mergeDoc :: CompactDocNode -> Tree CompactDocNode -> OpenApi -> OpenApi
+mergeDoc :: CompactDocNode -> Tree CompactDocNode -> Swagger -> Swagger
 mergeDoc (CDocSecurityScheme schemeName scheme) child doc =
   let
-#if MIN_VERSION_openapi3(3, 2, 0)
-    secSchemes = SecurityDefinitions [(schemeName, scheme)]
-#else
     secSchemes = [(schemeName, scheme)] :: Definitions SecurityScheme
-#endif
     secReqs = [SecurityRequirement [(schemeName, [])]] :: [SecurityRequirement]
-   in postOrder child doc $ \doc' ->
-        doc'
-          & components . securitySchemes <>~ secSchemes
-          & allOperations . security <>~ secReqs
-mergeDoc (CDocRequestBody defs body) child doc =
+   in
+    postOrder child doc $ \doc' ->
+      doc'
+        & securityDefinitions <>~ SecurityDefinitions secSchemes
+        & allOperations . security <>~ secReqs
+mergeDoc (CDocRequestBody defs mediaType bodyParam) child doc =
   postOrder child doc $ \doc' ->
     doc'
-      & allOperations . requestBody ?~ Inline body
-      & components . schemas %~ (<> defs)
+      & allOperations
+        %~ ( \op ->
+              op
+                & parameters %~ (Inline bodyParam :)
+                & consumes %~ fmap (<> MimeList [mediaType])
+           )
+      & definitions %~ (<> defs)
 mergeDoc (CDocRequestHeader param) child doc =
   postOrder child doc $ \doc' ->
     doc' & allOperations . parameters <>~ [Inline param]
@@ -317,29 +321,33 @@ mergeDoc (CDocStatus status descr) child doc =
             & options ?~ opr
             & head_ ?~ opr
             & patch ?~ opr
-            & trace ?~ opr
      in doc' & paths <>~ [("/", pathItem)]
-mergeDoc (CDocResponseBody defs mediaType mediaTypeObject) child doc =
+mergeDoc (CDocResponseBody defs mediaType responseSchema) child doc =
   postOrder child doc $ \doc' ->
-    let resp = mempty @Response & content <>~ [(mediaType, mediaTypeObject)]
+    let resp = mempty @Response & schema ?~ responseSchema
      in doc'
-          & allOperations . responses . responses %~ Map.map (`swaggerMappend` Inline resp)
-          & components . schemas %~ (<> defs)
+          & allOperations
+            %~ ( \op ->
+                  op
+                    & responses . responses %~ Map.map (`swaggerMappend` Inline resp)
+                    & produces %~ fmap (<> MimeList [mediaType])
+               )
+          & definitions %~ (<> defs)
 mergeDoc (CDocResponseHeader headerName header) child doc =
   postOrder child doc $ \doc' ->
-    let resp = mempty @Response & headers <>~ [(headerName, Inline header)]
+    let resp = mempty @Response & headers <>~ [(headerName, header)]
      in doc' & allOperations . responses . responses %~ Map.map (`swaggerMappend` Inline resp)
 
 removeOtherMethods :: HTTP.StdMethod -> PathItem -> PathItem
 removeOtherMethods method PathItem{..} =
   case method of
-    HTTP.GET -> mempty{_pathItemGet, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.PUT -> mempty{_pathItemPut, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.POST -> mempty{_pathItemPost, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.DELETE -> mempty{_pathItemDelete, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.HEAD -> mempty{_pathItemHead, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.TRACE -> mempty{_pathItemTrace, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.OPTIONS -> mempty{_pathItemOptions, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    HTTP.PATCH -> mempty{_pathItemPatch, _pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
-    -- OpenApi does not support CONNECT
-    HTTP.CONNECT -> mempty{_pathItemSummary, _pathItemDescription, _pathItemServers, _pathItemParameters}
+    HTTP.GET -> mempty{_pathItemGet, _pathItemParameters}
+    HTTP.PUT -> mempty{_pathItemPut, _pathItemParameters}
+    HTTP.POST -> mempty{_pathItemPost, _pathItemParameters}
+    HTTP.DELETE -> mempty{_pathItemDelete, _pathItemParameters}
+    HTTP.HEAD -> mempty{_pathItemHead, _pathItemParameters}
+    HTTP.OPTIONS -> mempty{_pathItemOptions, _pathItemParameters}
+    HTTP.PATCH -> mempty{_pathItemPatch, _pathItemParameters}
+    -- Swagger does not support CONNECT and TRACE
+    HTTP.CONNECT -> mempty{_pathItemParameters}
+    HTTP.TRACE -> mempty{_pathItemParameters}

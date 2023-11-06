@@ -1,44 +1,53 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | OpenApi implementation of 'QueryParam' trait.
-module WebGear.OpenApi.Trait.QueryParam where
+-- | Swagger implementation of 'QueryParam' trait.
+module WebGear.Swagger.Trait.QueryParam where
 
-import Data.OpenApi (
-  Param (..),
-  ParamLocation (ParamQuery),
-  Referenced (Inline),
-  ToSchema,
-  toSchema,
- )
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
+import Data.Swagger (
+  Param (..),
+  ParamAnySchema (..),
+  ParamLocation (ParamQuery),
+  ParamOtherSchema (..),
+ )
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..), TraitAbsence)
 import WebGear.Core.Trait.QueryParam (QueryParam (..))
-import WebGear.OpenApi.Handler (DocNode (DocQueryParam), OpenApiHandler (..), singletonNode)
+import WebGear.Swagger.Handler (DocNode (DocQueryParam), SwaggerHandler (..), singletonNode)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Required ps name val) Request) => Get (OpenApiHandler m) (QueryParam Required ps name val) Request where
+instance (KnownSymbol name, TraitAbsence (QueryParam Required ps name val) Request) => Get (SwaggerHandler m) (QueryParam Required ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait _ =
     let param =
           (mempty :: Param)
             { _paramName = fromString $ symbolVal $ Proxy @name
-            , _paramIn = ParamQuery
             , _paramRequired = Just True
-            , _paramSchema = Just $ Inline $ toSchema $ Proxy @val
+            , _paramSchema =
+                ParamOther
+                  $ ParamOtherSchema
+                    { _paramOtherSchemaIn = ParamQuery
+                    , _paramOtherSchemaAllowEmptyValue = Just True
+                    , _paramOtherSchemaParamSchema = mempty
+                    }
             }
-     in OpenApiHandler $ singletonNode (DocQueryParam param)
+     in SwaggerHandler $ singletonNode (DocQueryParam param)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (QueryParam Optional ps name val) Request) => Get (OpenApiHandler m) (QueryParam Optional ps name val) Request where
+instance (KnownSymbol name, TraitAbsence (QueryParam Optional ps name val) Request) => Get (SwaggerHandler m) (QueryParam Optional ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait _ =
     let param =
           (mempty :: Param)
             { _paramName = fromString $ symbolVal $ Proxy @name
-            , _paramIn = ParamQuery
             , _paramRequired = Just False
-            , _paramSchema = Just $ Inline $ toSchema $ Proxy @val
+            , _paramSchema =
+                ParamOther
+                  $ ParamOtherSchema
+                    { _paramOtherSchemaIn = ParamQuery
+                    , _paramOtherSchemaAllowEmptyValue = Just True
+                    , _paramOtherSchemaParamSchema = mempty
+                    }
             }
-     in OpenApiHandler $ singletonNode (DocQueryParam param)
+     in SwaggerHandler $ singletonNode (DocQueryParam param)
