@@ -23,7 +23,7 @@ instance (ToSchema val) => Get (SwaggerHandler m) (Body val) Request where
   {-# INLINE getTrait #-}
   getTrait :: Body val -> SwaggerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body maybeMediaType) =
-    let mediaType = fromMaybe "*/*" maybeMediaType
+    let mimeList = MimeList [fromMaybe "*/*" maybeMediaType]
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
         body =
           mempty @Param
@@ -39,9 +39,9 @@ instance (ToSchema val) => Set (SwaggerHandler m) (Body val) Response where
     (Response `With` ts -> Response -> val -> Response `With` (Body val : ts)) ->
     SwaggerHandler m (Response `With` ts, val) (Response `With` (Body val : ts))
   setTrait (Body maybeMediaType) _ =
-    let mediaType = fromMaybe "*/*" maybeMediaType
+    let mimeList = MimeList [fromMaybe "*/*" maybeMediaType]
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-     in SwaggerHandler $ singletonNode (DocResponseBody defs mediaType ref)
+     in SwaggerHandler $ singletonNode (DocResponseBody defs mimeList ref)
 
 instance (ToSchema val) => Get (SwaggerHandler m) (JSONBody val) Request where
   {-# INLINE getTrait #-}
@@ -55,6 +55,6 @@ instance (ToSchema val) => Set (SwaggerHandler m) (JSONBody val) Response where
     (Response `With` ts -> Response -> t -> Response `With` (JSONBody val : ts)) ->
     SwaggerHandler m (Response `With` ts, t) (Response `With` (JSONBody val : ts))
   setTrait (JSONBody maybeMediaType) _ =
-    let mediaType = fromMaybe "*/*" maybeMediaType
+    let mimeList = MimeList [fromMaybe "*/*" maybeMediaType]
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-     in SwaggerHandler $ singletonNode (DocResponseBody defs mediaType ref)
+     in SwaggerHandler $ singletonNode (DocResponseBody defs mimeList ref)

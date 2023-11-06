@@ -14,13 +14,13 @@ import Control.Applicative ((<|>))
 import Control.Arrow (Arrow (..), ArrowChoice (..), ArrowPlus (..), ArrowZero (..))
 import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
-import Control.Lens (at, (%~), (&), (.~), (<>~), (?~))
+import Control.Lens (at, (%~), (&), (.~), (<>~), (?~), (^.))
 import qualified Data.HashMap.Strict.InsOrd as Map
+import Data.List (nub)
 import Data.Swagger
 import Data.Swagger.Internal.Utils (swaggerMappend)
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Description (..), Handler (..), RouteMismatch, RoutePath (..), Summary (..))
 
@@ -34,8 +34,8 @@ data Tree a
 -- | Different types of documentation elements captured by the handler
 data DocNode
   = DocSecurityScheme Text SecurityScheme
-  | DocRequestBody (Definitions Schema) MediaType Param
-  | DocResponseBody (Definitions Schema) MediaType (Referenced Schema)
+  | DocRequestBody (Definitions Schema) MimeList Param
+  | DocResponseBody (Definitions Schema) MimeList (Referenced Schema)
   | DocRequestHeader Param
   | DocResponseHeader HeaderName Header
   | DocMethod HTTP.StdMethod
@@ -50,8 +50,8 @@ data DocNode
 -- | Documentation elements after compaction
 data CompactDocNode
   = CDocSecurityScheme Text SecurityScheme
-  | CDocRequestBody (Definitions Schema) MediaType Param
-  | CDocResponseBody (Definitions Schema) MediaType (Referenced Schema)
+  | CDocRequestBody (Definitions Schema) MimeList Param
+  | CDocResponseBody (Definitions Schema) MimeList (Referenced Schema)
   | CDocRequestHeader Param
   | CDocResponseHeader HeaderName Header
   | CDocMethod HTTP.StdMethod
@@ -179,12 +179,12 @@ compact t = let (_, _, t') = go t in t'
       let (descr, summ, child') = go child
           scheme' = scheme & description .~ fmap getDescription descr
        in (Nothing, summ, SingleNode (CDocSecurityScheme schemeName scheme') child')
-    compactDoc (DocRequestBody defs mediaType bodyParam) child =
+    compactDoc (DocRequestBody defs mimeList bodyParam) child =
       let (descr, summ, child') = go child
           bodyParam' = bodyParam & description .~ fmap getDescription descr
-       in (Nothing, summ, SingleNode (CDocRequestBody defs mediaType bodyParam') child')
-    compactDoc (DocResponseBody defs mediaType responseSchema) child =
-      SingleNode (CDocResponseBody defs mediaType responseSchema) <$> go child
+       in (Nothing, summ, SingleNode (CDocRequestBody defs mimeList bodyParam') child')
+    compactDoc (DocResponseBody defs mimeList responseSchema) child =
+      SingleNode (CDocResponseBody defs mimeList responseSchema) <$> go child
     compactDoc (DocRequestHeader param) child =
       let (descr, summ, child') = go child
           param' = param & description .~ fmap getDescription descr
@@ -231,16 +231,28 @@ preOrder (BinaryNode t1 t2) doc f =
   let doc' = f doc
    in postOrder t1 doc' id `combineSwagger` postOrder t2 doc' id
 
+newtype WHOperation = WHOperation {getOperation :: Operation}
+
+instance Semigroup WHOperation where
+  WHOperation op1 <> WHOperation op2 =
+    let nubMimeList = fmap (\(MimeList xs) -> MimeList $ nub xs)
+     in WHOperation $ (op1 <> op2)
+          & consumes .~ nubMimeList ((op1 ^. consumes) <> (op2 ^. consumes))
+          & produces .~ nubMimeList ((op1 ^. produces) <> (op2 ^. produces))
+
+combineOperation :: Maybe Operation -> Maybe Operation -> Maybe Operation
+combineOperation op1 op2 = getOperation <$> (WHOperation <$> op1) <> (WHOperation <$> op2)
+
 combinePathItem :: PathItem -> PathItem -> PathItem
 combinePathItem s t =
   PathItem
-    { _pathItemGet = _pathItemGet s <> _pathItemGet t
-    , _pathItemPut = _pathItemPut s <> _pathItemPut t
-    , _pathItemPost = _pathItemPost s <> _pathItemPost t
-    , _pathItemDelete = _pathItemDelete s <> _pathItemDelete t
-    , _pathItemOptions = _pathItemOptions s <> _pathItemOptions t
-    , _pathItemHead = _pathItemHead s <> _pathItemHead t
-    , _pathItemPatch = _pathItemPatch s <> _pathItemPatch t
+    { _pathItemGet = _pathItemGet s `combineOperation` _pathItemGet t
+    , _pathItemPut = _pathItemPut s `combineOperation` _pathItemPut t
+    , _pathItemPost = _pathItemPost s `combineOperation` _pathItemPost t
+    , _pathItemDelete = _pathItemDelete s `combineOperation` _pathItemDelete t
+    , _pathItemOptions = _pathItemOptions s `combineOperation` _pathItemOptions t
+    , _pathItemHead = _pathItemHead s `combineOperation` _pathItemHead t
+    , _pathItemPatch = _pathItemPatch s `combineOperation` _pathItemPatch t
     , _pathItemParameters = _pathItemParameters s <> _pathItemParameters t
     }
 
@@ -273,14 +285,14 @@ mergeDoc (CDocSecurityScheme schemeName scheme) child doc =
       doc'
         & securityDefinitions <>~ SecurityDefinitions secSchemes
         & allOperations . security <>~ secReqs
-mergeDoc (CDocRequestBody defs mediaType bodyParam) child doc =
+mergeDoc (CDocRequestBody defs mimeList bodyParam) child doc =
   postOrder child doc $ \doc' ->
     doc'
       & allOperations
         %~ ( \op ->
               op
                 & parameters %~ (Inline bodyParam :)
-                & consumes %~ fmap (<> MimeList [mediaType])
+                & consumes %~ Just . maybe mimeList (<> mimeList)
            )
       & definitions %~ (<> defs)
 mergeDoc (CDocRequestHeader param) child doc =
@@ -322,7 +334,7 @@ mergeDoc (CDocStatus status descr) child doc =
             & head_ ?~ opr
             & patch ?~ opr
      in doc' & paths <>~ [("/", pathItem)]
-mergeDoc (CDocResponseBody defs mediaType responseSchema) child doc =
+mergeDoc (CDocResponseBody defs mimeList responseSchema) child doc =
   postOrder child doc $ \doc' ->
     let resp = mempty @Response & schema ?~ responseSchema
      in doc'
@@ -330,7 +342,7 @@ mergeDoc (CDocResponseBody defs mediaType responseSchema) child doc =
             %~ ( \op ->
                   op
                     & responses . responses %~ Map.map (`swaggerMappend` Inline resp)
-                    & produces %~ fmap (<> MimeList [mediaType])
+                    & produces %~ Just . maybe mimeList (`swaggerMappend` mimeList)
                )
           & definitions %~ (<> defs)
 mergeDoc (CDocResponseHeader headerName header) child doc =
