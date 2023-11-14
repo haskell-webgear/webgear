@@ -30,7 +30,7 @@ import WebGear.Core.Trait.Auth.Basic (
   Username (..),
  )
 import WebGear.Core.Trait.Auth.Common (AuthorizationHeader)
-import WebGear.Core.Trait.Header (Header (..))
+import WebGear.Core.Trait.Header (RequestHeader (..))
 import WebGear.Server.Handler (ServerHandler, runServerHandler)
 import WebGear.Server.Trait.Auth.Basic ()
 import WebGear.Server.Trait.Header ()
@@ -47,7 +47,7 @@ prop_basicAuth = property f
               mkRequest :: ServerHandler Identity () (Request `With` '[AuthorizationHeader "Basic"])
               mkRequest = proc () -> do
                 let req = Request $ defaultRequest{requestHeaders = [("Authorization", hval)]}
-                r <- probe Header -< wzero req
+                r <- probe RequestHeader -< wzero req
                 returnA -< fromRight undefined r
 
               authCfg :: BasicAuth Identity () Credentials

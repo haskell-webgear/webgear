@@ -18,7 +18,7 @@ import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Sets, With)
 import WebGear.Core.Trait.Body (Body, setBodyWithoutContentType)
-import WebGear.Core.Trait.Header (RequiredHeader, setHeader)
+import WebGear.Core.Trait.Header (RequiredResponseHeader, setHeader)
 import WebGear.Core.Trait.Status (Status, notFound404, ok200)
 import Prelude hiding (readFile)
 
@@ -26,7 +26,7 @@ import Prelude hiding (readFile)
 serveDir ::
   ( MonadIO m
   , Handler h m
-  , Sets h [Status, RequiredHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
+  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
   ) =>
   -- | The directory to serve
   FilePath ->
@@ -47,7 +47,7 @@ serveDir root index = proc _request -> consumeRoute go -< ()
 serveFile ::
   ( MonadIO m
   , Handler h m
-  , Sets h [Status, RequiredHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
+  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
   ) =>
   h FilePath Response
 serveFile = proc file -> do

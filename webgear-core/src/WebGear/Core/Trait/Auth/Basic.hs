@@ -32,7 +32,7 @@
  authConfig :: 'BasicAuth' IO () 'Credentials'
  authConfig = 'BasicAuth'' { toBasicAttribute = pure . Right }
 
- type ErrorTraits = [Status, RequiredHeader \"Content-Type\" Text, RequiredHeader \"WWW-Authenticate\" Text, Body Text]
+ type ErrorTraits = [Status, RequiredRequestHeader \"Content-Type\" Text, RequiredRequestHeader \"WWW-Authenticate\" Text, Body Text]
 
  errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
               => h (Request \`With\` req, 'BasicAuthError' e) Response

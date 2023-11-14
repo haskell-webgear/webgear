@@ -27,12 +27,12 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Sets, With)
 import WebGear.Core.Trait.Body (Body, respondA)
-import WebGear.Core.Trait.Header (Header (..), RequiredHeader, setHeader)
+import WebGear.Core.Trait.Header (RequestHeader (..), RequiredResponseHeader, setHeader)
 import WebGear.Core.Trait.Status (Status)
 import Prelude hiding (break, drop)
 
 -- | Trait for \"Authorization\" header
-type AuthorizationHeader scheme = Header Optional Lenient "Authorization" (AuthToken scheme)
+type AuthorizationHeader scheme = RequestHeader Optional Lenient "Authorization" (AuthToken scheme)
 
 {- | Extract the \"Authorization\" header from a request by specifying
    an authentication scheme.
@@ -44,7 +44,7 @@ getAuthorizationHeaderTrait ::
   (Get h (AuthorizationHeader scheme) Request) =>
   h (Request `With` req) (Maybe (Either Text (AuthToken scheme)))
 getAuthorizationHeaderTrait = proc request -> do
-  result <- getTrait (Header :: Header Optional Lenient "Authorization" (AuthToken scheme)) -< request
+  result <- getTrait (RequestHeader :: RequestHeader Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result
 {-# INLINE getAuthorizationHeaderTrait #-}
 
@@ -83,8 +83,8 @@ respondUnauthorized ::
   , Sets
       h
       [ Status
-      , RequiredHeader "Content-Type" Text
-      , RequiredHeader "WWW-Authenticate" Text
+      , RequiredResponseHeader "Content-Type" Text
+      , RequiredResponseHeader "WWW-Authenticate" Text
       , Body Text
       ]
       Response

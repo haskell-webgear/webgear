@@ -19,7 +19,7 @@ type UserIdPathVar = PathVar "userId" Int
 allRoutes ::
   ( StdHandler h AppM
   , Gets h [UserIdPathVar, JSONBody User] Request
-  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User, Body Text] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody User, Body Text] Response
   ) =>
   h (Request `With` '[]) Response
 allRoutes =
@@ -34,7 +34,7 @@ getUser ::
   forall h req.
   ( HasTrait UserIdPathVar req
   , StdHandler h AppM
-  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody User] Response
   ) =>
   h (Request `With` req) Response
 getUser = findUser >>> respond
@@ -55,7 +55,7 @@ putUser ::
   ( HasTrait UserIdPathVar req
   , StdHandler h AppM
   , Get h (JSONBody User) Request
-  , Sets h [RequiredHeader "Content-Type" Text, JSONBody User, Body Text] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody User, Body Text] Response
   ) =>
   h (Request `With` req) Response
 putUser = jsonRequestBody @User badPayload $ doUpdate >>> respond

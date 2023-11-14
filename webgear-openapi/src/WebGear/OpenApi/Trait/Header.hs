@@ -12,7 +12,7 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get (..), Set (..), Trait, TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..), TraitAbsence)
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.OpenApi.Handler (DocNode (..), OpenApiHandler (..), nullNode, singletonNode)
 
@@ -30,19 +30,19 @@ mkParam _ _ isRequired =
     & required ?~ isRequired
     & schema ?~ Inline (toSchema $ Proxy @val)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.Header Required ps name val) Request) => Get (OpenApiHandler m) (WG.Header Required ps name val) Request where
+instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Required ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) Request where
   {-# INLINE getTrait #-}
-  getTrait WG.Header =
+  getTrait WG.RequestHeader =
     OpenApiHandler $ singletonNode (DocRequestHeader $ mkParam (Proxy @name) (Proxy @val) True)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.Header Optional ps name val) Request) => Get (OpenApiHandler m) (WG.Header Optional ps name val) Request where
+instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Optional ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Optional ps name val) Request where
   {-# INLINE getTrait #-}
-  getTrait WG.Header =
+  getTrait WG.RequestHeader =
     OpenApiHandler $ singletonNode (DocRequestHeader $ mkParam (Proxy @name) (Proxy @val) False)
 
-instance (KnownSymbol name, ToSchema val, Trait (WG.Header Required ps name val) Response) => Set (OpenApiHandler m) (WG.Header Required ps name val) Response where
+instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Required name val) Response where
   {-# INLINE setTrait #-}
-  setTrait WG.Header _ =
+  setTrait WG.ResponseHeader _ =
     let headerName = fromString $ symbolVal $ Proxy @name
         header =
           mempty @Header
@@ -52,9 +52,9 @@ instance (KnownSymbol name, ToSchema val, Trait (WG.Header Required ps name val)
           then OpenApiHandler nullNode
           else OpenApiHandler $ singletonNode (DocResponseHeader headerName header)
 
-instance (KnownSymbol name, ToSchema val, Trait (WG.Header Optional ps name val) Response) => Set (OpenApiHandler m) (WG.Header Optional ps name val) Response where
+instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Optional name val) Response where
   {-# INLINE setTrait #-}
-  setTrait WG.Header _ =
+  setTrait WG.ResponseHeader _ =
     let headerName = fromString $ symbolVal $ Proxy @name
         header =
           mempty @Header
