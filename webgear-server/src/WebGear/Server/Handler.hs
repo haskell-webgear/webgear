@@ -14,7 +14,6 @@ import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
 import Data.ByteString (ByteString)
 import Data.Either (fromRight)
-import qualified Data.HashMap.Strict as HM
 import Data.String (fromString)
 import Data.Version (showVersion)
 import qualified Network.HTTP.Types as HTTP
@@ -22,7 +21,7 @@ import qualified Network.Wai as Wai
 import Paths_webgear_server (version)
 import WebGear.Core.Handler (Description, Handler (..), RouteMismatch (..), RoutePath (..), Summary)
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Response (Response (..), toWaiResponse)
+import WebGear.Core.Response (Response (..), ResponseBody (..), toWaiResponse)
 import WebGear.Core.Trait (With, wzero)
 
 {- | An arrow implementing a WebGear server.
@@ -153,13 +152,18 @@ toApplication h rqt cont =
     path = RoutePath $ Wai.pathInfo rqt
 
     mkWebGearResponse :: Either RouteMismatch Response -> Response
-    mkWebGearResponse = fromRight (Response HTTP.notFound404 [] mempty)
+    mkWebGearResponse = fromRight $ Response HTTP.notFound404 [] $ ResponseBodyBuilder mempty
 
     addServerHeader :: Response -> Response
-    addServerHeader resp@Response{..} = resp{responseHeaders = responseHeaders <> webGearServerHeader}
+    addServerHeader resp@Response{..} = resp{responseHeaders = foldr insertServerHeader [] responseHeaders}
 
-    webGearServerHeader :: HM.HashMap HTTP.HeaderName ByteString
-    webGearServerHeader = HM.singleton HTTP.hServer (fromString $ "WebGear/" ++ showVersion version)
+    insertServerHeader :: HTTP.Header -> HTTP.ResponseHeaders -> HTTP.ResponseHeaders
+    insertServerHeader hdr@(name, _) hdrs
+      | name == HTTP.hServer = (HTTP.hServer, webGearServerHeader) : hdrs
+      | otherwise = hdr : hdrs
+
+    webGearServerHeader :: ByteString
+    webGearServerHeader = fromString $ "WebGear/" ++ showVersion version
 {-# INLINE toApplication #-}
 
 {- | Transform a `ServerHandler` running in one monad to another monad.

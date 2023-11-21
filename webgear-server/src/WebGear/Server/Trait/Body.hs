@@ -6,14 +6,14 @@ module WebGear.Server.Trait.Body () where
 import Control.Arrow (returnA)
 import Control.Monad.IO.Class (MonadIO (..))
 import qualified Data.Aeson as Aeson
-import Data.ByteString.Conversion (FromByteString, ToByteString, parser, runParser', toByteString)
+import Data.ByteString.Conversion (FromByteString, ToByteString (..), parser, runParser')
 import Data.ByteString.Lazy (fromChunks)
 import Data.Text (Text, pack)
 import Network.HTTP.Media.RenderHeader (RenderHeader (renderHeader))
 import Network.HTTP.Types (hContentType)
 import WebGear.Core.Handler (Handler (..))
 import WebGear.Core.Request (Request, getRequestBodyChunk)
-import WebGear.Core.Response (Response (..))
+import WebGear.Core.Response (Response (..), ResponseBody (ResponseBodyBuilder))
 import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
 import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
 import WebGear.Server.Handler (ServerHandler)
@@ -37,7 +37,7 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
     let response = unwitness wResponse
         response' =
           response
-            { responseBody = Just (toByteString val)
+            { responseBody = ResponseBodyBuilder (builder val)
             , responseHeaders =
                 responseHeaders response
                   <> case mediaType of
@@ -66,7 +66,7 @@ instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Res
         ctype = maybe "application/json" renderHeader mediaType
         response' =
           response
-            { responseBody = Just (Aeson.encode val)
+            { responseBody = ResponseBodyBuilder $ Aeson.fromEncoding $ Aeson.toEncoding val
             , responseHeaders =
                 responseHeaders response
                   <> [(hContentType, ctype)]

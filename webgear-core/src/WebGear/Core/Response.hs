@@ -4,31 +4,40 @@
 module WebGear.Core.Response (
   -- * Basic Types
   Response (..),
+  ResponseBody (..),
   toWaiResponse,
 ) where
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.HashMap.Strict as HM
-import Data.Maybe (fromMaybe)
+import qualified Data.Binary.Builder as B
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.Wai as Wai
 
--- | An HTTP response sent from the server to the client.
---
--- The response contains a status, optional headers and an optional
--- body payload.
+{- | An HTTP response sent from the server to the client.
+
+The response contains a status, optional headers and an optional
+body payload.
+-}
 data Response = Response
-  { -- | Response status code
-    responseStatus :: HTTP.Status
-  , -- | Response headers
-    responseHeaders :: HM.HashMap HTTP.HeaderName ByteString
-  , -- | Optional response body
-    responseBody :: Maybe LBS.ByteString
+  { responseStatus :: HTTP.Status
+  -- ^ Response status code
+  , responseHeaders :: HTTP.ResponseHeaders
+  -- ^ Response headers
+  , responseBody :: ResponseBody
+  -- ^ The response body
   }
-  deriving stock (Eq, Ord, Show)
+
+data ResponseBody
+  = ResponseBodyFile FilePath (Maybe Wai.FilePart)
+  | ResponseBodyBuilder B.Builder
+  | ResponseBodyStream Wai.StreamingBody
 
 -- | Generate a WAI response
 toWaiResponse :: Response -> Wai.Response
 toWaiResponse Response{..} =
-  Wai.responseLBS responseStatus (HM.toList responseHeaders) (fromMaybe "" responseBody)
+  case responseBody of
+    ResponseBodyFile fpath fpart ->
+      Wai.responseFile responseStatus responseHeaders fpath fpart
+    ResponseBodyBuilder builder ->
+      Wai.responseBuilder responseStatus responseHeaders builder
+    ResponseBodyStream stream ->
+      Wai.responseStream responseStatus responseHeaders stream

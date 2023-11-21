@@ -100,7 +100,6 @@ library
                     , jose >=0.8.3.1 && <0.11
                     , monad-time >=0.3.0.0 && <0.5
                     , mtl >=2.2 && <2.4
-                    , unordered-containers ==0.2.*
 
 test-suite webgear-server-test
   import:             webgear-common

@@ -53,7 +53,7 @@ module WebGear.Core.Trait.Status (
 ) where
 
 import qualified Network.HTTP.Types as HTTP
-import WebGear.Core.Response (Response (..))
+import WebGear.Core.Response (Response (..), ResponseBody (ResponseBodyBuilder))
 import WebGear.Core.Trait (Set, Trait (..), With, plant, wzero)
 
 -- | HTTP response status
@@ -65,7 +65,7 @@ instance Trait Status Response where
 -- | Generate a response with the specified status
 mkResponse :: (Set h Status Response) => HTTP.Status -> h () (Response `With` '[Status])
 mkResponse status = proc () -> do
-  let response = wzero $ Response status [] Nothing
+  let response = wzero $ Response status [] (ResponseBodyBuilder mempty)
   plant (Status status) -< (response, status)
 {-# INLINE mkResponse #-}
 
