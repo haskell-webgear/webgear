@@ -63,6 +63,7 @@ library
                       ScopedTypeVariables
                       StandaloneDeriving
                       TemplateHaskellQuotes
+                      TupleSections
                       TypeApplications
                       TypeFamilies
                       TypeOperators

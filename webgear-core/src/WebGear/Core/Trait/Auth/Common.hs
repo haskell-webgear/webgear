@@ -25,7 +25,7 @@ import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Sets, With)
-import WebGear.Core.Trait.Body (Body, setBody)
+import WebGear.Core.Trait.Body (Body, PlainText, setBody)
 import WebGear.Core.Trait.Header (RequestHeader (..), RequiredResponseHeader, setHeader)
 import WebGear.Core.Trait.Status (Status, unauthorized401)
 import Prelude hiding (break, drop)
@@ -84,7 +84,7 @@ respondUnauthorized ::
       [ Status
       , RequiredResponseHeader "Content-Type" Text
       , RequiredResponseHeader "WWW-Authenticate" Text
-      , Body Text
+      , Body '[PlainText] Text
       ]
       Response
   ) =>
@@ -96,7 +96,7 @@ respondUnauthorized ::
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
   (unauthorized401 -< ())
-    >-> (\resp -> setBody "text/plain" -< (resp, "Unauthorized" :: Text))
+    >-> (\resp -> setBody @PlainText -< (resp, "Unauthorized" :: Text))
     >-> (\resp -> setHeader @"WWW-Authenticate" -< (resp, headerVal))
     >-> (\resp -> unwitnessA -< resp)
 {-# INLINE respondUnauthorized #-}

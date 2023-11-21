@@ -1,54 +1,44 @@
 {- | Traits and middlewares to handle request and response body
    payloads.
 
- There are a number of ways to extract a body from a request:
-
  The 'requestBody' middleware attempts to convert the body to a
  Haskell value or invoke an error handler if that fails.
 
- The 'jsonRequestBody' middleware attempts to convert a JSON
- formatted body to a Haskell value or invoke an error handler if that
- fails. It uses the standard "application/json" media type.
+ The 'respondA' middleware generates a response from an HTTP status
+ and a response body.
 
- The 'jsonRequestBody'' middleware is similar but supports custom
- media types.
-
- Similarly, there are a number of ways to set a response body:
-
- The easiest option is to use one of 'respondA', 'respondJsonA', or
- 'respondJsonA'' middlewares. These middlewares generate a response
- from an HTTP status and a response body.
-
- If you need finer control over setting the body, use one of
- 'setBody', 'setBodyWithoutContentType', 'setJSONBody',
- 'setJSONBodyWithoutContentType', or 'setJSONBody''. These arrows
- accept a witnessed response and a body and sets the body in the
- response. You can generate an input response object using functions
- from "WebGear.Core.Trait.Status" module.
+ If you need finer control over setting the body, use 'setBody' or
+ 'setBodyWithoutContentType'. These arrows accept a witnessed response
+ and a body and sets the body in the response. You can generate an
+ input response object using functions from
+ "WebGear.Core.Trait.Status" module.
 -}
 module WebGear.Core.Trait.Body (
   -- * Traits
   Body (..),
-  JSONBody (..),
+
+  -- * MIME type handling
+  MIMEType (..),
+  MIMETypes (..),
+  OctetStream,
+  PlainText,
+  JSON',
+  JSON,
 
   -- * Middlewares
   requestBody,
-  jsonRequestBody',
-  jsonRequestBody,
   respondA,
-  respondJsonA,
-  respondJsonWithContentTypeA,
   setBody,
   setBodyWithoutContentType,
-  setJSONBody,
-  setJSONBodyWithoutContentType,
-  setJSONBodyWithContentType,
 ) where
 
 import Control.Arrow (ArrowChoice, (<<<))
 import Data.Kind (Type)
+import Data.Proxy (Proxy (..))
+import Data.String (fromString)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
+import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Handler, Middleware, unwitnessA)
@@ -58,29 +48,59 @@ import WebGear.Core.Trait (Get, Set, Sets, Trait (..), TraitAbsence (..), With, 
 import WebGear.Core.Trait.Header (RequiredResponseHeader, ResponseHeader (..))
 import WebGear.Core.Trait.Status (Status, mkResponse)
 
--- | Request or response body with a type @t@.
-newtype Body (t :: Type) = Body (Maybe HTTP.MediaType)
+-- | Request or response body with MIME types @mts@ and type @t@.
+data Body (mts :: [Type]) (t :: Type) = Body
 
-instance Trait (Body t) Request where
-  type Attribute (Body t) Request = t
+instance Trait (Body mts t) Request where
+  type Attribute (Body mts t) Request = t
 
-instance TraitAbsence (Body t) Request where
-  type Absence (Body t) Request = Text
+instance TraitAbsence (Body mts t) Request where
+  type Absence (Body mts t) Request = Text
 
-instance Trait (Body t) Response where
-  type Attribute (Body t) Response = t
+instance Trait (Body mts t) Response where
+  type Attribute (Body mts t) Response = t
 
--- | A 'Trait' for converting a JSON formatted body into a value.
-newtype JSONBody (t :: Type) = JSONBody (Maybe HTTP.MediaType)
+-- | Instances of this class represent MIME types of the resources
+class MIMEType (t :: Type) where
+  -- | Used for the "Accept" header of the request and the
+  -- "Content-Type" header of the response.
+  mimeType :: Proxy t -> HTTP.MediaType
 
-instance Trait (JSONBody t) Request where
-  type Attribute (JSONBody t) Request = t
+-- | The application/octet-stream MIME type
+data OctetStream
 
-instance TraitAbsence (JSONBody t) Request where
-  type Absence (JSONBody t) Request = Text
+instance MIMEType OctetStream where
+  mimeType :: Proxy OctetStream -> HTTP.MediaType
+  mimeType _ = "application/octet-stream"
 
-instance Trait (JSONBody t) Response where
-  type Attribute (JSONBody t) Response = t
+-- | The text/plain MIME type with charset set to utf-8
+data PlainText
+
+instance MIMEType PlainText where
+  mimeType :: Proxy PlainText -> HTTP.MediaType
+  mimeType _ = "text/plain;charset=utf-8"
+
+-- | A JSON MIME type with customizable media type
+data JSON' (mediaType :: Symbol)
+
+instance (KnownSymbol mt) => MIMEType (JSON' mt) where
+  mimeType :: Proxy (JSON' mt) -> HTTP.MediaType
+  mimeType _ = fromString $ symbolVal (Proxy @mt)
+
+-- | The application/json MIME type
+type JSON = JSON' "application/json"
+
+-- | A list of 'MIMEType's
+class MIMETypes (ts :: [Type]) where
+  mimeTypes :: Proxy ts -> [HTTP.MediaType]
+
+instance MIMETypes '[] where
+  mimeTypes :: Proxy '[] -> [HTTP.MediaType]
+  mimeTypes _ = []
+
+instance (MIMEType t, MIMETypes ts) => MIMETypes (t : ts) where
+  mimeTypes :: Proxy (t : ts) -> [HTTP.MediaType]
+  mimeTypes _ = mimeType (Proxy @t) : mimeTypes (Proxy @ts)
 
 {- | Middleware to extract a request body.
 
@@ -89,172 +109,83 @@ instance Trait (JSONBody t) Response where
 
  Usage:
 
- > requestBody @t (Just "text/plain") errorHandler nextHandler
+@
+ requestBody \@'['PlainText'] \@'Text' errorHandler nextHandler
+@
 -}
 requestBody ::
-  forall t h req.
-  (Get h (Body t) Request, ArrowChoice h) =>
-  -- | Optional media type of the body
-  Maybe HTTP.MediaType ->
+  forall mts t h req.
+  (Get h (Body mts t) Request, ArrowChoice h) =>
   -- | Error handler in case body cannot be retrieved
   h (Request `With` req, Text) Response ->
-  Middleware h req (Body t : req)
-requestBody mediaType errorHandler nextHandler = proc request -> do
-  result <- probe (Body mediaType) -< request
+  Middleware h req (Body mts t : req)
+requestBody errorHandler nextHandler = proc request -> do
+  result <- probe Body -< request
   case result of
     Left err -> errorHandler -< (request, err)
     Right t -> nextHandler -< t
 {-# INLINE requestBody #-}
 
-{- | Parse the request body as JSON and convert it to a value of type
-   @t@.
+{- | Set the response body along with a media type.
 
- The @nextHandler@ is invoked when the body is parsed successfully and
- the @errorHandler@ is invoked when there is a parsing failure.
+ The MIME type @mt@ is used to set the "Content-Type" header in the
+ response.
 
  Usage:
 
- > jsonRequestBody @t errorHandler nextHandler
--}
-jsonRequestBody' ::
-  forall t h req.
-  (Get h (JSONBody t) Request, ArrowChoice h) =>
-  -- | Optional media type of the body
-  Maybe HTTP.MediaType ->
-  -- | Error handler in case body cannot be retrieved
-  h (Request `With` req, Text) Response ->
-  Middleware h req (JSONBody t : req)
-jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
-  result <- probe (JSONBody mediaType) -< request
-  case result of
-    Left err -> errorHandler -< (request, err)
-    Right t -> nextHandler -< t
-{-# INLINE jsonRequestBody' #-}
-
--- | Same as 'jsonRequestBody'' but with a media type @application/json@.
-jsonRequestBody ::
-  forall t h req.
-  (Get h (JSONBody t) Request, ArrowChoice h) =>
-  -- | error handler
-  h (Request `With` req, Text) Response ->
-  Middleware h req (JSONBody t : req)
-jsonRequestBody = jsonRequestBody' (Just "application/json")
-{-# INLINE jsonRequestBody #-}
-
-{- | Set the response body along with a media type.
-
-  The media type value is used to set the "Content-Type" header in the response.
+@
+ let body :: SomeJSONType = ...
+ response' <- setBody \@'JSON' -< (response, body)
+@
 -}
 setBody ::
-  forall body h res.
-  (Sets h [Body body, RequiredResponseHeader "Content-Type" Text] Response) =>
-  -- | The media type of the response body
-  HTTP.MediaType ->
-  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : Body body : res))
-setBody mediaType = proc (response, body) -> do
-  response' <- plant (Body (Just mediaType)) -< (response, body)
-  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
+  forall mt body h res.
+  (Sets h [Body '[mt] body, RequiredResponseHeader "Content-Type" Text] Response, MIMEType mt) =>
+  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : Body '[mt] body : res))
+setBody = proc (response, body) -> do
+  response' <- plant Body -< (response, body)
+  let mt = decodeUtf8 $ HTTP.renderHeader $ mimeType $ Proxy @mt
   plant ResponseHeader -< (response', mt)
 {-# INLINE setBody #-}
 
--- | Set the response body without specifying any media type.
+{- | Set the response body without specifying any media type.
+
+Usage:
+
+@
+ let body :: SomeType = ...
+ response' <- setBodyWithoutContentType -< (response, body)
+@
+-}
 setBodyWithoutContentType ::
   forall body h res.
-  (Set h (Body body) Response) =>
-  h (Response `With` res, body) (Response `With` (Body body : res))
-setBodyWithoutContentType = plant (Body Nothing)
+  (Set h (Body '[] body) Response) =>
+  h (Response `With` res, body) (Response `With` (Body '[] body : res))
+setBodyWithoutContentType = plant Body
 {-# INLINE setBodyWithoutContentType #-}
-
-{- | Set the response body to a JSON value.
-
-  The "Content-Type" header will be set to "application/json".
--}
-setJSONBody ::
-  forall body h res.
-  (Sets h [JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
-  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : JSONBody body : res))
-setJSONBody = setJSONBodyWithContentType "application/json"
-{-# INLINE setJSONBody #-}
-
-{- | Set the response body to a JSON value along with a media type.
-
-  The media type value is used to set the "Content-Type" header in the response.
--}
-setJSONBodyWithContentType ::
-  forall body h res.
-  (Sets h [JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
-  -- | The media type of the response body
-  HTTP.MediaType ->
-  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : JSONBody body : res))
-setJSONBodyWithContentType mediaType = proc (response, body) -> do
-  response' <- plant (JSONBody (Just mediaType)) -< (response, body)
-  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
-  plant ResponseHeader -< (response', mt)
-{-# INLINE setJSONBodyWithContentType #-}
-
-{- | Set the response body to a JSON value without specifying any
- media type.
--}
-setJSONBodyWithoutContentType ::
-  forall body h res.
-  (Set h (JSONBody body) Response) =>
-  h (Response `With` res, body) (Response `With` (JSONBody body : res))
-setJSONBodyWithoutContentType = plant (JSONBody Nothing)
-{-# INLINE setJSONBodyWithoutContentType #-}
 
 {- | A convenience arrow to generate a response specifying a status and body.
 
- The "Content-Type" header will be set to the specified media type
- value.
+ The "Content-Type" header will be set to the value specified by @mt@.
+
+ Usage:
+
+@
+ let body :: SomeJSONType = ...
+ respondA 'HTTP.ok200' (Proxy \@'JSON') -< body
+@
 -}
 respondA ::
-  forall body h m.
+  forall mt body h m.
   ( Handler h m
-  , Sets h [Status, Body body, RequiredResponseHeader "Content-Type" Text] Response
+  , Sets h [Status, Body '[mt] body, RequiredResponseHeader "Content-Type" Text] Response
+  , MIMEType mt
   ) =>
   -- | Response status
   HTTP.Status ->
-  -- | Media type of the response body
-  HTTP.MediaType ->
+  Proxy mt ->
   h body Response
-respondA status mediaType = proc body -> do
+respondA status _ = proc body -> do
   response <- mkResponse status -< ()
-  unwitnessA <<< setBody mediaType -< (response, body)
+  unwitnessA <<< setBody @mt -< (response, body)
 {-# INLINE respondA #-}
-
-{- | A convenience arrow to generate a response specifying a status and
-   JSON body.
-
- The "Content-Type" header will be set to "application/json".
--}
-respondJsonA ::
-  forall body h m.
-  ( Handler h m
-  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
-  ) =>
-  -- | Response status
-  HTTP.Status ->
-  h body Response
-respondJsonA status = respondJsonWithContentTypeA status "application/json"
-{-# INLINE respondJsonA #-}
-
-{- | A convenience arrow to generate a response specifying a status and
-   JSON body.
-
- The "Content-Type" header will be set to the specified media type
- value.
--}
-respondJsonWithContentTypeA ::
-  forall body h m.
-  ( Handler h m
-  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
-  ) =>
-  -- | Response status
-  HTTP.Status ->
-  -- | Media type of the response body
-  HTTP.MediaType ->
-  h body Response
-respondJsonWithContentTypeA status mediaType = proc body -> do
-  response <- mkResponse status -< ()
-  unwitnessA <<< setJSONBodyWithContentType mediaType -< (response, body)
-{-# INLINE respondJsonWithContentTypeA #-}

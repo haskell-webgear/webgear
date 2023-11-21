@@ -24,6 +24,7 @@ import qualified Data.Text as Text
 import Network.HTTP.Media.MediaType (MediaType)
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Description (..), Handler (..), RouteMismatch, RoutePath (..), Summary (..))
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 
 -- | A tree where internal nodes have one or two children.
 data Tree a
@@ -36,7 +37,7 @@ data Tree a
 data DocNode
   = DocSecurityScheme Text SecurityScheme
   | DocRequestBody (Definitions Schema) RequestBody
-  | DocResponseBody (Definitions Schema) MediaType MediaTypeObject
+  | DocResponseBody (Definitions Schema) (InsOrdHashMap MediaType MediaTypeObject)
   | DocRequestHeader Param
   | DocResponseHeader HeaderName Header
   | DocMethod HTTP.StdMethod
@@ -52,7 +53,7 @@ data DocNode
 data CompactDocNode
   = CDocSecurityScheme Text SecurityScheme
   | CDocRequestBody (Definitions Schema) RequestBody
-  | CDocResponseBody (Definitions Schema) MediaType MediaTypeObject
+  | CDocResponseBody (Definitions Schema) (InsOrdHashMap MediaType MediaTypeObject)
   | CDocRequestHeader Param
   | CDocResponseHeader HeaderName Header
   | CDocMethod HTTP.StdMethod
@@ -184,8 +185,8 @@ compact t = let (_, _, t') = go t in t'
       let (descr, summ, child') = go child
           body' = body & description .~ fmap getDescription descr
        in (Nothing, summ, SingleNode (CDocRequestBody defs body') child')
-    compactDoc (DocResponseBody defs mediaType mediaTypeObject) child =
-      SingleNode (CDocResponseBody defs mediaType mediaTypeObject) <$> go child
+    compactDoc (DocResponseBody defs mediaTypes) child =
+      SingleNode (CDocResponseBody defs mediaTypes) <$> go child
     compactDoc (DocRequestHeader param) child =
       let (descr, summ, child') = go child
           param' = param & description .~ fmap getDescription descr
@@ -319,9 +320,9 @@ mergeDoc (CDocStatus status descr) child doc =
             & patch ?~ opr
             & trace ?~ opr
      in doc' & paths <>~ [("/", pathItem)]
-mergeDoc (CDocResponseBody defs mediaType mediaTypeObject) child doc =
+mergeDoc (CDocResponseBody defs mediaTypes) child doc =
   postOrder child doc $ \doc' ->
-    let resp = mempty @Response & content <>~ [(mediaType, mediaTypeObject)]
+    let resp = mempty @Response & content <>~ mediaTypes
      in doc'
           & allOperations . responses . responses %~ Map.map (`swaggerMappend` Inline resp)
           & components . schemas %~ (<> defs)

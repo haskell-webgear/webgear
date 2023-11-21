@@ -12,6 +12,8 @@ module WebGear.Core.Traits (
   StdHandler,
 ) where
 
+import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LText
 import WebGear.Core.Handler (Handler)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
@@ -36,5 +38,12 @@ import WebGear.Core.Trait.Status
 type StdHandler h m =
   ( Handler h m
   , Gets h [Method, Path, PathEnd] Request
-  , Sets h '[Status] Response
+  , Sets
+      h
+      '[ Status
+       , Body '[PlainText] String
+       , Body '[PlainText] Text.Text
+       , Body '[PlainText] LText.Text
+       ]
+      Response
   )

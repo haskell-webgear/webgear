@@ -26,7 +26,7 @@ import Prelude hiding (readFile)
 serveDir ::
   ( MonadIO m
   , Handler h m
-  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
+  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body '[] LBS.ByteString] Response
   ) =>
   -- | The directory to serve
   FilePath ->
@@ -47,7 +47,7 @@ serveDir root index = proc _request -> consumeRoute go -< ()
 serveFile ::
   ( MonadIO m
   , Handler h m
-  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body LBS.ByteString] Response
+  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body '[] LBS.ByteString] Response
   ) =>
   h FilePath Response
 serveFile = proc file -> do
