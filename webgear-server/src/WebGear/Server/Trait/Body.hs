@@ -114,3 +114,31 @@ instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (Body '[JSON' mt] 
             { responseBody = ResponseBodyBuilder $ Aeson.fromEncoding $ Aeson.toEncoding val
             }
     returnA -< f wResponse response' val
+
+instance (Monad m) => Set (ServerHandler m) (Body '[] ResponseBody) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[] ResponseBody ->
+    (Response `With` ts -> Response -> ResponseBody -> Response `With` (Body '[] ResponseBody : ts)) ->
+    ServerHandler m (Response `With` ts, ResponseBody) (Response `With` (Body '[] ResponseBody : ts))
+  setTrait Body f = proc (wResponse, body) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = body
+            }
+    returnA -< f wResponse response' body
+
+instance (Monad m) => Set (ServerHandler m) (Body '[mt] ResponseBody) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[mt] ResponseBody ->
+    (Response `With` ts -> Response -> ResponseBody -> Response `With` (Body '[mt] ResponseBody : ts)) ->
+    ServerHandler m (Response `With` ts, ResponseBody) (Response `With` (Body '[mt] ResponseBody : ts))
+  setTrait Body f = proc (wResponse, body) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = body
+            }
+    returnA -< f wResponse response' body
