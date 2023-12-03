@@ -48,7 +48,7 @@ getUser = findUser >>> respond
     respond :: h (Maybe User) Response
     respond = proc maybeUser -> case maybeUser of
       Nothing -> unwitnessA <<< notFound404 -< ()
-      Just u -> unwitnessA <<< respondJsonA HTTP.ok200 -< u
+      Just u -> respondJsonA HTTP.ok200 -< u
 
 putUser ::
   forall h req.
@@ -62,7 +62,7 @@ putUser = jsonRequestBody @User badPayload $ doUpdate >>> respond
   where
     badPayload :: h (Request `With` req, Text) Response
     badPayload = proc _ ->
-      unwitnessA <<< respondA HTTP.badRequest400 "text/plain" -< "Invalid body payload" :: Text
+      respondA HTTP.badRequest400 "text/plain" -< "Invalid body payload" :: Text
 
     doUpdate :: (HaveTraits [UserIdPathVar, JSONBody User] ts) => h (Request `With` ts) User
     doUpdate = arrM $ \request -> do
@@ -75,7 +75,7 @@ putUser = jsonRequestBody @User badPayload $ doUpdate >>> respond
 
     respond :: h User Response
     respond = proc user ->
-      unwitnessA <<< respondJsonA HTTP.ok200 -< user
+      respondJsonA HTTP.ok200 -< user
 
 deleteUser ::
   forall h req.

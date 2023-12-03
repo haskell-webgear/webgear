@@ -19,16 +19,15 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.Void (absurd)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
-import qualified Network.HTTP.Types as HTTP
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (Handler, unwitnessA, (>->))
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Sets, With)
-import WebGear.Core.Trait.Body (Body, respondA)
+import WebGear.Core.Trait.Body (Body, setBody)
 import WebGear.Core.Trait.Header (RequestHeader (..), RequiredResponseHeader, setHeader)
-import WebGear.Core.Trait.Status (Status)
+import WebGear.Core.Trait.Status (Status, unauthorized401)
 import Prelude hiding (break, drop)
 
 -- | Trait for \"Authorization\" header
@@ -96,7 +95,8 @@ respondUnauthorized ::
   h a Response
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
-  (respondA HTTP.unauthorized401 "text/plain" -< "Unauthorized" :: Text)
+  (unauthorized401 -< ())
+    >-> (\resp -> setBody "text/plain" -< (resp, "Unauthorized" :: Text))
     >-> (\resp -> setHeader @"WWW-Authenticate" -< (resp, headerVal))
     >-> (\resp -> unwitnessA -< resp)
 {-# INLINE respondUnauthorized #-}

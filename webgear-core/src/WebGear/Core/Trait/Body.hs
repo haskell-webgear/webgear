@@ -45,13 +45,13 @@ module WebGear.Core.Trait.Body (
   setJSONBodyWithContentType,
 ) where
 
-import Control.Arrow (ArrowChoice)
+import Control.Arrow (ArrowChoice, (<<<))
 import Data.Kind (Type)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
-import WebGear.Core.Handler (Middleware)
+import WebGear.Core.Handler (Handler, Middleware, unwitnessA)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Set, Sets, Trait (..), TraitAbsence (..), With, plant, probe)
@@ -208,16 +208,18 @@ setJSONBodyWithoutContentType = plant (JSONBody Nothing)
  value.
 -}
 respondA ::
-  forall body h.
-  (Sets h [Status, Body body, RequiredResponseHeader "Content-Type" Text] Response) =>
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, Body body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
-  h body (Response `With` [RequiredResponseHeader "Content-Type" Text, Body body, Status])
+  h body Response
 respondA status mediaType = proc body -> do
   response <- mkResponse status -< ()
-  setBody mediaType -< (response, body)
+  unwitnessA <<< setBody mediaType -< (response, body)
 {-# INLINE respondA #-}
 
 {- | A convenience arrow to generate a response specifying a status and
@@ -226,11 +228,13 @@ respondA status mediaType = proc body -> do
  The "Content-Type" header will be set to "application/json".
 -}
 respondJsonA ::
-  forall body h.
-  (Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
-  h body (Response `With` [RequiredResponseHeader "Content-Type" Text, JSONBody body, Status])
+  h body Response
 respondJsonA status = respondJsonWithContentTypeA status "application/json"
 {-# INLINE respondJsonA #-}
 
@@ -241,14 +245,16 @@ respondJsonA status = respondJsonWithContentTypeA status "application/json"
  value.
 -}
 respondJsonWithContentTypeA ::
-  forall body h.
-  (Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
-  h body (Response `With` [RequiredResponseHeader "Content-Type" Text, JSONBody body, Status])
+  h body Response
 respondJsonWithContentTypeA status mediaType = proc body -> do
   response <- mkResponse status -< ()
-  setJSONBodyWithContentType mediaType -< (response, body)
+  unwitnessA <<< setJSONBodyWithContentType mediaType -< (response, body)
 {-# INLINE respondJsonWithContentTypeA #-}
