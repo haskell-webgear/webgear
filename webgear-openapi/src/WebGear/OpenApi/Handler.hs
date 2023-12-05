@@ -251,7 +251,7 @@ combinePathItem s t =
 
 combineOpenApi :: OpenApi -> OpenApi -> OpenApi
 combineOpenApi s t =
-  OpenApi
+  (mempty @OpenApi)
     { _openApiInfo = _openApiInfo s <> _openApiInfo t
     , _openApiServers = _openApiServers s <> _openApiServers t
     , _openApiPaths = Map.unionWith combinePathItem (_openApiPaths s) (_openApiPaths t)
