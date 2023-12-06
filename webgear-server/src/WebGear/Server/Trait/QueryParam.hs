@@ -14,7 +14,7 @@ import Network.HTTP.Types (queryToQueryText)
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request, queryString)
-import WebGear.Core.Trait (Get (..), Linked, unlink)
+import WebGear.Core.Trait (Get (..), With, unwitness)
 import WebGear.Core.Trait.QueryParam (
   ParamNotFound (..),
   ParamParseError (..),
@@ -25,17 +25,17 @@ import WebGear.Server.Handler (ServerHandler)
 extractQueryParam ::
   (Monad m, KnownSymbol name, FromHttpApiData val) =>
   Proxy name ->
-  ServerHandler m (Linked ts Request) (Maybe (Either Text val))
+  ServerHandler m (Request `With` ts) (Maybe (Either Text val))
 extractQueryParam proxy = proc req -> do
   let name = fromString $ symbolVal proxy
-      params = queryToQueryText $ queryString $ unlink req
+      params = queryToQueryText $ queryString $ unwitness req
   returnA -< parseQueryParam <$> (find ((== name) . fst) params >>= snd)
 
 instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Required Strict name val) Request where
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Required Strict name val ->
-    ServerHandler m (Linked ts Request) (Either (Either ParamNotFound ParamParseError) val)
+    ServerHandler m (Request `With` ts) (Either (Either ParamNotFound ParamParseError) val)
   getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
@@ -47,7 +47,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Optional Strict name val ->
-    ServerHandler m (Linked ts Request) (Either ParamParseError (Maybe val))
+    ServerHandler m (Request `With` ts) (Either ParamParseError (Maybe val))
   getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
@@ -59,7 +59,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Required Lenient name val ->
-    ServerHandler m (Linked ts Request) (Either ParamNotFound (Either Text val))
+    ServerHandler m (Request `With` ts) (Either ParamNotFound (Either Text val))
   getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case
@@ -71,7 +71,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Optional Lenient name val ->
-    ServerHandler m (Linked ts Request) (Either Void (Maybe (Either Text val)))
+    ServerHandler m (Request `With` ts) (Either Void (Maybe (Either Text val)))
   getTrait QueryParam = extractQueryParam (Proxy @name) >>> arr f
     where
       f = \case

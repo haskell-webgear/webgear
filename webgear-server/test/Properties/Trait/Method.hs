@@ -18,7 +18,7 @@ import Test.QuickCheck (
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait (getTrait, wzero)
 import WebGear.Core.Trait.Method (Method (..), MethodMismatch (..))
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.Method ()
@@ -31,7 +31,7 @@ instance Arbitrary MethodWrapper where
 
 prop_methodMatch :: Property
 prop_methodMatch = property $ \(MethodWrapper v) ->
-  let req = linkzero $ Request $ defaultRequest{requestMethod = renderStdMethod v}
+  let req = wzero $ Request $ defaultRequest{requestMethod = renderStdMethod v}
    in runIdentity $ do
         res <- runServerHandler (getTrait (Method GET)) [""] req
         pure $ case res of

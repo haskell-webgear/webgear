@@ -25,8 +25,8 @@ import qualified Network.Wai as Wai
 
 -- | A request processed by a handler
 newtype Request = Request
-  { -- | underlying WAI request
-    waiRequest :: Wai.Request
+  { toWaiRequest :: Wai.Request
+  -- ^ underlying WAI request
   }
 
 -- | Get the value of a request header
@@ -35,36 +35,36 @@ requestHeader h r = snd <$> find ((== h) . fst) (requestHeaders r)
 
 -- | See 'Wai.getRequestBodyChunk'
 getRequestBodyChunk :: Request -> IO ByteString
-getRequestBodyChunk = Wai.getRequestBodyChunk . waiRequest
+getRequestBodyChunk = Wai.getRequestBodyChunk . toWaiRequest
 
 -- | See 'Wai.httpVersion'
 httpVersion :: Request -> HTTP.HttpVersion
-httpVersion = Wai.httpVersion . waiRequest
+httpVersion = Wai.httpVersion . toWaiRequest
 
 -- | See 'Wai.isSecure'
 isSecure :: Request -> Bool
-isSecure = Wai.isSecure . waiRequest
+isSecure = Wai.isSecure . toWaiRequest
 
 -- | See 'Wai.pathInfo'
 pathInfo :: Request -> [Text]
-pathInfo = Wai.pathInfo . waiRequest
+pathInfo = Wai.pathInfo . toWaiRequest
 
 -- | See 'Wai.queryString'
 queryString :: Request -> HTTP.Query
-queryString = Wai.queryString . waiRequest
+queryString = Wai.queryString . toWaiRequest
 
 -- | See 'Wai.remoteHost'
 remoteHost :: Request -> SockAddr
-remoteHost = Wai.remoteHost . waiRequest
+remoteHost = Wai.remoteHost . toWaiRequest
 
 -- | See 'Wai.requestBodyLength'
 requestBodyLength :: Request -> Wai.RequestBodyLength
-requestBodyLength = Wai.requestBodyLength . waiRequest
+requestBodyLength = Wai.requestBodyLength . toWaiRequest
 
 -- | See 'Wai.requestHeaders'
 requestHeaders :: Request -> HTTP.RequestHeaders
-requestHeaders = Wai.requestHeaders . waiRequest
+requestHeaders = Wai.requestHeaders . toWaiRequest
 
 -- | See 'Wai.requestMethod'
 requestMethod :: Request -> HTTP.Method
-requestMethod = Wai.requestMethod . waiRequest
+requestMethod = Wai.requestMethod . toWaiRequest

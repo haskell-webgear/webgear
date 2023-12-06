@@ -9,16 +9,16 @@ import Test.QuickCheck (Property, allProperties, property, (=/=), (===))
 import Test.QuickCheck.Instances ()
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
-import WebGear.Core.Trait.Path (Path (..), PathVar (..), PathVarError (..))
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait (getTrait, wzero)
+import WebGear.Core.Trait.Path (Path (..), PathVar (..), PathVarError (..))
 import WebGear.Server.Handler (RoutePath (..), runServerHandler)
 import WebGear.Server.Trait.Path ()
 
 prop_pathMatch :: Property
 prop_pathMatch = property $ \h ->
   let rest = ["foo", "bar"]
-      req = linkzero $ Request $ defaultRequest{pathInfo = h : rest}
+      req = wzero $ Request $ defaultRequest{pathInfo = h : rest}
    in runIdentity $ do
         res <- runServerHandler (getTrait $ Path "a") (RoutePath $ h : rest) req
         pure $ case res of
@@ -30,7 +30,7 @@ prop_pathVarMatch :: Property
 prop_pathVarMatch = property $ \(n :: Int) ->
   let rest = ["foo", "bar"]
       p = fromString (show n) : rest
-      req = linkzero $ Request $ defaultRequest{pathInfo = p}
+      req = wzero $ Request $ defaultRequest{pathInfo = p}
    in runIdentity $ do
         res <- runServerHandler (getTrait (PathVar @"tag" @Int)) (RoutePath p) req
         pure $ case res of
@@ -40,7 +40,7 @@ prop_pathVarMatch = property $ \(n :: Int) ->
 prop_pathVarParseError :: Property
 prop_pathVarParseError = property $ \(p, ps) ->
   let p' = "test-" <> p
-      req = linkzero $ Request $ defaultRequest{pathInfo = p' : ps}
+      req = wzero $ Request $ defaultRequest{pathInfo = p' : ps}
    in runIdentity $ do
         res <- runServerHandler (getTrait (PathVar @"tag" @Int)) (RoutePath $ p' : ps) req
         pure $ case res of

@@ -12,7 +12,7 @@ import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Trait (getTrait, linkzero)
+import WebGear.Core.Trait (getTrait, wzero)
 import WebGear.Core.Trait.QueryParam (ParamParseError (..), QueryParam (..))
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.QueryParam ()
@@ -20,7 +20,7 @@ import WebGear.Server.Trait.QueryParam ()
 prop_paramParseError :: Property
 prop_paramParseError = property $ \hval ->
   let hval' = "test-" <> hval
-      req = linkzero $ Request $ defaultRequest{queryString = [("foo", Just $ encodeUtf8 hval')]}
+      req = wzero $ Request $ defaultRequest{queryString = [("foo", Just $ encodeUtf8 hval')]}
    in runIdentity $ do
         res <- runServerHandler (getTrait (QueryParam :: QueryParam Required Strict "foo" Int)) [""] req
         pure $ case res of
@@ -30,7 +30,7 @@ prop_paramParseError = property $ \hval ->
 
 prop_paramParseSuccess :: Property
 prop_paramParseSuccess = property $ \(n :: Int) ->
-  let req = linkzero $ Request $ defaultRequest{queryString = [("foo", Just $ fromString $ show n)]}
+  let req = wzero $ Request $ defaultRequest{queryString = [("foo", Just $ fromString $ show n)]}
    in runIdentity $ do
         res <- runServerHandler (getTrait (QueryParam :: QueryParam Required Strict "foo" Int)) [""] req
         pure $ case res of

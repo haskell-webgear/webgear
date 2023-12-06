@@ -14,15 +14,15 @@ import Network.HTTP.Types (hContentType)
 import WebGear.Core.Handler (Handler (..))
 import WebGear.Core.Request (Request, getRequestBodyChunk)
 import WebGear.Core.Response (Response (..))
-import WebGear.Core.Trait (Get (..), Linked, Set (..), unlink)
+import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
 import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: Body val -> ServerHandler m (Linked ts Request) (Either Text val)
+  getTrait :: Body val -> ServerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body _) = arrM $ \request -> do
-    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
+    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unwitness request
     pure $ case runParser' parser (fromChunks chunks) of
       Left e -> Left $ pack e
       Right t -> Right t
@@ -31,10 +31,10 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
   {-# INLINE setTrait #-}
   setTrait ::
     Body val ->
-    (Linked ts Response -> Response -> val -> Linked (Body val : ts) Response) ->
-    ServerHandler m (Linked ts Response, val) (Linked (Body val : ts) Response)
-  setTrait (Body mediaType) f = proc (linkedResponse, val) -> do
-    let response = (unlink linkedResponse)
+    (Response `With` ts -> Response -> val -> Response `With` (Body val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (Body val : ts))
+  setTrait (Body mediaType) f = proc (wResponse, val) -> do
+    let response = unwitness wResponse
         response' =
           response
             { responseBody = Just (toByteString val)
@@ -44,13 +44,13 @@ instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Respons
                     Just mt -> [(hContentType, renderHeader mt)]
                     Nothing -> []
             }
-    returnA -< f linkedResponse response' val
+    returnA -< f wResponse response' val
 
 instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: JSONBody val -> ServerHandler m (Linked ts Request) (Either Text val)
+  getTrait :: JSONBody val -> ServerHandler m (Request `With` ts) (Either Text val)
   getTrait (JSONBody _) = arrM $ \request -> do
-    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unlink request
+    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unwitness request
     pure $ case Aeson.eitherDecode' (fromChunks chunks) of
       Left e -> Left $ pack e
       Right t -> Right t
@@ -59,10 +59,10 @@ instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Res
   {-# INLINE setTrait #-}
   setTrait ::
     JSONBody val ->
-    (Linked ts Response -> Response -> val -> Linked (JSONBody val : ts) Response) ->
-    ServerHandler m (Linked ts Response, val) (Linked (JSONBody val : ts) Response)
-  setTrait (JSONBody mediaType) f = proc (linkedResponse, val) -> do
-    let response = unlink linkedResponse
+    (Response `With` ts -> Response -> val -> Response `With` (JSONBody val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (JSONBody val : ts))
+  setTrait (JSONBody mediaType) f = proc (wResponse, val) -> do
+    let response = unwitness wResponse
         ctype = maybe "application/json" renderHeader mediaType
         response' =
           response
@@ -71,9 +71,9 @@ instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Res
                 responseHeaders response
                   <> [(hContentType, ctype)]
             }
-    returnA -< f linkedResponse response' val
+    returnA -< f wResponse response' val
 
-takeWhileM :: Monad m => (a -> Bool) -> [m a] -> m [a]
+takeWhileM :: (Monad m) => (a -> Bool) -> [m a] -> m [a]
 takeWhileM _ [] = pure []
 takeWhileM p (mx : mxs) = do
   x <- mx

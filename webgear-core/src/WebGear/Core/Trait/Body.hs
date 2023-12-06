@@ -22,7 +22,7 @@
  If you need finer control over setting the body, use one of
  'setBody', 'setBodyWithoutContentType', 'setJSONBody',
  'setJSONBodyWithoutContentType', or 'setJSONBody''. These arrows
- accept a linked response and a body and sets the body in the
+ accept a witnessed response and a body and sets the body in the
  response. You can generate an input response object using functions
  from "WebGear.Core.Trait.Status" module.
 -}
@@ -37,25 +37,25 @@ module WebGear.Core.Trait.Body (
   jsonRequestBody,
   respondA,
   respondJsonA,
-  respondJsonA',
+  respondJsonWithContentTypeA,
   setBody,
   setBodyWithoutContentType,
   setJSONBody,
   setJSONBodyWithoutContentType,
-  setJSONBody',
+  setJSONBodyWithContentType,
 ) where
 
-import Control.Arrow (ArrowChoice)
+import Control.Arrow (ArrowChoice, (<<<))
 import Data.Kind (Type)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
-import WebGear.Core.Handler (Middleware)
+import WebGear.Core.Handler (Handler, Middleware, unwitnessA)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Linked, Set, Sets, Trait (..), TraitAbsence (..), plant, probe)
-import WebGear.Core.Trait.Header (Header (..), RequiredHeader)
+import WebGear.Core.Trait (Get, Set, Sets, Trait (..), TraitAbsence (..), With, plant, probe)
+import WebGear.Core.Trait.Header (RequiredResponseHeader, ResponseHeader (..))
 import WebGear.Core.Trait.Status (Status, mkResponse)
 
 -- | Request or response body with a type @t@.
@@ -97,7 +97,7 @@ requestBody ::
   -- | Optional media type of the body
   Maybe HTTP.MediaType ->
   -- | Error handler in case body cannot be retrieved
-  h (Linked req Request, Text) Response ->
+  h (Request `With` req, Text) Response ->
   Middleware h req (Body t : req)
 requestBody mediaType errorHandler nextHandler = proc request -> do
   result <- probe (Body mediaType) -< request
@@ -122,7 +122,7 @@ jsonRequestBody' ::
   -- | Optional media type of the body
   Maybe HTTP.MediaType ->
   -- | Error handler in case body cannot be retrieved
-  h (Linked req Request, Text) Response ->
+  h (Request `With` req, Text) Response ->
   Middleware h req (JSONBody t : req)
 jsonRequestBody' mediaType errorHandler nextHandler = proc request -> do
   result <- probe (JSONBody mediaType) -< request
@@ -136,7 +136,7 @@ jsonRequestBody ::
   forall t h req.
   (Get h (JSONBody t) Request, ArrowChoice h) =>
   -- | error handler
-  h (Linked req Request, Text) Response ->
+  h (Request `With` req, Text) Response ->
   Middleware h req (JSONBody t : req)
 jsonRequestBody = jsonRequestBody' (Just "application/json")
 {-# INLINE jsonRequestBody #-}
@@ -146,71 +146,60 @@ jsonRequestBody = jsonRequestBody' (Just "application/json")
   The media type value is used to set the "Content-Type" header in the response.
 -}
 setBody ::
-  forall body a h ts.
-  Sets h [Body body, RequiredHeader "Content-Type" Text] Response =>
+  forall body h res.
+  (Sets h [Body body, RequiredResponseHeader "Content-Type" Text] Response) =>
   -- | The media type of the response body
   HTTP.MediaType ->
-  h a (Linked ts Response) ->
-  h (body, a) (Linked (RequiredHeader "Content-Type" Text : Body body : ts) Response)
-setBody mediaType prevHandler = proc (body, a) -> do
-  r <- prevHandler -< a
-  r' <- plant (Body (Just mediaType)) -< (r, body)
+  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : Body body : res))
+setBody mediaType = proc (response, body) -> do
+  response' <- plant (Body (Just mediaType)) -< (response, body)
   let mt = decodeUtf8 $ HTTP.renderHeader mediaType
-  plant Header -< (r', mt)
+  plant ResponseHeader -< (response', mt)
 {-# INLINE setBody #-}
 
 -- | Set the response body without specifying any media type.
 setBodyWithoutContentType ::
-  forall body a h ts.
-  Set h (Body body) Response =>
-  h a (Linked ts Response) ->
-  h (body, a) (Linked (Body body : ts) Response)
-setBodyWithoutContentType prevHandler = proc (body, a) -> do
-  r <- prevHandler -< a
-  plant (Body Nothing) -< (r, body)
+  forall body h res.
+  (Set h (Body body) Response) =>
+  h (Response `With` res, body) (Response `With` (Body body : res))
+setBodyWithoutContentType = plant (Body Nothing)
 {-# INLINE setBodyWithoutContentType #-}
-
-{- | Set the response body to a JSON value along with a media type.
-
-  The media type value is used to set the "Content-Type" header in the response.
--}
-setJSONBody' ::
-  forall body a h ts.
-  Sets h [JSONBody body, RequiredHeader "Content-Type" Text] Response =>
-  -- | The media type of the response body
-  HTTP.MediaType ->
-  h a (Linked ts Response) ->
-  h (body, a) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
-setJSONBody' mediaType prevHandler = proc (body, a) -> do
-  r <- prevHandler -< a
-  r' <- plant (JSONBody (Just mediaType)) -< (r, body)
-  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
-  plant Header -< (r', mt)
-{-# INLINE setJSONBody' #-}
 
 {- | Set the response body to a JSON value.
 
   The "Content-Type" header will be set to "application/json".
 -}
 setJSONBody ::
-  forall body a h ts.
-  Sets h [JSONBody body, RequiredHeader "Content-Type" Text] Response =>
-  h a (Linked ts Response) ->
-  h (body, a) (Linked (RequiredHeader "Content-Type" Text : JSONBody body : ts) Response)
-setJSONBody = setJSONBody' "application/json"
+  forall body h res.
+  (Sets h [JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
+  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : JSONBody body : res))
+setJSONBody = setJSONBodyWithContentType "application/json"
 {-# INLINE setJSONBody #-}
+
+{- | Set the response body to a JSON value along with a media type.
+
+  The media type value is used to set the "Content-Type" header in the response.
+-}
+setJSONBodyWithContentType ::
+  forall body h res.
+  (Sets h [JSONBody body, RequiredResponseHeader "Content-Type" Text] Response) =>
+  -- | The media type of the response body
+  HTTP.MediaType ->
+  h (Response `With` res, body) (Response `With` (RequiredResponseHeader "Content-Type" Text : JSONBody body : res))
+setJSONBodyWithContentType mediaType = proc (response, body) -> do
+  response' <- plant (JSONBody (Just mediaType)) -< (response, body)
+  let mt = decodeUtf8 $ HTTP.renderHeader mediaType
+  plant ResponseHeader -< (response', mt)
+{-# INLINE setJSONBodyWithContentType #-}
 
 {- | Set the response body to a JSON value without specifying any
  media type.
 -}
 setJSONBodyWithoutContentType ::
-  forall body a h ts.
-  Set h (JSONBody body) Response =>
-  h a (Linked ts Response) ->
-  h (body, a) (Linked (JSONBody body : ts) Response)
-setJSONBodyWithoutContentType prevHandler = proc (body, a) -> do
-  r <- prevHandler -< a
-  plant (JSONBody Nothing) -< (r, body)
+  forall body h res.
+  (Set h (JSONBody body) Response) =>
+  h (Response `With` res, body) (Response `With` (JSONBody body : res))
+setJSONBodyWithoutContentType = plant (JSONBody Nothing)
 {-# INLINE setJSONBodyWithoutContentType #-}
 
 {- | A convenience arrow to generate a response specifying a status and body.
@@ -219,15 +208,18 @@ setJSONBodyWithoutContentType prevHandler = proc (body, a) -> do
  value.
 -}
 respondA ::
-  forall body h.
-  Sets h [Status, Body body, RequiredHeader "Content-Type" Text] Response =>
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, Body body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
-  h body (Linked [RequiredHeader "Content-Type" Text, Body body, Status] Response)
-respondA status mediaType = proc body ->
-  setBody mediaType (mkResponse status) -< (body, ())
+  h body Response
+respondA status mediaType = proc body -> do
+  response <- mkResponse status -< ()
+  unwitnessA <<< setBody mediaType -< (response, body)
 {-# INLINE respondA #-}
 
 {- | A convenience arrow to generate a response specifying a status and
@@ -236,12 +228,14 @@ respondA status mediaType = proc body ->
  The "Content-Type" header will be set to "application/json".
 -}
 respondJsonA ::
-  forall body h.
-  Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
-  h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
-respondJsonA status = respondJsonA' status "application/json"
+  h body Response
+respondJsonA status = respondJsonWithContentTypeA status "application/json"
 {-# INLINE respondJsonA #-}
 
 {- | A convenience arrow to generate a response specifying a status and
@@ -250,14 +244,17 @@ respondJsonA status = respondJsonA' status "application/json"
  The "Content-Type" header will be set to the specified media type
  value.
 -}
-respondJsonA' ::
-  forall body h.
-  Sets h [Status, JSONBody body, RequiredHeader "Content-Type" Text] Response =>
+respondJsonWithContentTypeA ::
+  forall body h m.
+  ( Handler h m
+  , Sets h [Status, JSONBody body, RequiredResponseHeader "Content-Type" Text] Response
+  ) =>
   -- | Response status
   HTTP.Status ->
   -- | Media type of the response body
   HTTP.MediaType ->
-  h body (Linked [RequiredHeader "Content-Type" Text, JSONBody body, Status] Response)
-respondJsonA' status mediaType = proc body ->
-  setJSONBody' mediaType (mkResponse status) -< (body, ())
-{-# INLINE respondJsonA' #-}
+  h body Response
+respondJsonWithContentTypeA status mediaType = proc body -> do
+  response <- mkResponse status -< ()
+  unwitnessA <<< setJSONBodyWithContentType mediaType -< (response, body)
+{-# INLINE respondJsonWithContentTypeA #-}

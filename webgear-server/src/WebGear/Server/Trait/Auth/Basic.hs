@@ -12,7 +12,7 @@ import Data.Void (Void)
 import WebGear.Core.Handler (arrM)
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Linked)
+import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Auth.Basic (
   BasicAuth' (..),
   BasicAuthError (..),
@@ -36,7 +36,7 @@ instance
   {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' Required scheme m e a ->
-    ServerHandler m (Linked ts Request) (Either (BasicAuthError e) a)
+    ServerHandler m (Request `With` ts) (Either (BasicAuthError e) a)
   getTrait BasicAuth'{..} = proc request -> do
     result <- getAuthorizationHeaderTrait @scheme -< request
     case result of
@@ -67,5 +67,5 @@ instance
   {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' Optional scheme m e a ->
-    ServerHandler m (Linked ts Request) (Either Void (Either (BasicAuthError e) a))
+    ServerHandler m (Request `With` ts) (Either Void (Either (BasicAuthError e) a))
   getTrait BasicAuth'{..} = getTrait (BasicAuth'{..} :: BasicAuth' Required scheme m e a) >>> arr Right

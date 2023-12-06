@@ -10,17 +10,19 @@ module WebGear.Core.Handler (
   RequestHandler,
   Middleware,
   routeMismatch,
-  unlinkA,
+  unwitnessA,
+  (>->),
+  (<-<),
 ) where
 
-import Control.Arrow (ArrowChoice, ArrowPlus, arr)
+import Control.Arrow (Arrow, ArrowChoice, ArrowPlus, arr)
 import Control.Arrow.Operations (ArrowError (..))
 import Data.String (IsString)
 import Data.Text (Text)
 import GHC.Exts (IsList (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
-import WebGear.Core.Trait (Linked (unlink))
+import WebGear.Core.Trait (With (unwitness))
 
 -- | Parts of the request path used by the routing machinery
 newtype RoutePath = RoutePath [Text]
@@ -53,8 +55,8 @@ class (ArrowChoice h, ArrowPlus h, ArrowError RouteMismatch h, Monad m) => Handl
   -- | Set a summary of a part of an API
   setSummary :: Summary -> h a a
 
--- | A handler arrow from a linked request to response.
-type RequestHandler h req = h (Linked req Request) Response
+-- | A handler arrow from a witnessed request to response.
+type RequestHandler h req = h (Request `With` req) Response
 
 -- | A middleware enhances a `RequestHandler` and produces another handler.
 type Middleware h reqOut reqIn = RequestHandler h reqIn -> RequestHandler h reqOut
@@ -80,11 +82,47 @@ instance Monoid RouteMismatch where
   mempty = RouteMismatch
 
 -- | Indicates that the request does not match the current handler.
-routeMismatch :: ArrowError RouteMismatch h => h a b
+routeMismatch :: (ArrowError RouteMismatch h) => h a b
 routeMismatch = proc _a -> raise -< RouteMismatch
 {-# INLINE routeMismatch #-}
 
--- | Lifts `unlink` into a handler arrow.
-unlinkA :: Handler h m => h (Linked ts Response) Response
-unlinkA = arr unlink
-{-# INLINE unlinkA #-}
+-- | Lifts `unwitness` into a handler arrow.
+unwitnessA :: (Handler h m) => h (Response `With` ts) Response
+unwitnessA = arr unwitness
+{-# INLINE unwitnessA #-}
+
+infixr 1 >->, <-<
+
+{- | Thread a response through commands from left to right.
+
+ For example, an HTTP 200 response with a body and Content-Type header
+ can be generated with:
+
+@
+ (ok200 -< ())
+   >-> (\resp -> setBody "text/plain" -< (resp, "Hello World"))
+   >-> (\resp -> unwitnessA -< resp)
+@
+-}
+(>->) :: (Arrow h) => h (env, stack) a -> h (env, (a, stack)) b -> h (env, stack) b
+f >-> g = proc (env, stack) -> do
+  a <- f -< (env, stack)
+  g -< (env, (a, stack))
+{-# INLINE (>->) #-}
+
+{- | Thread a response through commands from right to left.
+
+ For example, an HTTP 200 response with a body and Content-Type header
+ can be generated with:
+
+@
+ (\resp -> unwitnessA -< resp)
+   <-< (\resp -> setBody "text/plain" -< (resp, "Hello World"))
+   <-< (ok200 -< ())
+@
+-}
+(<-<) :: (Arrow h) => h (env, (a, stack)) b -> h (env, stack) a -> h (env, stack) b
+f <-< g = proc (env, stack) -> do
+  a <- g -< (env, stack)
+  f -< (env, (a, stack))
+{-# INLINE (<-<) #-}

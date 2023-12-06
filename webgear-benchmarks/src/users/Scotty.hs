@@ -1,4 +1,4 @@
-module Scotty where
+module Scotty (application) where
 
 import Network.HTTP.Types (noContent204, notFound404)
 import Network.Wai

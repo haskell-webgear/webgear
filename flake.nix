@@ -22,14 +22,18 @@
           overlays = [ self.overlays.default ];
         };
 
-        mkVersionedPackages = hsVersion:
+        mkVersionedPackages = ghcVersion:
           pkgs.lib.attrsets.mapAttrs' (name: _: {
-            name = "${name}-${hsVersion}";
-            value = pkgs.haskell.packages.${hsVersion}.${name};
+            name = "${name}-ghc${ghcVersion}";
+            value = pkgs.haskell.packages."ghc${ghcVersion}".${name};
           }) pkgs.localHsPackages;
-      in {
-        packages = pkgs.lib.mapcat mkVersionedPackages pkgs.hsVersions;
 
-        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.hsVersions;
+        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.ghcVersions;
+      in {
+        packages = pkgs.lib.mapcat mkVersionedPackages pkgs.ghcVersions;
+
+        devShells = devShells // {
+          default = devShells."webgear-dev-ghc${pkgs.defaultGHCVersion}";
+        };
       });
 }

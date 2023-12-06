@@ -1,4 +1,4 @@
-module Servant where
+module Servant (application) where
 
 import Control.Monad.Except (ExceptT, MonadError, mapExceptT, throwError)
 import Control.Monad.IO.Class (MonadIO)

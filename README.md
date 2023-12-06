@@ -27,6 +27,12 @@ Documentation is available at https://haskell-webgear.github.io
 Use Nix to start a reproducible development environment:
 
 ```shell
+nix develop
+```
+
+This starts a shell with the default GHC. You can also use a specific GHC version with:
+
+```shell
 nix develop .#webgear-dev-ghc<GHC-VERSION>
 ```
 

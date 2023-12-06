@@ -23,7 +23,7 @@ import Paths_webgear_server (version)
 import WebGear.Core.Handler (Description, Handler (..), RouteMismatch (..), RoutePath (..), Summary)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), toWaiResponse)
-import WebGear.Core.Trait (Linked, linkzero)
+import WebGear.Core.Trait (With, wzero)
 
 {- | An arrow implementing a WebGear server.
 
@@ -33,7 +33,7 @@ import WebGear.Core.Trait (Linked, linkzero)
 -}
 newtype ServerHandler m a b = ServerHandler {unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath)}
 
-instance Monad m => Cat.Category (ServerHandler m) where
+instance (Monad m) => Cat.Category (ServerHandler m) where
   {-# INLINE id #-}
   id = ServerHandler $ \(a, s) -> pure (Right a, s)
 
@@ -43,7 +43,7 @@ instance Monad m => Cat.Category (ServerHandler m) where
       (Left e, s') -> pure (Left e, s')
       (Right b, s') -> f (b, s')
 
-instance Monad m => Arrow (ServerHandler m) where
+instance (Monad m) => Arrow (ServerHandler m) where
   arr f = ServerHandler (\(a, s) -> pure (Right (f a), s))
 
   {-# INLINE first #-}
@@ -58,18 +58,18 @@ instance Monad m => Arrow (ServerHandler m) where
       (Left e, s') -> pure (Left e, s')
       (Right b, s') -> pure (Right (c, b), s')
 
-instance Monad m => ArrowZero (ServerHandler m) where
+instance (Monad m) => ArrowZero (ServerHandler m) where
   {-# INLINE zeroArrow #-}
   zeroArrow = ServerHandler (\(_a, s) -> pure (Left mempty, s))
 
-instance Monad m => ArrowPlus (ServerHandler m) where
+instance (Monad m) => ArrowPlus (ServerHandler m) where
   {-# INLINE (<+>) #-}
   ServerHandler f <+> ServerHandler g = ServerHandler $ \(a, s) ->
     f (a, s) >>= \case
       (Left _e, _s') -> g (a, s)
       (Right b, s') -> pure (Right b, s')
 
-instance Monad m => ArrowChoice (ServerHandler m) where
+instance (Monad m) => ArrowChoice (ServerHandler m) where
   {-# INLINE left #-}
   left (ServerHandler f) = ServerHandler $ \(bd, s) ->
     case bd of
@@ -88,7 +88,7 @@ instance Monad m => ArrowChoice (ServerHandler m) where
           (Left e, s') -> pure (Left e, s')
           (Right c, s') -> pure (Right (Right c), s')
 
-instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
+instance (Monad m) => ArrowError RouteMismatch (ServerHandler m) where
   {-# INLINE raise #-}
   raise = ServerHandler $ \(e, s) -> pure (Left e, s)
 
@@ -105,15 +105,15 @@ instance Monad m => ArrowError RouteMismatch (ServerHandler m) where
         (Left e, s') -> errHandler ((a, e), s')
         (Right b, s') -> resHandler ((a, b), s')
 
-instance Monad m => Handler (ServerHandler m) m where
+instance (Monad m) => Handler (ServerHandler m) m where
   {-# INLINE arrM #-}
   arrM :: (a -> m b) -> ServerHandler m a b
   arrM f = ServerHandler $ \(a, s) -> f a >>= \b -> pure (Right b, s)
 
   {-# INLINE consumeRoute #-}
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a
-  consumeRoute (ServerHandler h) = ServerHandler $
-    \((), path) -> h (path, RoutePath [])
+  consumeRoute (ServerHandler h) = ServerHandler
+    $ \((), path) -> h (path, RoutePath [])
 
   {-# INLINE setDescription #-}
   setDescription :: Description -> ServerHandler m a a
@@ -125,7 +125,7 @@ instance Monad m => Handler (ServerHandler m) m where
 
 -- | Run a ServerHandler to produce a result or a route mismatch error.
 runServerHandler ::
-  Monad m =>
+  (Monad m) =>
   -- | The handler to run
   ServerHandler m a b ->
   -- | Path used for routing
@@ -138,13 +138,16 @@ runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
 {-# INLINE runServerHandler #-}
 
 -- | Convert a ServerHandler to a WAI application
-toApplication :: ServerHandler IO (Linked '[] Request) Response -> Wai.Application
+toApplication :: ServerHandler IO (Request `With` '[]) Response -> Wai.Application
 toApplication h rqt cont =
   runServerHandler h path request
-    >>= cont . toWaiResponse . addServerHeader . mkWebGearResponse
+    >>= cont
+    . toWaiResponse
+    . addServerHeader
+    . mkWebGearResponse
   where
-    request :: Linked '[] Request
-    request = linkzero $ Request rqt
+    request :: Request `With` '[]
+    request = wzero $ Request rqt
 
     path :: RoutePath
     path = RoutePath $ Wai.pathInfo rqt
@@ -170,7 +173,7 @@ toApplication h rqt cont =
 @
  `toApplication` (transform f server)
    where
-     server :: `ServerHandler` (ReaderT r IO) (`Linked` '[] `Request`) `Response`
+     server :: `ServerHandler` (ReaderT r IO) (`Request` \``With`\` '[]) `Response`
      server = ....
 
      f :: ReaderT r IO a -> IO a
