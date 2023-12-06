@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Server implementation of the `Body` trait.
@@ -6,77 +7,138 @@ module WebGear.Server.Trait.Body () where
 import Control.Arrow (returnA)
 import Control.Monad.IO.Class (MonadIO (..))
 import qualified Data.Aeson as Aeson
-import Data.ByteString.Conversion (FromByteString, ToByteString, parser, runParser', toByteString)
-import Data.ByteString.Lazy (fromChunks)
+import Data.ByteString.Conversion (FromByteString, ToByteString (..), parser, runParser')
+import qualified Data.ByteString.Lazy as LBS
 import Data.Text (Text, pack)
-import Network.HTTP.Media.RenderHeader (RenderHeader (renderHeader))
-import Network.HTTP.Types (hContentType)
+import Data.Text.Conversions (FromText (..), ToText (..))
+import qualified Data.Text.Encoding as Text
+import qualified Data.Text.Lazy as LText
+import qualified Data.Text.Lazy.Encoding as LText
+import Network.Wai (lazyRequestBody)
 import WebGear.Core.Handler (Handler (..))
-import WebGear.Core.Request (Request, getRequestBodyChunk)
-import WebGear.Core.Response (Response (..))
+import WebGear.Core.Request (Request (..))
+import WebGear.Core.Response (Response (..), ResponseBody (ResponseBodyBuilder))
 import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
-import WebGear.Core.Trait.Body (Body (..), JSONBody (..))
+import WebGear.Core.Trait.Body (
+  Body (..),
+  JSON',
+  OctetStream,
+  PlainText,
+ )
 import WebGear.Server.Handler (ServerHandler)
 
-instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body val) Request where
+instance
+  {-# OVERLAPPABLE #-}
+  ( Monad m
+  , Get (ServerHandler m) (Body '[mtyp] val) Request
+  , Get (ServerHandler m) (Body mtyps val) Request
+  ) =>
+  Get (ServerHandler m) (Body (mtyp : mtyps) val) Request
+  where
   {-# INLINE getTrait #-}
-  getTrait :: Body val -> ServerHandler m (Request `With` ts) (Either Text val)
-  getTrait (Body _) = arrM $ \request -> do
-    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unwitness request
-    pure $ case runParser' parser (fromChunks chunks) of
+  getTrait :: Body (mtyp : mtyps) val -> ServerHandler m (Request `With` ts) (Either Text val)
+  getTrait Body = proc request -> do
+    result <- getTrait (Body @'[mtyp] @val) -< request
+    case result of
+      Left _ -> getTrait (Body @mtyps @val) -< request
+      Right t -> returnA -< Right t
+
+bodyToByteString :: (MonadIO m) => Request `With` ts -> m LBS.ByteString
+bodyToByteString = liftIO . lazyRequestBody . toWaiRequest . unwitness
+
+instance (MonadIO m, FromByteString val) => Get (ServerHandler m) (Body '[OctetStream] val) Request where
+  {-# INLINE getTrait #-}
+  getTrait :: Body '[OctetStream] val -> ServerHandler m (Request `With` ts) (Either Text val)
+  getTrait Body = arrM $ \request -> do
+    body <- bodyToByteString request
+    pure $ case runParser' parser body of
       Left e -> Left $ pack e
       Right t -> Right t
 
-instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body val) Response where
-  {-# INLINE setTrait #-}
-  setTrait ::
-    Body val ->
-    (Response `With` ts -> Response -> val -> Response `With` (Body val : ts)) ->
-    ServerHandler m (Response `With` ts, val) (Response `With` (Body val : ts))
-  setTrait (Body mediaType) f = proc (wResponse, val) -> do
-    let response = unwitness wResponse
-        response' =
-          response
-            { responseBody = Just (toByteString val)
-            , responseHeaders =
-                responseHeaders response
-                  <> case mediaType of
-                    Just mt -> [(hContentType, renderHeader mt)]
-                    Nothing -> []
-            }
-    returnA -< f wResponse response' val
-
-instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (JSONBody val) Request where
+instance (MonadIO m, FromText val) => Get (ServerHandler m) (Body '[PlainText] val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: JSONBody val -> ServerHandler m (Request `With` ts) (Either Text val)
-  getTrait (JSONBody _) = arrM $ \request -> do
-    chunks <- takeWhileM (/= mempty) $ repeat $ liftIO $ getRequestBodyChunk $ unwitness request
-    pure $ case Aeson.eitherDecode' (fromChunks chunks) of
+  getTrait :: Body '[PlainText] val -> ServerHandler m (Request `With` ts) (Either Text val)
+  getTrait Body = arrM $ \request -> do
+    body <- bodyToByteString request
+    pure $ case LText.decodeUtf8' body of
+      Left e -> Left $ pack $ show e
+      Right t -> Right $ fromText $ LText.toStrict t
+
+instance (MonadIO m, Aeson.FromJSON val) => Get (ServerHandler m) (Body '[JSON' mt] val) Request where
+  {-# INLINE getTrait #-}
+  getTrait :: Body '[JSON' mt] val -> ServerHandler m (Request `With` ts) (Either Text val)
+  getTrait Body = arrM $ \request -> do
+    body <- bodyToByteString request
+    pure $ case Aeson.eitherDecode' body of
       Left e -> Left $ pack e
       Right t -> Right t
 
-instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (JSONBody val) Response where
+instance (Monad m, ToByteString val) => Set (ServerHandler m) (Body '[OctetStream] val) Response where
   {-# INLINE setTrait #-}
   setTrait ::
-    JSONBody val ->
-    (Response `With` ts -> Response -> val -> Response `With` (JSONBody val : ts)) ->
-    ServerHandler m (Response `With` ts, val) (Response `With` (JSONBody val : ts))
-  setTrait (JSONBody mediaType) f = proc (wResponse, val) -> do
+    Body '[OctetStream] val ->
+    (Response `With` ts -> Response -> val -> Response `With` (Body '[OctetStream] val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (Body '[OctetStream] val : ts))
+  setTrait Body f = proc (wResponse, val) -> do
     let response = unwitness wResponse
-        ctype = maybe "application/json" renderHeader mediaType
         response' =
           response
-            { responseBody = Just (Aeson.encode val)
-            , responseHeaders =
-                responseHeaders response
-                  <> [(hContentType, ctype)]
+            { responseBody = ResponseBodyBuilder (builder val)
             }
     returnA -< f wResponse response' val
 
-takeWhileM :: (Monad m) => (a -> Bool) -> [m a] -> m [a]
-takeWhileM _ [] = pure []
-takeWhileM p (mx : mxs) = do
-  x <- mx
-  if p x
-    then (x :) <$> takeWhileM p mxs
-    else pure []
+instance (Monad m, ToText val) => Set (ServerHandler m) (Body '[PlainText] val) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[PlainText] val ->
+    (Response `With` ts -> Response -> val -> Response `With` (Body '[PlainText] val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (Body '[PlainText] val : ts))
+  setTrait Body f = proc (wResponse, val) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = ResponseBodyBuilder (Text.encodeUtf8Builder $ toText val)
+            }
+    returnA -< f wResponse response' val
+
+instance (Monad m, Aeson.ToJSON val) => Set (ServerHandler m) (Body '[JSON' mt] val) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[JSON' mt] val ->
+    (Response `With` ts -> Response -> val -> Response `With` (Body '[JSON' mt] val : ts)) ->
+    ServerHandler m (Response `With` ts, val) (Response `With` (Body '[JSON' mt] val : ts))
+  setTrait Body f = proc (wResponse, val) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = ResponseBodyBuilder $ Aeson.fromEncoding $ Aeson.toEncoding val
+            }
+    returnA -< f wResponse response' val
+
+instance (Monad m) => Set (ServerHandler m) (Body '[] ResponseBody) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[] ResponseBody ->
+    (Response `With` ts -> Response -> ResponseBody -> Response `With` (Body '[] ResponseBody : ts)) ->
+    ServerHandler m (Response `With` ts, ResponseBody) (Response `With` (Body '[] ResponseBody : ts))
+  setTrait Body f = proc (wResponse, body) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = body
+            }
+    returnA -< f wResponse response' body
+
+instance (Monad m) => Set (ServerHandler m) (Body '[mt] ResponseBody) Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    Body '[mt] ResponseBody ->
+    (Response `With` ts -> Response -> ResponseBody -> Response `With` (Body '[mt] ResponseBody : ts)) ->
+    ServerHandler m (Response `With` ts, ResponseBody) (Response `With` (Body '[mt] ResponseBody : ts))
+  setTrait Body f = proc (wResponse, body) -> do
+    let response = unwitness wResponse
+        response' =
+          response
+            { responseBody = body
+            }
+    returnA -< f wResponse response' body
