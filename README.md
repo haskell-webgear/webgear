@@ -12,6 +12,7 @@ This is the main repository of WebGear project. It contains multiple packages:
 
 - `webgear-core`: The core library.
 - `webgear-server`: Serve WebGear applications using `wai` and `warp`.
+- `webgear-swagger`: Generate Swagger 2.0 specifications from WebGear specifications.
 - `webgear-openapi`: Generate OpenAPI specifications from WebGear specifications.
 
 Examples of WebGear applications can be found at:
@@ -41,5 +42,5 @@ You can use the standard cabal commands in the development shell.
 You can build packages using Nix:
 
 ```shell
-nix build .#webgear-core-ghc<GHC-VERSION> .#webgear-server-ghc<GHC-VERSION> .#webgear-openapi-ghc<GHC-VERSION>
+nix build .#webgear-core-ghc<GHC-VERSION> .#webgear-server-ghc<GHC-VERSION> .#webgear-swagger-ghc<GHC-VERSION> .#webgear-openapi-ghc<GHC-VERSION>
 ```

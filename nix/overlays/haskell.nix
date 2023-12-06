@@ -11,6 +11,7 @@ let
   localHsPackages = {
     "webgear-core" = ../../webgear-core;
     "webgear-server" = ../../webgear-server;
+    "webgear-swagger" = ../../webgear-swagger;
     "webgear-openapi" = ../../webgear-openapi;
     "webgear-benchmarks" = ../../webgear-benchmarks;
   };

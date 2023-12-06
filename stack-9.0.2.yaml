@@ -3,6 +3,7 @@ resolver: lts-19.33
 packages:
   - ./webgear-core
   - ./webgear-server
+  - ./webgear-swagger
   - ./webgear-openapi
   - ./webgear-benchmarks
 
