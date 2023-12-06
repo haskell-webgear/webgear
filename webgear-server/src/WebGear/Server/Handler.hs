@@ -9,9 +9,28 @@ module WebGear.Server.Handler (
   transform,
 ) where
 
-import Control.Arrow (Arrow (..), ArrowChoice (..), ArrowPlus (..), ArrowZero (..))
+import Control.Arrow (
+  Arrow (..),
+  ArrowChoice (..),
+  ArrowPlus (..),
+  ArrowZero (..),
+  Kleisli (..),
+ )
 import Control.Arrow.Operations (ArrowError (..))
 import qualified Control.Category as Cat
+import Control.Monad.Except (
+  ExceptT (..),
+  MonadError (..),
+  mapExceptT,
+  runExceptT,
+ )
+import Control.Monad.State.Strict (
+  MonadState (..),
+  StateT (..),
+  evalStateT,
+  mapStateT,
+ )
+import Control.Monad.Trans (lift)
 import Data.ByteString (ByteString)
 import Data.Either (fromRight)
 import Data.String (fromString)
@@ -19,100 +38,77 @@ import Data.Version (showVersion)
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.Wai as Wai
 import Paths_webgear_server (version)
-import WebGear.Core.Handler (Description, Handler (..), RouteMismatch (..), RoutePath (..), Summary)
+import WebGear.Core.Handler (
+  Description,
+  Handler (..),
+  RouteMismatch (..),
+  RoutePath (..),
+  Summary,
+ )
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), ResponseBody (..), toWaiResponse)
 import WebGear.Core.Trait (With, wzero)
 
 {- | An arrow implementing a WebGear server.
 
- It can be thought of equivalent to the function arrow @a -> m b@
- where @m@ is a monad. It also supports routing and possibly failing
- the computation when the route does not match.
+ A good first approximation is to consider ServerHandler to be
+ equivalent to the function arrow @a -> m b@ where @m@ is a monad. It
+ also supports routing and possibly failing the computation when the
+ route does not match.
 -}
-newtype ServerHandler m a b = ServerHandler {unServerHandler :: (a, RoutePath) -> m (Either RouteMismatch b, RoutePath)}
-
-instance (Monad m) => Cat.Category (ServerHandler m) where
-  {-# INLINE id #-}
-  id = ServerHandler $ \(a, s) -> pure (Right a, s)
-
-  {-# INLINE (.) #-}
-  ServerHandler f . ServerHandler g = ServerHandler $ \(a, s) ->
-    g (a, s) >>= \case
-      (Left e, s') -> pure (Left e, s')
-      (Right b, s') -> f (b, s')
-
-instance (Monad m) => Arrow (ServerHandler m) where
-  arr f = ServerHandler (\(a, s) -> pure (Right (f a), s))
-
-  {-# INLINE first #-}
-  first (ServerHandler f) = ServerHandler $ \((a, c), s) ->
-    f (a, s) >>= \case
-      (Left e, s') -> pure (Left e, s')
-      (Right b, s') -> pure (Right (b, c), s')
-
-  {-# INLINE second #-}
-  second (ServerHandler f) = ServerHandler $ \((c, a), s) ->
-    f (a, s) >>= \case
-      (Left e, s') -> pure (Left e, s')
-      (Right b, s') -> pure (Right (c, b), s')
-
-instance (Monad m) => ArrowZero (ServerHandler m) where
-  {-# INLINE zeroArrow #-}
-  zeroArrow = ServerHandler (\(_a, s) -> pure (Left mempty, s))
-
-instance (Monad m) => ArrowPlus (ServerHandler m) where
-  {-# INLINE (<+>) #-}
-  ServerHandler f <+> ServerHandler g = ServerHandler $ \(a, s) ->
-    f (a, s) >>= \case
-      (Left _e, _s') -> g (a, s)
-      (Right b, s') -> pure (Right b, s')
-
-instance (Monad m) => ArrowChoice (ServerHandler m) where
-  {-# INLINE left #-}
-  left (ServerHandler f) = ServerHandler $ \(bd, s) ->
-    case bd of
-      Right d -> pure (Right (Right d), s)
-      Left b ->
-        f (b, s) >>= \case
-          (Left e, s') -> pure (Left e, s')
-          (Right c, s') -> pure (Right (Left c), s')
-
-  {-# INLINE right #-}
-  right (ServerHandler f) = ServerHandler $ \(db, s) ->
-    case db of
-      Left d -> pure (Right (Left d), s)
-      Right b ->
-        f (b, s) >>= \case
-          (Left e, s') -> pure (Left e, s')
-          (Right c, s') -> pure (Right (Right c), s')
+newtype ServerHandler m a b = ServerHandler
+  { unServerHandler :: a -> StateT RoutePath (ExceptT RouteMismatch m) b
+  }
+  deriving
+    ( Cat.Category
+    , Arrow
+    , ArrowZero
+    , ArrowPlus
+    , ArrowChoice
+    )
+    via Kleisli (StateT RoutePath (ExceptT RouteMismatch m))
 
 instance (Monad m) => ArrowError RouteMismatch (ServerHandler m) where
   {-# INLINE raise #-}
-  raise = ServerHandler $ \(e, s) -> pure (Left e, s)
+  raise :: ServerHandler m RouteMismatch b
+  raise = ServerHandler throwError
 
   {-# INLINE handle #-}
-  (ServerHandler action) `handle` (ServerHandler errHandler) = ServerHandler $ \(a, s) ->
-    action (a, s) >>= \case
-      (Left e, s') -> errHandler ((a, e), s')
-      (Right b, s') -> pure (Right b, s')
+  handle ::
+    ServerHandler m a b ->
+    ServerHandler m (a, RouteMismatch) b ->
+    ServerHandler m a b
+  (ServerHandler action) `handle` (ServerHandler errHandler) =
+    ServerHandler $ \a ->
+      action a `catchError` \e -> errHandler (a, e)
 
   {-# INLINE tryInUnless #-}
+  tryInUnless ::
+    ServerHandler m a b ->
+    ServerHandler m (a, b) c ->
+    ServerHandler m (a, RouteMismatch) c ->
+    ServerHandler m a c
   tryInUnless (ServerHandler action) (ServerHandler resHandler) (ServerHandler errHandler) =
-    ServerHandler $ \(a, s) ->
-      action (a, s) >>= \case
-        (Left e, s') -> errHandler ((a, e), s')
-        (Right b, s') -> resHandler ((a, b), s')
+    ServerHandler $ \a ->
+      f a `catchError` \e -> errHandler (a, e)
+    where
+      f a = do
+        b <- action a
+        resHandler (a, b)
 
 instance (Monad m) => Handler (ServerHandler m) m where
   {-# INLINE arrM #-}
   arrM :: (a -> m b) -> ServerHandler m a b
-  arrM f = ServerHandler $ \(a, s) -> f a >>= \b -> pure (Right b, s)
+  arrM f = ServerHandler $ lift . lift . f
 
   {-# INLINE consumeRoute #-}
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a
-  consumeRoute (ServerHandler h) = ServerHandler
-    $ \((), path) -> h (path, RoutePath [])
+  consumeRoute (ServerHandler h) =
+    ServerHandler
+      $ \() -> do
+        a <- get >>= h
+        put (RoutePath [])
+        pure a
 
   {-# INLINE setDescription #-}
   setDescription :: Description -> ServerHandler m a a
@@ -133,7 +129,8 @@ runServerHandler ::
   a ->
   -- | The result of the arrow
   m (Either RouteMismatch b)
-runServerHandler (ServerHandler h) path a = fst <$> h (a, path)
+runServerHandler (ServerHandler h) path a =
+  runExceptT $ evalStateT (h a) path
 {-# INLINE runServerHandler #-}
 
 -- | Convert a ServerHandler to a WAI application
@@ -189,5 +186,5 @@ transform ::
   ServerHandler m a b ->
   ServerHandler n a b
 transform f (ServerHandler g) =
-  ServerHandler $ f . g
+  ServerHandler $ mapStateT (mapExceptT f) . g
 {-# INLINE transform #-}
