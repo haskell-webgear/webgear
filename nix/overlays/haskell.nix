@@ -9,11 +9,16 @@ let
   defaultGHCVersion = "962";
 
   localHsPackages = {
+    # Libraries
     "webgear-core" = ../../webgear-core;
     "webgear-server" = ../../webgear-server;
     "webgear-swagger" = ../../webgear-swagger;
     "webgear-openapi" = ../../webgear-openapi;
     "webgear-benchmarks" = ../../webgear-benchmarks;
+
+    # Examples
+    "webgear-example-users" = ../../webgear-example-users;
+    "webgear-example-realworld" = ../../webgear-example-realworld;
   };
 
   mkLocalDerivation = hspkgs: name: path:
@@ -73,6 +78,7 @@ let
             hsPkgs.ghc
             final.hlint
             final.stack
+            final.newman
           ] ++ final.lib.optionals (ghcVersion == defaultGHCVersion) [
             haskell.packages."ghc${defaultGHCVersion}".fourmolu
           ];
