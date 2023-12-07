@@ -18,6 +18,7 @@ let
 
     # Examples
     "webgear-example-users" = ../../webgear-example-users;
+    "webgear-example-realworld" = ../../webgear-example-realworld;
   };
 
   mkLocalDerivation = hspkgs: name: path:

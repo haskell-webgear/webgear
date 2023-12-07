@@ -1,0 +1,100 @@
+cabal-version:       2.4
+name:                webgear-example-realworld
+version:             1.1.0
+description:         Please see the README at <https://github.com/haskell-webgear/webgear/webgear-example-realworld#readme>
+homepage:            https://github.com/haskell-webgear/webgear/webgear-example-realworld#readme
+bug-reports:         https://github.com/haskell-webgear/webgear/issues
+author:              Raghu Kaippully
+maintainer:          rkaippully@gmail.com
+copyright:           2020-2023 Raghu Kaippully
+license:             MPL-2.0
+license-file:        LICENSE
+build-type:          Simple
+extra-source-files:  README.md
+
+
+source-repository head
+  type:      git
+  location:  https://github.com/haskell-webgear/webgear-example-realworld
+
+executable realworld
+  default-language:   Haskell2010
+  build-depends:      aeson
+                    , base
+                    , bytestring
+                    , cryptonite
+                    , esqueleto
+                    , http-api-data
+                    , http-types
+                    , jose
+                    , lens
+                    , mime-types
+                    , monad-logger
+                    , monad-time
+                    , mtl
+                    , openapi3
+                    , persistent
+                    , persistent-sqlite
+                    , random
+                    , relude
+                    , resource-pool
+                    , safe-exceptions
+                    , text
+                    , time
+                    , uri-encode
+                    , wai
+                    , warp
+                    , webgear-server
+                    , webgear-openapi
+  default-extensions: Arrows
+                      DataKinds
+                      DeriveAnyClass
+                      DeriveGeneric
+                      DerivingStrategies
+                      DuplicateRecordFields
+                      FlexibleContexts
+                      FlexibleInstances
+                      GeneralizedNewtypeDeriving
+                      KindSignatures
+                      LambdaCase
+                      MultiParamTypeClasses
+                      NoImplicitPrelude
+                      OverloadedStrings
+                      QuasiQuotes
+                      RecordWildCards
+                      ScopedTypeVariables
+                      TypeApplications
+                      TypeOperators
+  ghc-options:        -threaded
+                      -rtsopts
+                      -with-rtsopts=-N
+                      -Wall
+                      -Wno-unticked-promoted-constructors
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wmissing-fields
+                      -Wmissing-home-modules
+                      -Wmissing-deriving-strategies
+                      -Wpartial-fields
+                      -Wredundant-constraints
+                      -Wunused-packages
+                      -Werror
+                      -fshow-warning-groups
+  hs-source-dirs:     src
+  main-is:            Main.hs
+  other-modules:      API.Article
+                    , API.Comment
+                    , API.Common
+                    , API.Profile
+                    , API.Tag
+                    , API.UI
+                    , API.User
+                    , Model.Entities
+                    , Model.Article
+                    , Model.Comment
+                    , Model.Profile
+                    , Model.Tag
+                    , Model.User
+                    , Model.Common

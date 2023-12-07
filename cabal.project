@@ -4,3 +4,4 @@ packages: webgear-core/
           webgear-openapi/
           webgear-benchmarks/
           webgear-example-users/
+          webgear-example-realworld/

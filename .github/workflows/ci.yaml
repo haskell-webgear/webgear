@@ -56,8 +56,9 @@ jobs:
         if: matrix.ghc == '9.6.2'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
-          nix build --print-build-logs --no-link      \
-            .#webgear-example-users-ghc${GHC_VERSION}
+          nix build --print-build-logs --no-link           \
+            .#webgear-example-users-ghc${GHC_VERSION}      \
+            .#webgear-example-realworld-ghc${GHC_VERSION}
 
       - name: Benchmark
         run: |
