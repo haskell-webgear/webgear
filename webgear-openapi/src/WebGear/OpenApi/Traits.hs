@@ -8,6 +8,7 @@ module WebGear.OpenApi.Traits () where
 import WebGear.OpenApi.Trait.Auth.Basic ()
 import WebGear.OpenApi.Trait.Auth.JWT ()
 import WebGear.OpenApi.Trait.Body ()
+import WebGear.OpenApi.Trait.Cookie ()
 import WebGear.OpenApi.Trait.Header ()
 import WebGear.OpenApi.Trait.Method ()
 import WebGear.OpenApi.Trait.Path ()

@@ -4,6 +4,7 @@ module WebGear.Core.Traits (
   module WebGear.Core.Trait.Auth.JWT,
   module WebGear.Core.Trait.Auth.Common,
   module WebGear.Core.Trait.Body,
+  module WebGear.Core.Trait.Cookie,
   module WebGear.Core.Trait.Header,
   module WebGear.Core.Trait.Method,
   module WebGear.Core.Trait.Path,
@@ -22,6 +23,7 @@ import WebGear.Core.Trait.Auth.Basic
 import WebGear.Core.Trait.Auth.Common
 import WebGear.Core.Trait.Auth.JWT
 import WebGear.Core.Trait.Body
+import WebGear.Core.Trait.Cookie
 import WebGear.Core.Trait.Header
 import WebGear.Core.Trait.Method
 import WebGear.Core.Trait.Path
