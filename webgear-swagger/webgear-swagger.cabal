@@ -32,6 +32,7 @@ library
                     , WebGear.Swagger.Trait.Auth.Basic
                     , WebGear.Swagger.Trait.Auth.JWT
                     , WebGear.Swagger.Trait.Body
+                    , WebGear.Swagger.Trait.Cookie
                     , WebGear.Swagger.Trait.Header
                     , WebGear.Swagger.Trait.Method
                     , WebGear.Swagger.Trait.Path

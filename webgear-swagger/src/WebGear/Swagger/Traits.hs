@@ -8,6 +8,7 @@ module WebGear.Swagger.Traits () where
 import WebGear.Swagger.Trait.Auth.Basic ()
 import WebGear.Swagger.Trait.Auth.JWT ()
 import WebGear.Swagger.Trait.Body ()
+import WebGear.Swagger.Trait.Cookie ()
 import WebGear.Swagger.Trait.Header ()
 import WebGear.Swagger.Trait.Method ()
 import WebGear.Swagger.Trait.Path ()

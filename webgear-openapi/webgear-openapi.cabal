@@ -32,6 +32,7 @@ library
                     , WebGear.OpenApi.Trait.Auth.Basic
                     , WebGear.OpenApi.Trait.Auth.JWT
                     , WebGear.OpenApi.Trait.Body
+                    , WebGear.OpenApi.Trait.Cookie
                     , WebGear.OpenApi.Trait.Header
                     , WebGear.OpenApi.Trait.Method
                     , WebGear.OpenApi.Trait.Path

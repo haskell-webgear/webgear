@@ -8,6 +8,7 @@ module WebGear.Server.Traits () where
 import WebGear.Server.Trait.Auth.Basic ()
 import WebGear.Server.Trait.Auth.JWT ()
 import WebGear.Server.Trait.Body ()
+import WebGear.Server.Trait.Cookie ()
 import WebGear.Server.Trait.Header ()
 import WebGear.Server.Trait.Method ()
 import WebGear.Server.Trait.Path ()
