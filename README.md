@@ -17,9 +17,8 @@ This is the main repository of WebGear project. It contains multiple packages:
 
 Examples of WebGear applications can be found at:
 
-- https://github.com/haskell-webgear/webgear-example-hello
-- https://github.com/haskell-webgear/webgear-example-users
-- https://github.com/haskell-webgear/webgear-example-realworld
+- https://github.com/haskell-webgear/webgear/webgear-example-users
+- https://github.com/haskell-webgear/webgear/webgear-example-realworld
 
 Documentation is available at https://haskell-webgear.github.io
 

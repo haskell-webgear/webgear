@@ -3,3 +3,4 @@ packages: webgear-core/
           webgear-swagger/
           webgear-openapi/
           webgear-benchmarks/
+          webgear-example-users/
