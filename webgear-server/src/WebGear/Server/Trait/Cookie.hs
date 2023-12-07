@@ -5,6 +5,7 @@ module WebGear.Server.Trait.Cookie () where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.ByteString (ByteString)
+import Data.ByteString.Conversion (toByteString')
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
@@ -67,7 +68,7 @@ instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Require
   setTrait SetCookie f = proc (l, cookie) -> do
     let cookieName :: ByteString = fromString $ symbolVal $ Proxy @name
         response@Response{..} = unwitness l
-        response' = response{responseHeaders = ("Set-Cookie", Cookie.renderSetCookieBS (cookie{Cookie.setCookieName = cookieName})) : responseHeaders}
+        response' = response{responseHeaders = ("Set-Cookie", cookieToBS cookieName cookie) : responseHeaders}
     returnA -< f l response' cookie
 
 instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optional name) Response where
@@ -84,10 +85,16 @@ instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optiona
     returnA -< f l response' maybeCookie
 
 alterCookie :: ByteString -> Maybe Cookie.SetCookie -> ResponseHeaders -> ResponseHeaders
-alterCookie name (Just cookie) hdrs = ("Set-Cookie", Cookie.renderSetCookieBS cookie{Cookie.setCookieName = name}) : hdrs
+alterCookie name (Just cookie) hdrs = ("Set-Cookie", cookieToBS name cookie) : hdrs
 alterCookie name Nothing hdrs = filter (not . isMatchingCookie) hdrs
   where
     isMatchingCookie :: Header -> Bool
     isMatchingCookie (hdrName, hdrVal) =
       (hdrName == "Set-Cookie")
         && (name == Cookie.setCookieName (Cookie.parseSetCookie hdrVal))
+
+cookieToBS :: ByteString -> Cookie.SetCookie -> ByteString
+cookieToBS name cookie =
+  toByteString'
+    $ Cookie.renderSetCookie
+    $ cookie{Cookie.setCookieName = name}
