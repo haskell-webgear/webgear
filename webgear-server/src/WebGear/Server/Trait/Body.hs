@@ -16,15 +16,13 @@ import qualified Data.Text.Lazy as LText
 import qualified Data.Text.Lazy.Encoding as LText
 import Network.Wai (lazyRequestBody)
 import WebGear.Core.Handler (Handler (..))
+import WebGear.Core.MIMEType.JSON (JSON')
+import WebGear.Core.MIMEType.OctetStream (OctetStream)
+import WebGear.Core.MIMEType.PlainText (PlainText)
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response (..), ResponseBody (ResponseBodyBuilder))
 import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
-import WebGear.Core.Trait.Body (
-  Body (..),
-  JSON',
-  OctetStream,
-  PlainText,
- )
+import WebGear.Core.Trait.Body (Body (..))
 import WebGear.Server.Handler (ServerHandler)
 
 instance

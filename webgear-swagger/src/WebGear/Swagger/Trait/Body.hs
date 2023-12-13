@@ -8,10 +8,11 @@ import Data.Proxy (Proxy (..))
 import Data.Swagger hiding (Response)
 import Data.Swagger.Declare (runDeclare)
 import Data.Text (Text)
+import WebGear.Core.MIMEType (MIMETypes (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Set (..), With)
-import WebGear.Core.Trait.Body (Body (..), MIMETypes, mimeTypes)
+import WebGear.Core.Trait.Body (Body (..))
 import WebGear.Swagger.Handler (
   DocNode (DocRequestBody, DocResponseBody),
   SwaggerHandler (..),

@@ -12,7 +12,8 @@ import GHC.Exts (fromList)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response (..))
 import WebGear.Core.Trait (Get (..), Set (..), With)
-import WebGear.Core.Trait.Body (Body (..), MIMETypes (..))
+import WebGear.Core.Trait.Body (Body (..))
+import WebGear.Core.MIMEType (MIMETypes (..))
 import WebGear.OpenApi.Handler (
   DocNode (DocRequestBody, DocResponseBody),
   OpenApiHandler (..),

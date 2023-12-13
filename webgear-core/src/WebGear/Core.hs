@@ -22,6 +22,10 @@ module WebGear.Core (
   module WebGear.Core.Handler,
   module WebGear.Core.Handler.Static,
   module WebGear.Core.Traits,
+  module WebGear.Core.MIMEType,
+  module WebGear.Core.MIMEType.PlainText,
+  module WebGear.Core.MIMEType.JSON,
+  module WebGear.Core.MIMEType.OctetStream,
 ) where
 
 import Control.Arrow
@@ -35,3 +39,8 @@ import WebGear.Core.Request
 import WebGear.Core.Response
 import WebGear.Core.Trait
 import WebGear.Core.Traits
+
+import WebGear.Core.MIMEType
+import WebGear.Core.MIMEType.PlainText
+import WebGear.Core.MIMEType.JSON
+import WebGear.Core.MIMEType.OctetStream

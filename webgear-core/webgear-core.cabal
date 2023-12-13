@@ -91,6 +91,10 @@ library
                     , WebGear.Core.Request
                     , WebGear.Core.Response
                     , WebGear.Core.Handler
+                    , WebGear.Core.MIMEType
+                    , WebGear.Core.MIMEType.OctetStream
+                    , WebGear.Core.MIMEType.PlainText
+                    , WebGear.Core.MIMEType.JSON
                     , WebGear.Core.Traits
                     , WebGear.Core.Trait.Auth.Basic
                     , WebGear.Core.Trait.Auth.JWT

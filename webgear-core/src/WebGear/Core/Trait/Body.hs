@@ -17,14 +17,6 @@ module WebGear.Core.Trait.Body (
   -- * Traits
   Body (..),
 
-  -- * MIME type handling
-  MIMEType (..),
-  MIMETypes (..),
-  OctetStream,
-  PlainText,
-  JSON',
-  JSON,
-
   -- * Middlewares
   requestBody,
   respondA,
@@ -35,13 +27,12 @@ module WebGear.Core.Trait.Body (
 import Control.Arrow (ArrowChoice, (<<<))
 import Data.Kind (Type)
 import Data.Proxy (Proxy (..))
-import Data.String (fromString)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
-import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Handler, Middleware, unwitnessA)
+import WebGear.Core.MIMEType (MIMEType (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get, Set, Sets, Trait (..), TraitAbsence (..), With, plant, probe)
@@ -59,48 +50,6 @@ instance TraitAbsence (Body mts t) Request where
 
 instance Trait (Body mts t) Response where
   type Attribute (Body mts t) Response = t
-
--- | Instances of this class represent MIME types of the resources
-class MIMEType (t :: Type) where
-  -- | Used for the "Accept" header of the request and the
-  -- "Content-Type" header of the response.
-  mimeType :: Proxy t -> HTTP.MediaType
-
--- | The application/octet-stream MIME type
-data OctetStream
-
-instance MIMEType OctetStream where
-  mimeType :: Proxy OctetStream -> HTTP.MediaType
-  mimeType _ = "application/octet-stream"
-
--- | The text/plain MIME type with charset set to utf-8
-data PlainText
-
-instance MIMEType PlainText where
-  mimeType :: Proxy PlainText -> HTTP.MediaType
-  mimeType _ = "text/plain;charset=utf-8"
-
--- | A JSON MIME type with customizable media type
-data JSON' (mediaType :: Symbol)
-
-instance (KnownSymbol mt) => MIMEType (JSON' mt) where
-  mimeType :: Proxy (JSON' mt) -> HTTP.MediaType
-  mimeType _ = fromString $ symbolVal (Proxy @mt)
-
--- | The application/json MIME type
-type JSON = JSON' "application/json"
-
--- | A list of 'MIMEType's
-class MIMETypes (ts :: [Type]) where
-  mimeTypes :: Proxy ts -> [HTTP.MediaType]
-
-instance MIMETypes '[] where
-  mimeTypes :: Proxy '[] -> [HTTP.MediaType]
-  mimeTypes _ = []
-
-instance (MIMEType t, MIMETypes ts) => MIMETypes (t : ts) where
-  mimeTypes :: Proxy (t : ts) -> [HTTP.MediaType]
-  mimeTypes _ = mimeType (Proxy @t) : mimeTypes (Proxy @ts)
 
 {- | Middleware to extract a request body.
 
