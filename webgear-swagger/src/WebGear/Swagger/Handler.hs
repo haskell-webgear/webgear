@@ -35,7 +35,7 @@ data Tree a
 data DocNode
   = DocSecurityScheme Text SecurityScheme
   | DocRequestBody (Definitions Schema) MimeList Param
-  | DocResponseBody (Definitions Schema) MimeList (Referenced Schema)
+  | DocResponseBody (Definitions Schema) MimeList (Maybe (Referenced Schema))
   | DocRequestHeader Param
   | DocResponseHeader HeaderName Header
   | DocMethod HTTP.StdMethod
@@ -51,7 +51,7 @@ data DocNode
 data CompactDocNode
   = CDocSecurityScheme Text SecurityScheme
   | CDocRequestBody (Definitions Schema) MimeList Param
-  | CDocResponseBody (Definitions Schema) MimeList (Referenced Schema)
+  | CDocResponseBody (Definitions Schema) MimeList (Maybe (Referenced Schema))
   | CDocRequestHeader Param
   | CDocResponseHeader HeaderName Header
   | CDocMethod HTTP.StdMethod
@@ -336,7 +336,7 @@ mergeDoc (CDocStatus status descr) child doc =
      in doc' & paths <>~ [("/", pathItem)]
 mergeDoc (CDocResponseBody defs mimeList responseSchema) child doc =
   postOrder child doc $ \doc' ->
-    let resp = mempty @Response & schema ?~ responseSchema
+    let resp = mempty @Response & schema .~ responseSchema
      in doc'
           & allOperations
             %~ ( \op ->

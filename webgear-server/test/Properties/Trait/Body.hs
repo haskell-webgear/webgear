@@ -13,14 +13,15 @@ import Test.QuickCheck.Instances ()
 import Test.QuickCheck.Monadic (assert, monadicIO, monitor)
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck (testProperties)
+import WebGear.Core.MIMEType.JSON (JSON (..))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Trait (With, getTrait, wzero)
-import WebGear.Core.Trait.Body (Body (..), JSON)
+import WebGear.Core.Trait.Body (Body (..))
 import WebGear.Server.Handler (runServerHandler)
 import WebGear.Server.Trait.Body ()
 
-jsonBody :: Body '[JSON] t
-jsonBody = Body
+jsonBody :: Body JSON t
+jsonBody = Body JSON
 
 bodyToRequest :: (MonadIO m, Show a) => a -> m (Request `With` '[])
 bodyToRequest x = do
