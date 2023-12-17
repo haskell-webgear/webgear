@@ -29,4 +29,14 @@ cradle:
       config:
         cradle:
           cabal:
-            component: "exe:users"
+            component: "webgear-benchmarks:exe:users"
+    - path: "./webgear-example-users/src"
+      config:
+        cradle:
+          cabal:
+            component: "webgear-example-users:exe:users"
+    - path: "./webgear-example-realworld/src"
+      config:
+        cradle:
+          cabal:
+            component: "webgear-example-realworld:exe:realworld"
