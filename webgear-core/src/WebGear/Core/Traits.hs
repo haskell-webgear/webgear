@@ -44,9 +44,9 @@ type StdHandler h m =
   , Sets
       h
       '[ Status
-       , Body '[PlainText] String
-       , Body '[PlainText] Text.Text
-       , Body '[PlainText] LText.Text
+       , Body PlainText String
+       , Body PlainText Text.Text
+       , Body PlainText LText.Text
        ]
       Response
   )

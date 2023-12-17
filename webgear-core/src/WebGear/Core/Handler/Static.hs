@@ -14,7 +14,7 @@ import WebGear.Core.Handler (Handler (..), RoutePath (..), unwitnessA, (>->))
 import WebGear.Core.Request (Request (..))
 import WebGear.Core.Response (Response, ResponseBody (..))
 import WebGear.Core.Trait (Sets, With)
-import WebGear.Core.Trait.Body (Body, setBodyWithoutContentType)
+import WebGear.Core.Trait.Body (UnknownContentBody, setBodyWithoutContentType)
 import WebGear.Core.Trait.Header (RequiredResponseHeader, setHeader)
 import WebGear.Core.Trait.Status (Status, notFound404, ok200)
 import Prelude hiding (readFile)
@@ -22,7 +22,13 @@ import Prelude hiding (readFile)
 -- | Serve files under the specified directory.
 serveDir ::
   ( Handler h m
-  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body '[] ResponseBody] Response
+  , Sets
+      h
+      [ Status
+      , RequiredResponseHeader "Content-Type" Mime.MimeType
+      , UnknownContentBody
+      ]
+      Response
   ) =>
   -- | The directory to serve
   FilePath ->
@@ -42,7 +48,13 @@ serveDir root index = proc _request -> consumeRoute go -< ()
 -- | Serve a file specified by the input filepath.
 serveFile ::
   ( Handler h m
-  , Sets h [Status, RequiredResponseHeader "Content-Type" Mime.MimeType, Body '[] ResponseBody] Response
+  , Sets
+      h
+      [ Status
+      , RequiredResponseHeader "Content-Type" Mime.MimeType
+      , UnknownContentBody
+      ]
+      Response
   ) =>
   h FilePath Response
 serveFile = proc file -> do
