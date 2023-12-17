@@ -67,6 +67,7 @@ common webgear-common
                     , template-haskell >=2.15.0.0 && <2.21
                     , text >=1.2.0.0 && <2.2
                     , wai ==3.2.*
+                    , wai-extra ==3.1.*
   ghc-options:        -Wall
                       -Wno-unticked-promoted-constructors
                       -Wcompat
@@ -92,9 +93,11 @@ library
                     , WebGear.Core.Response
                     , WebGear.Core.Handler
                     , WebGear.Core.MIMEType
+                    , WebGear.Core.MIMEType.FormURLEncoded
+                    , WebGear.Core.MIMEType.JSON
+                    , WebGear.Core.MIMEType.MultiPartFormData
                     , WebGear.Core.MIMEType.OctetStream
                     , WebGear.Core.MIMEType.PlainText
-                    , WebGear.Core.MIMEType.JSON
                     , WebGear.Core.Traits
                     , WebGear.Core.Trait.Auth.Basic
                     , WebGear.Core.Trait.Auth.JWT

@@ -1,20 +1,23 @@
 module WebGear.Core.MIMEType.JSON (
-  JSON',
-  JSON,
+  JSON (..),
 ) where
 
-import Data.Proxy (Proxy (..))
 import Data.String (fromString)
-import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
+import Data.Text (Text, unpack)
 import qualified Network.HTTP.Media as HTTP
 import WebGear.Core.MIMEType (MIMEType (..))
 
 -- | A JSON MIME type with customizable media type
-data JSON' (mediaType :: Symbol)
+data JSON
+  = -- | JSON with a specific media type
+    JSONMedia Text
+  | -- | application/json media type
+    JSON
 
-instance (KnownSymbol mt) => MIMEType (JSON' mt) where
-  mimeType :: Proxy (JSON' mt) -> HTTP.MediaType
-  mimeType _ = fromString $ symbolVal (Proxy @mt)
-
--- | The application/json MIME type
-type JSON = JSON' "application/json"
+instance MIMEType JSON where
+  mimeType :: JSON -> HTTP.MediaType
+  mimeType =
+    \case
+      JSONMedia mt -> fromString (unpack mt)
+      JSON -> "application/json"
+  {-# INLINE mimeType #-}

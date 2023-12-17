@@ -1,14 +1,14 @@
 module WebGear.Core.MIMEType.OctetStream (
-  OctetStream,
+  OctetStream (..),
 ) where
 
-import Data.Proxy (Proxy)
 import qualified Network.HTTP.Media as HTTP
 import WebGear.Core.MIMEType (MIMEType (..))
 
 -- | The application/octet-stream MIME type
-data OctetStream
+data OctetStream = OctetStream
 
 instance MIMEType OctetStream where
-  mimeType :: Proxy OctetStream -> HTTP.MediaType
-  mimeType _ = "application/octet-stream"
+  mimeType :: OctetStream -> HTTP.MediaType
+  mimeType OctetStream = "application/octet-stream"
+  {-# INLINE mimeType #-}
