@@ -23,7 +23,6 @@ import qualified Data.HashMap.Strict as HM
 import Data.Hashable (Hashable)
 import Data.IORef (IORef, modifyIORef, newIORef, readIORef)
 import Data.Maybe (isJust)
-import Data.Proxy (Proxy (..))
 import Data.Time.Calendar (Day)
 import GHC.Generics (Generic)
 import qualified Network.HTTP.Types as HTTP
@@ -110,7 +109,7 @@ userRoutes =
 publicRoutes ::
   ( HasTrait IntUserId req
   , StdHandler h App
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h req
 publicRoutes = getUser
@@ -120,8 +119,8 @@ protectedRoutes ::
   forall h req.
   ( HasTrait IntUserId req
   , StdHandler h App
-  , Gets h '[BasicAuth App () Credentials, Body '[JSON] User] Request
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Gets h '[BasicAuth App () Credentials, Body JSON User] Request
+  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h req
 protectedRoutes = basicAuth authConfig authError $ putUser <+> deleteUser
@@ -129,15 +128,15 @@ protectedRoutes = basicAuth authConfig authError $ putUser <+> deleteUser
     authError :: h (Request `With` req, BasicAuthError ()) Response
     authError = proc (_request, err) -> case err of
       BasicAuthAttributeError () ->
-        respondA HTTP.forbidden403 (Proxy @PlainText) -< "Forbidden" :: Text
+        respondA HTTP.forbidden403 PlainText -< "Forbidden" :: Text
       _ ->
-        respondA HTTP.unauthorized401 (Proxy @PlainText) -< "Unauthorized" :: Text
+        respondA HTTP.unauthorized401 PlainText -< "Unauthorized" :: Text
 
 getUser ::
   forall h req.
   ( HasTrait IntUserId req
   , StdHandler h App
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h req
 getUser = method HTTP.GET
@@ -146,7 +145,7 @@ getUser = method HTTP.GET
     maybeUser <- fetchUser -< uid
     case maybeUser of
       Nothing -> unwitnessA . notFound404 -< ()
-      Just user -> respondA HTTP.ok200 (Proxy @JSON) -< user
+      Just user -> respondA HTTP.ok200 JSON -< user
   where
     fetchUser :: h UserId (Maybe User)
     fetchUser = arrM $ \uid -> do
@@ -157,22 +156,22 @@ putUser ::
   forall h req.
   ( HaveTraits [Auth, IntUserId] req
   , StdHandler h App
-  , Get h (Body '[JSON] User) Request
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Get h (Body JSON User) Request
+  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h req
 putUser = method HTTP.PUT
-  $ requestBody @'[JSON] @User badRequestBody
+  $ requestBody @User JSON badRequestBody
   $ proc request -> do
     let uid = pick @IntUserId $ from request
-        user = pick @(Body '[JSON] User) $ from request
+        user = pick @(Body JSON User) $ from request
         user' = user{userId = uid}
     doAdd -< (request, user')
-    respondA HTTP.ok200 (Proxy @JSON) -< user'
+    respondA HTTP.ok200 JSON -< user'
   where
     badRequestBody :: h a Response
     badRequestBody = proc _ ->
-      respondA HTTP.badRequest400 (Proxy @PlainText) -< "Could not parse body" :: Text
+      respondA HTTP.badRequest400 PlainText -< "Could not parse body" :: Text
 
     doAdd = arrM $ \(request, user) -> do
       store <- ask

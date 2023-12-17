@@ -10,7 +10,7 @@ assets ::
   , Sets
       h
       [ RequiredResponseHeader "Content-Type" MimeType
-      , Body '[] ResponseBody
+      , UnknownContentBody
       ]
       Response
   ) =>
@@ -22,7 +22,7 @@ index ::
   , Sets
       h
       [ RequiredResponseHeader "Content-Type" MimeType
-      , Body '[] ResponseBody
+      , UnknownContentBody
       ]
       Response
   ) =>

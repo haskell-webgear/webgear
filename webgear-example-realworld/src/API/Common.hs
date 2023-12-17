@@ -83,7 +83,7 @@ withDoc summ descr handler = setSummary summ >>> setDescription descr >>> handle
 
 --------------------------------------------------------------------------------
 
-type JSONBody a = Body '[JSON] a
+type JSONBody a = Body JSON a
 
 -- Middlewares for JWT authentication with "token" scheme
 
@@ -173,14 +173,14 @@ respondJsonA ::
   ) =>
   HTTP.Status ->
   h body Response
-respondJsonA status = respondA status (Proxy @JSON)
+respondJsonA status = respondA status JSON
 
 jsonRequestBody ::
   forall t ts h m.
   (StdHandler h m, Get h (JSONBody t) Request) =>
   h (Request `With` ts, Text) Response ->
   Middleware h ts (JSONBody t : ts)
-jsonRequestBody = requestBody @'[JSON]
+jsonRequestBody = requestBody JSON
 
 badRequestBody ::
   ( StdHandler h m
