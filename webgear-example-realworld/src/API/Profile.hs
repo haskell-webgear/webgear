@@ -17,13 +17,13 @@ type ProfileResponse = Wrapped "profile" Model.Profile
 type PathVarUsername = PathVar "username" Text
 
 getByName ::
-  ( HasTrait PathVarUsername req
+  ( HasTrait PathVarUsername ts
   , StdHandler h App
   , Get h OptionalAuth Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ProfileResponse] Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 getByName jwk =
   withDoc "Get a user profile" "Get the profile of a user by name"
     $ optionalTokenAuth jwk
@@ -39,13 +39,13 @@ getByName jwk =
       runDBAction $ Model.getByName maybeCurrentUserId username
 
 follow ::
-  ( HasTrait PathVarUsername req
+  ( HasTrait PathVarUsername ts
   , StdHandler h App
   , Get h RequiredAuth Request
   , Sets h (JSONBodyOrError ProfileResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 follow jwk =
   withDoc "Follow a user" ""
     $ requiredTokenAuth jwk
@@ -61,13 +61,13 @@ follow jwk =
       runDBAction $ Model.follow currentUserId username
 
 unfollow ::
-  ( HasTrait PathVarUsername req
+  ( HasTrait PathVarUsername ts
   , StdHandler h App
   , Get h RequiredAuth Request
   , Sets h (JSONBodyOrError ProfileResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 unfollow jwk =
   withDoc "Unfollow a user" ""
     $ requiredTokenAuth jwk

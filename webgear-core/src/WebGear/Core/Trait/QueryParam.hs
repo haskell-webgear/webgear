@@ -92,10 +92,10 @@ instance TraitAbsence (QueryParam Optional Lenient name val) Request where
   type Absence (QueryParam Optional Lenient name val) Request = Void
 
 queryParamHandler ::
-  forall name val e p h req.
+  forall name val e p h ts.
   (Get h (QueryParam e p name val) Request, ArrowChoice h) =>
-  h (Request `With` req, Absence (QueryParam e p name val) Request) Response ->
-  Middleware h req (QueryParam e p name val : req)
+  h (Request `With` ts, Absence (QueryParam e p name val) Request) Response ->
+  Middleware h ts (QueryParam e p name val : ts)
 queryParamHandler errorHandler nextHandler = proc request -> do
   result <- probe QueryParam -< request
   case result of
@@ -113,10 +113,10 @@ queryParamHandler errorHandler nextHandler = proc request -> do
  > queryParam @"limit" @Integer errorHandler okHandler
 -}
 queryParam ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (QueryParam Required Strict name val) Request, ArrowChoice h) =>
-  h (Request `With` req, Either ParamNotFound ParamParseError) Response ->
-  Middleware h req (QueryParam Required Strict name val : req)
+  h (Request `With` ts, Either ParamNotFound ParamParseError) Response ->
+  Middleware h ts (QueryParam Required Strict name val : ts)
 queryParam = queryParamHandler
 {-# INLINE queryParam #-}
 
@@ -131,10 +131,10 @@ queryParam = queryParamHandler
  > optionalQueryParam @"limit" @Integer errorHandler okHandler
 -}
 optionalQueryParam ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (QueryParam Optional Strict name val) Request, ArrowChoice h) =>
-  h (Request `With` req, ParamParseError) Response ->
-  Middleware h req (QueryParam Optional Strict name val : req)
+  h (Request `With` ts, ParamParseError) Response ->
+  Middleware h ts (QueryParam Optional Strict name val : ts)
 optionalQueryParam = queryParamHandler
 {-# INLINE optionalQueryParam #-}
 
@@ -149,10 +149,10 @@ optionalQueryParam = queryParamHandler
  > lenientQueryParam @"limit" @Integer errorHandler okHandler
 -}
 lenientQueryParam ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (QueryParam Required Lenient name val) Request, ArrowChoice h) =>
-  h (Request `With` req, ParamNotFound) Response ->
-  Middleware h req (QueryParam Required Lenient name val : req)
+  h (Request `With` ts, ParamNotFound) Response ->
+  Middleware h ts (QueryParam Required Lenient name val : ts)
 lenientQueryParam = queryParamHandler
 {-# INLINE lenientQueryParam #-}
 
@@ -167,8 +167,8 @@ lenientQueryParam = queryParamHandler
  missing query parameters are reported in the trait attribute.
 -}
 optionalLenientQueryParam ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (QueryParam Optional Lenient name val) Request, ArrowChoice h) =>
-  Middleware h req (QueryParam Optional Lenient name val : req)
+  Middleware h ts (QueryParam Optional Lenient name val : ts)
 optionalLenientQueryParam = queryParamHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientQueryParam #-}

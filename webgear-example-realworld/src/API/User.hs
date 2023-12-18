@@ -24,7 +24,7 @@ create ::
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 create jwk =
   withDoc "Create new user" "Create a new user in the store"
     $ jsonRequestBody @CreateUserRequest badRequestBody
@@ -66,7 +66,7 @@ login ::
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 login jwk =
   withDoc "Authenticate a user" "Authenticate a user and return their record"
     $ jsonRequestBody @LoginUserRequest badRequestBody
@@ -96,7 +96,7 @@ current ::
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 current jwk =
   withDoc "Get current user" "Returns the record of authenticated user"
     $ requiredTokenAuth jwk
@@ -124,7 +124,7 @@ update ::
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 update jwk =
   withDoc "Update current user" "Update the authenticated user"
     $ requiredTokenAuth jwk

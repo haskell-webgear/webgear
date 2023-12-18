@@ -31,7 +31,7 @@ create ::
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 create jwk =
   withDoc "Create new article" "Add a new article to the store"
     $ requiredTokenAuth jwk
@@ -64,10 +64,10 @@ getBySlug ::
   ( StdHandler h App
   , Get h OptionalAuth Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ArticleResponse] Response
-  , HasTrait PathVarSlug req
+  , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 getBySlug jwk =
   withDoc "Retrieve an article" "Fetch an article by its slug"
     $ optionalTokenAuth jwk
@@ -89,14 +89,14 @@ getBySlug jwk =
 type UpdateArticleRequest = Wrapped "article" Model.UpdateArticlePayload
 
 update ::
-  forall h req.
-  ( HasTrait PathVarSlug req
+  forall h ts.
+  ( HasTrait PathVarSlug ts
   , StdHandler h App
   , Gets h [RequiredAuth, JSONBody UpdateArticleRequest] Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 update jwk =
   withDoc "Update an article" "Only the author can update their articles"
     $ requiredTokenAuth jwk
@@ -132,13 +132,13 @@ update jwk =
 --------------------------------------------------------------------------------
 
 delete ::
-  ( HasTrait PathVarSlug req
+  ( HasTrait PathVarSlug ts
   , StdHandler h App
   , Get h RequiredAuth Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 delete jwk =
   withDoc "Delete an article" "Only the auther can delete their articles"
     $ requiredTokenAuth jwk
@@ -161,13 +161,13 @@ data ArticleListResponse = ArticleListResponse
   deriving anyclass (ToJSON, ToSchema)
 
 param ::
-  forall name val h req.
+  forall name val h ts.
   ( StdHandler h App
   , Get h (OptionalQueryParam name val) Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
   Description ->
-  Middleware h req (OptionalQueryParam name val : req)
+  Middleware h ts (OptionalQueryParam name val : ts)
 param descr nextHandler = optionalQueryParam badRequestParam $ nextHandler . setDescription descr
 
 list ::
@@ -185,7 +185,7 @@ list ::
   , Sets h (JSONBodyOrError ArticleListResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 list jwk =
   withDoc "Search articles" "Filter articles by query parameters"
     $ optionalTokenAuth jwk
@@ -223,7 +223,7 @@ feed ::
   , Sets h (JSONBodyOrError ArticleListResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 feed jwk =
   withDoc "Feed of articles" "Get a list of article the current user follows"
     $ requiredTokenAuth jwk
@@ -244,13 +244,13 @@ feed jwk =
 --------------------------------------------------------------------------------
 
 favorite ::
-  ( HasTrait PathVarSlug req
+  ( HasTrait PathVarSlug ts
   , StdHandler h App
   , Get h RequiredAuth Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 favorite jwk =
   withDoc "Favorite article" "Flag an article as favorite"
     $ requiredTokenAuth jwk
@@ -270,13 +270,13 @@ favorite jwk =
 --------------------------------------------------------------------------------
 
 unfavorite ::
-  ( HasTrait PathVarSlug req
+  ( HasTrait PathVarSlug ts
   , StdHandler h App
   , Get h RequiredAuth Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 unfavorite jwk =
   withDoc "Unfavorite article" "Remove the favorite flag from an article"
     $ requiredTokenAuth jwk

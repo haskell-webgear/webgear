@@ -22,10 +22,10 @@ create ::
   ( StdHandler h App
   , Gets h [RequiredAuth, JSONBody CreateCommentRequest] Request
   , Sets h (JSONBodyOrError CommentResponse) Response
-  , HasTrait PathVarSlug req
+  , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 create jwk =
   withDoc "Add a new comment" "Add a comment to an article"
     $ requiredTokenAuth jwk
@@ -50,10 +50,10 @@ list ::
   ( StdHandler h App
   , Get h OptionalAuth Request
   , Sets h (JSONBodyOrError CommentListResponse) Response
-  , HasTrait PathVarSlug req
+  , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 list jwk =
   withDoc "List comments" "List all comments of an article"
     $ optionalTokenAuth jwk
@@ -72,10 +72,10 @@ delete ::
   ( StdHandler h App
   , Get h RequiredAuth Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
-  , HaveTraits [PathVarSlug, PathVarCommentId] req
+  , HaveTraits [PathVarSlug, PathVarCommentId] ts
   ) =>
   JWT.JWK ->
-  RequestHandler h req
+  RequestHandler h ts
 delete jwk =
   withDoc "Delete a comment" "Only an author can delete their comments"
     $ requiredTokenAuth jwk

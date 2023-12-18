@@ -36,7 +36,7 @@ serveDir ::
   -- response will be returned for requests to the root path if this
   -- is set to @Nothing@.
   Maybe FilePath ->
-  h (Request `With` req) Response
+  h (Request `With` ts) Response
 serveDir root index = proc _request -> consumeRoute go -< ()
   where
     go = proc path -> do

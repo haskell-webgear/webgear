@@ -40,9 +40,9 @@ type AuthorizationHeader scheme = RequestHeader Optional Lenient "Authorization"
   The header is split into the scheme and token parts and returned.
 -}
 getAuthorizationHeaderTrait ::
-  forall scheme h req.
+  forall scheme h ts.
   (Get h (AuthorizationHeader scheme) Request) =>
-  h (Request `With` req) (Maybe (Either Text (AuthToken scheme)))
+  h (Request `With` ts) (Maybe (Either Text (AuthToken scheme)))
 getAuthorizationHeaderTrait = proc request -> do
   result <- getTrait (RequestHeader :: RequestHeader Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result

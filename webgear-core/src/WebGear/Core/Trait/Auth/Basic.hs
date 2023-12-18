@@ -22,7 +22,7 @@
  For example, given this handler:
 
  @
- myHandler :: ('Handler' h IO, 'HasTrait' ('BasicAuth' IO () 'Credentials') req) => 'RequestHandler' h req
+ myHandler :: ('Handler' h IO, 'HasTrait' ('BasicAuth' IO () 'Credentials') ts) => 'RequestHandler' h ts
  myHandler = ....
  @
 
@@ -35,7 +35,7 @@
  type ErrorTraits = [Status, RequiredRequestHeader \"Content-Type\" Text, RequiredRequestHeader \"WWW-Authenticate\" Text, Body Text]
 
  errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
-              => h (Request \`With\` req, 'BasicAuthError' e) Response
+              => h (Request \`With\` ts, 'BasicAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Basic\" \"MyRealm\"
  @
 
@@ -43,7 +43,7 @@
 
  @
  myHandlerWithAuth :: ('Handler' h IO, Get h ('BasicAuth' IO () 'Credentials') Request, Sets h ErrorTraits Response)
-                   => 'RequestHandler' h req
+                   => 'RequestHandler' h ts
  myHandlerWithAuth = 'basicAuth' authConfig errorHandler myHandler
  @
 
@@ -139,8 +139,8 @@ instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
 basicAuthMiddleware ::
   (Get h (BasicAuth' x scheme m e t) Request, ArrowChoice h) =>
   BasicAuth' x scheme m e t ->
-  h (Request `With` req, Absence (BasicAuth' x scheme m e t) Request) Response ->
-  Middleware h req (BasicAuth' x scheme m e t : req)
+  h (Request `With` ts, Absence (BasicAuth' x scheme m e t) Request) Response ->
+  Middleware h ts (BasicAuth' x scheme m e t : ts)
 basicAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
     result <- probe authCfg -< request
@@ -160,13 +160,13 @@ basicAuthMiddleware authCfg errorHandler nextHandler =
  retrieved successfully.
 -}
 basicAuth ::
-  forall m e t h req.
+  forall m e t h ts.
   (Get h (BasicAuth' Required "Basic" m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
   BasicAuth m e t ->
   -- | Error handler
-  h (Request `With` req, BasicAuthError e) Response ->
-  Middleware h req (BasicAuth m e t : req)
+  h (Request `With` ts, BasicAuthError e) Response ->
+  Middleware h ts (BasicAuth m e t : ts)
 basicAuth = basicAuth'
 {-# INLINE basicAuth #-}
 
@@ -177,13 +177,13 @@ basicAuth = basicAuth'
  > basicAuth' @"scheme" cfg errorHandler nextHandler
 -}
 basicAuth' ::
-  forall scheme m e t h req.
+  forall scheme m e t h ts.
   (Get h (BasicAuth' Required scheme m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
   BasicAuth' Required scheme m e t ->
   -- | Error handler
-  h (Request `With` req, BasicAuthError e) Response ->
-  Middleware h req (BasicAuth' Required scheme m e t : req)
+  h (Request `With` ts, BasicAuthError e) Response ->
+  Middleware h ts (BasicAuth' Required scheme m e t : ts)
 basicAuth' = basicAuthMiddleware
 {-# INLINE basicAuth' #-}
 
@@ -199,11 +199,11 @@ basicAuth' = basicAuthMiddleware
  authentication error appropriately.
 -}
 optionalBasicAuth ::
-  forall m e t h req.
+  forall m e t h ts.
   (Get h (BasicAuth' Optional "Basic" m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
   BasicAuth' Optional "Basic" m e t ->
-  Middleware h req (BasicAuth' Optional "Basic" m e t : req)
+  Middleware h ts (BasicAuth' Optional "Basic" m e t : ts)
 optionalBasicAuth = optionalBasicAuth'
 {-# INLINE optionalBasicAuth #-}
 
@@ -215,10 +215,10 @@ optionalBasicAuth = optionalBasicAuth'
  > optionalBasicAuth' @"scheme" cfg nextHandler
 -}
 optionalBasicAuth' ::
-  forall scheme m e t h req.
+  forall scheme m e t h ts.
   (Get h (BasicAuth' Optional scheme m e t) Request, ArrowChoice h) =>
   -- | Authentication configuration
   BasicAuth' Optional scheme m e t ->
-  Middleware h req (BasicAuth' Optional scheme m e t : req)
+  Middleware h ts (BasicAuth' Optional scheme m e t : ts)
 optionalBasicAuth' cfg = basicAuthMiddleware cfg $ arr (absurd . snd)
 {-# INLINE optionalBasicAuth' #-}

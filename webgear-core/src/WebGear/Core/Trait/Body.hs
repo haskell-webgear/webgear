@@ -128,9 +128,9 @@ Usage:
 @
 -}
 setBodyWithoutContentType ::
-  forall h res.
+  forall h ts.
   (Set h UnknownContentBody Response) =>
-  h (Response `With` res, ResponseBody) (Response `With` (UnknownContentBody : res))
+  h (Response `With` ts, ResponseBody) (Response `With` (UnknownContentBody : ts))
 setBodyWithoutContentType = plant UnknownContentBody
 {-# INLINE setBodyWithoutContentType #-}
 

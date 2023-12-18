@@ -110,11 +110,11 @@ instance TraitAbsence (RequestHeader Optional Lenient name val) Request where
   type Absence (RequestHeader Optional Lenient name val) Request = Void
 
 headerHandler ::
-  forall name val e p h req.
+  forall name val e p h ts.
   (Get h (RequestHeader e p name val) Request, ArrowChoice h) =>
   -- | error handler
-  h (Request `With` req, Absence (RequestHeader e p name val) Request) Response ->
-  Middleware h req (RequestHeader e p name val : req)
+  h (Request `With` ts, Absence (RequestHeader e p name val) Request) Response ->
+  Middleware h ts (RequestHeader e p name val : ts)
 headerHandler errorHandler nextHandler = proc request -> do
   result <- probe RequestHeader -< request
   case result of
@@ -131,11 +131,11 @@ headerHandler errorHandler nextHandler = proc request -> do
  > header @"Content-Length" @Integer errorHandler okHandler
 -}
 header ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (RequestHeader Required Strict name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Request `With` req, Either HeaderNotFound HeaderParseError) Response ->
-  Middleware h req (RequestHeader Required Strict name val : req)
+  h (Request `With` ts, Either HeaderNotFound HeaderParseError) Response ->
+  Middleware h ts (RequestHeader Required Strict name val : ts)
 header = headerHandler
 {-# INLINE header #-}
 
@@ -150,11 +150,11 @@ header = headerHandler
  > optionalHeader @"Content-Length" @Integer errorHandler okHandler
 -}
 optionalHeader ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (RequestHeader Optional Strict name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Request `With` req, HeaderParseError) Response ->
-  Middleware h req (RequestHeader Optional Strict name val : req)
+  h (Request `With` ts, HeaderParseError) Response ->
+  Middleware h ts (RequestHeader Optional Strict name val : ts)
 optionalHeader = headerHandler
 {-# INLINE optionalHeader #-}
 
@@ -169,11 +169,11 @@ optionalHeader = headerHandler
  > lenientHeader @"Content-Length" @Integer errorHandler okHandler
 -}
 lenientHeader ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (RequestHeader Required Lenient name val) Request, ArrowChoice h) =>
   -- | Error handler
-  h (Request `With` req, HeaderNotFound) Response ->
-  Middleware h req (RequestHeader Required Lenient name val : req)
+  h (Request `With` ts, HeaderNotFound) Response ->
+  Middleware h ts (RequestHeader Required Lenient name val : ts)
 lenientHeader = headerHandler
 {-# INLINE lenientHeader #-}
 
@@ -188,9 +188,9 @@ lenientHeader = headerHandler
  > optionalLenientHeader @"Content-Length" @Integer handler
 -}
 optionalLenientHeader ::
-  forall name val h req.
+  forall name val h ts.
   (Get h (RequestHeader Optional Lenient name val) Request, ArrowChoice h) =>
-  Middleware h req (RequestHeader Optional Lenient name val : req)
+  Middleware h ts (RequestHeader Optional Lenient name val : ts)
 optionalLenientHeader = headerHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientHeader #-}
 
@@ -220,9 +220,9 @@ instance Trait (ResponseHeader Optional name val) Response where
  > response' <- setHeader @"Content-Length" -< (response, 42)
 -}
 setHeader ::
-  forall name val h res.
+  forall name val h ts.
   (Set h (ResponseHeader Required name val) Response) =>
-  h (Response `With` res, val) (Response `With` (ResponseHeader Required name val : res))
+  h (Response `With` ts, val) (Response `With` (ResponseHeader Required name val : ts))
 setHeader = plant ResponseHeader
 {-# INLINE setHeader #-}
 
@@ -237,8 +237,8 @@ setHeader = plant ResponseHeader
  > response' <- setOptionalHeader @"Content-Length" -< (response, Just 42)
 -}
 setOptionalHeader ::
-  forall name val h res.
+  forall name val h ts.
   (Set h (ResponseHeader Optional name val) Response) =>
-  h (Response `With` res, Maybe val) (Response `With` (ResponseHeader Optional name val : res))
+  h (Response `With` ts, Maybe val) (Response `With` (ResponseHeader Optional name val : ts))
 setOptionalHeader = plant ResponseHeader
 {-# INLINE setOptionalHeader #-}

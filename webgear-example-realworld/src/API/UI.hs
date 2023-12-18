@@ -14,7 +14,7 @@ assets ::
       ]
       Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 assets = serveDir "ui/assets" Nothing
 
 index ::
@@ -26,5 +26,5 @@ index ::
       ]
       Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 index = proc _ -> serveFile -< "ui/index.html"

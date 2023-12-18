@@ -99,7 +99,7 @@ newtype App a = App {unApp :: ReaderT UserStore IO a}
     , MonadReader UserStore
     )
 
-userRoutes :: RequestHandler (ServerHandler App) req
+userRoutes :: RequestHandler (ServerHandler App) ts
 userRoutes =
   -- non-TH version: path @"/v1/users" . pathVar @"userId" @Int
   [match| /v1/users/userId:UserId |]
@@ -107,25 +107,25 @@ userRoutes =
 
 -- | Routes accessible without any authentication
 publicRoutes ::
-  ( HasTrait IntUserId req
+  ( HasTrait IntUserId ts
   , StdHandler h App
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 publicRoutes = getUser
 
 -- | Routes that require HTTP basic authentication
 protectedRoutes ::
-  forall h req.
-  ( HasTrait IntUserId req
+  forall h ts.
+  ( HasTrait IntUserId ts
   , StdHandler h App
   , Gets h '[BasicAuth App () Credentials, Body JSON User] Request
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 protectedRoutes = basicAuth authConfig authError $ putUser <+> deleteUser
   where
-    authError :: h (Request `With` req, BasicAuthError ()) Response
+    authError :: h (Request `With` ts, BasicAuthError ()) Response
     authError = proc (_request, err) -> case err of
       BasicAuthAttributeError () ->
         respondA HTTP.forbidden403 PlainText -< "Forbidden" :: Text
@@ -133,12 +133,12 @@ protectedRoutes = basicAuth authConfig authError $ putUser <+> deleteUser
         respondA HTTP.unauthorized401 PlainText -< "Unauthorized" :: Text
 
 getUser ::
-  forall h req.
-  ( HasTrait IntUserId req
+  forall h ts.
+  ( HasTrait IntUserId ts
   , StdHandler h App
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 getUser = method HTTP.GET
   $ proc request -> do
     let uid = pick @IntUserId $ from request
@@ -153,13 +153,13 @@ getUser = method HTTP.GET
       lookupUser store uid
 
 putUser ::
-  forall h req.
-  ( HaveTraits [Auth, IntUserId] req
+  forall h ts.
+  ( HaveTraits [Auth, IntUserId] ts
   , StdHandler h App
   , Get h (Body JSON User) Request
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 putUser = method HTTP.PUT
   $ requestBody @User JSON badRequestBody
   $ proc request -> do
@@ -179,11 +179,11 @@ putUser = method HTTP.PUT
       logActivity request "updated"
 
 deleteUser ::
-  forall h req.
-  ( HaveTraits [Auth, IntUserId] req
+  forall h ts.
+  ( HaveTraits [Auth, IntUserId] ts
   , StdHandler h App
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 deleteUser = method HTTP.DELETE
   $ proc request -> do
     let uid = pick @IntUserId $ from request
@@ -199,7 +199,7 @@ deleteUser = method HTTP.DELETE
         $ logActivity request "deleted"
       pure found
 
-logActivity :: (MonadIO m, HasTrait Auth req) => Request `With` req -> String -> m ()
+logActivity :: (MonadIO m, HasTrait Auth ts) => Request `With` ts -> String -> m ()
 logActivity request msg = do
   let name = credentialsUsername $ pick @Auth $ from request
   liftIO $ putStrLn $ msg <> ": by " <> show name
