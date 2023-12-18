@@ -14,9 +14,11 @@ module WebGear.Core.Request (
   requestHeaders,
   requestBodyLength,
   getRequestBodyChunk,
+  getRequestBody,
 ) where
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as LBS
 import Data.List (find)
 import Data.Text (Text)
 import qualified Network.HTTP.Types as HTTP
@@ -36,6 +38,10 @@ requestHeader h r = snd <$> find ((== h) . fst) (requestHeaders r)
 -- | See 'Wai.getRequestBodyChunk'
 getRequestBodyChunk :: Request -> IO ByteString
 getRequestBodyChunk = Wai.getRequestBodyChunk . toWaiRequest
+
+-- | Returns the entire request body as a lazy bytestring
+getRequestBody :: Request -> IO LBS.ByteString
+getRequestBody = Wai.lazyRequestBody . toWaiRequest
 
 -- | See 'Wai.httpVersion'
 httpVersion :: Request -> HTTP.HttpVersion

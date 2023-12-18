@@ -78,12 +78,12 @@ resp403Description = "Not authenticated"
 resp404Description :: Text -> Description
 resp404Description name = Description $ name <> " not found"
 
-withDoc :: (Handler h m) => Summary -> Description -> Middleware h req req
+withDoc :: (Handler h m) => Summary -> Description -> Middleware h ts ts
 withDoc summ descr handler = setSummary summ >>> setDescription descr >>> handler
 
 --------------------------------------------------------------------------------
 
-type JSONBody a = Body '[JSON] a
+type JSONBody a = Body JSON a
 
 -- Middlewares for JWT authentication with "token" scheme
 
@@ -96,7 +96,7 @@ requiredTokenAuth ::
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
   JWT.JWK ->
-  Middleware h req (RequiredAuth : req)
+  Middleware h ts (RequiredAuth : ts)
 requiredTokenAuth jwk = tokenAuth jwk (`jwtAuth'` forbidden)
   where
     forbidden = proc (_, err) -> case err of
@@ -114,14 +114,14 @@ requiredTokenAuth jwk = tokenAuth jwk (`jwtAuth'` forbidden)
 optionalTokenAuth ::
   (StdHandler h App, Get h OptionalAuth Request) =>
   JWT.JWK ->
-  Middleware h req (OptionalAuth : req)
+  Middleware h ts (OptionalAuth : ts)
 optionalTokenAuth jwk = tokenAuth jwk optionalJWTAuth'
 
 tokenAuth ::
   (Handler h App) =>
   JWT.JWK ->
-  (JWTAuth' x "token" App () (Key User) -> Middleware h req (r : req)) ->
-  Middleware h req (r : req)
+  (JWTAuth' x "token" App () (Key User) -> Middleware h ts (r : ts)) ->
+  Middleware h ts (r : ts)
 tokenAuth jwk auth nextHandler =
   auth authCfg (setDescription "JWT authorization based on `token' scheme" >>> nextHandler)
   where
@@ -173,14 +173,14 @@ respondJsonA ::
   ) =>
   HTTP.Status ->
   h body Response
-respondJsonA status = respondA status (Proxy @JSON)
+respondJsonA status = respondA status JSON
 
 jsonRequestBody ::
   forall t ts h m.
   (StdHandler h m, Get h (JSONBody t) Request) =>
   h (Request `With` ts, Text) Response ->
   Middleware h ts (JSONBody t : ts)
-jsonRequestBody = requestBody @'[JSON]
+jsonRequestBody = requestBody JSON
 
 badRequestBody ::
   ( StdHandler h m
@@ -197,7 +197,7 @@ badRequestParam ::
   ( StdHandler h m
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
-  h (Request `With` req, ParamParseError) Response
+  h (Request `With` ts, ParamParseError) Response
 badRequestParam = proc (_, e) ->
   respondJsonA HTTP.badRequest400
     <<< setDescription "Invalid query parameter"

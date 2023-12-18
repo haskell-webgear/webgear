@@ -22,6 +22,12 @@ module WebGear.Core (
   module WebGear.Core.Handler,
   module WebGear.Core.Handler.Static,
   module WebGear.Core.Traits,
+  module WebGear.Core.MIMEType,
+  module WebGear.Core.MIMEType.JSON,
+  module WebGear.Core.MIMEType.OctetStream,
+  module WebGear.Core.MIMEType.PlainText,
+  module WebGear.Core.MIMEType.FormURLEncoded,
+  module WebGear.Core.MIMEType.MultiPartFormData,
 ) where
 
 import Control.Arrow
@@ -35,3 +41,10 @@ import WebGear.Core.Request
 import WebGear.Core.Response
 import WebGear.Core.Trait
 import WebGear.Core.Traits
+
+import WebGear.Core.MIMEType
+import WebGear.Core.MIMEType.FormURLEncoded
+import WebGear.Core.MIMEType.JSON
+import WebGear.Core.MIMEType.MultiPartFormData
+import WebGear.Core.MIMEType.OctetStream
+import WebGear.Core.MIMEType.PlainText

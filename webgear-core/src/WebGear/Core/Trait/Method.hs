@@ -43,6 +43,6 @@ instance TraitAbsence Method Request where
 method ::
   (Get h Method Request, ArrowChoice h, ArrowError RouteMismatch h) =>
   HTTP.StdMethod ->
-  Middleware h req (Method : req)
+  Middleware h ts (Method : ts)
 method m nextHandler = probe (Method m) >>> routeMismatch ||| nextHandler
 {-# INLINE method #-}

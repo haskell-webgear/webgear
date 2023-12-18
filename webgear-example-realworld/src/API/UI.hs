@@ -10,11 +10,11 @@ assets ::
   , Sets
       h
       [ RequiredResponseHeader "Content-Type" MimeType
-      , Body '[] ResponseBody
+      , UnknownContentBody
       ]
       Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 assets = serveDir "ui/assets" Nothing
 
 index ::
@@ -22,9 +22,9 @@ index ::
   , Sets
       h
       [ RequiredResponseHeader "Content-Type" MimeType
-      , Body '[] ResponseBody
+      , UnknownContentBody
       ]
       Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 index = proc _ -> serveFile -< "ui/index.html"

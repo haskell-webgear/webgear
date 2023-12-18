@@ -71,7 +71,7 @@ genOpenApi ::
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody OpenApi] Response
   ) =>
   RequestHandler (OpenApiHandler App) '[] ->
-  RequestHandler h req
+  RequestHandler h ts
 genOpenApi routes = proc _ -> do
   let doc = toOpenApi routes
   respondJsonA HTTP.ok200 -< doc

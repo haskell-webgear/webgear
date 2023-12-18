@@ -4,41 +4,49 @@
 module WebGear.OpenApi.Trait.Body where
 
 import Control.Lens ((&), (.~), (?~))
-import Data.OpenApi hiding (Response)
+import Data.OpenApi hiding (Response, contentType)
 import Data.OpenApi.Declare (runDeclare)
 import Data.Proxy (Proxy (..))
 import Data.Text (Text)
 import GHC.Exts (fromList)
+import WebGear.Core.MIMEType (MIMEType (..))
 import WebGear.Core.Request (Request)
-import WebGear.Core.Response (Response (..))
+import WebGear.Core.Response (Response (..), ResponseBody)
 import WebGear.Core.Trait (Get (..), Set (..), With)
-import WebGear.Core.Trait.Body (Body (..), MIMETypes (..))
+import WebGear.Core.Trait.Body (Body (..), UnknownContentBody (..))
 import WebGear.OpenApi.Handler (
   DocNode (DocRequestBody, DocResponseBody),
   OpenApiHandler (..),
   singletonNode,
  )
 
-instance (ToSchema val, MIMETypes mts) => Get (OpenApiHandler m) (Body mts val) Request where
+instance (ToSchema val, MIMEType mt) => Get (OpenApiHandler m) (Body mt val) Request where
   {-# INLINE getTrait #-}
-  getTrait :: Body mts val -> OpenApiHandler m (Request `With` ts) (Either Text val)
-  getTrait Body =
-    let mediaTypes = mimeTypes $ Proxy @mts
+  getTrait :: Body mt val -> OpenApiHandler m (Request `With` ts) (Either Text val)
+  getTrait (Body mt) =
+    let mediaType = mimeType mt
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
         body =
           (mempty @RequestBody)
-            & content .~ fromList (map (,mempty @MediaTypeObject & schema ?~ ref) mediaTypes)
+            & content .~ fromList [(mediaType, mempty @MediaTypeObject & schema ?~ ref)]
      in OpenApiHandler $ singletonNode (DocRequestBody defs body)
 
-instance (ToSchema val, MIMETypes mts) => Set (OpenApiHandler m) (Body mts val) Response where
+instance (ToSchema val, MIMEType mt) => Set (OpenApiHandler m) (Body mt val) Response where
   {-# INLINE setTrait #-}
   setTrait ::
-    Body mts val ->
-    (Response `With` ts -> Response -> val -> Response `With` (Body mts val : ts)) ->
-    OpenApiHandler m (Response `With` ts, val) (Response `With` (Body mts val : ts))
-  setTrait Body _ =
-    let mediaTypes = mimeTypes $ Proxy @mts
+    Body mt val ->
+    (Response `With` ts -> Response -> val -> Response `With` (Body mt val : ts)) ->
+    OpenApiHandler m (Response `With` ts, val) (Response `With` (Body mt val : ts))
+  setTrait (Body mt) _ =
+    let mediaType = mimeType mt
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
         body = mempty @MediaTypeObject & schema ?~ ref
-        mts = fromList $ map (,body) mediaTypes
-     in OpenApiHandler $ singletonNode (DocResponseBody defs mts)
+     in OpenApiHandler $ singletonNode (DocResponseBody defs $ fromList [(mediaType, body)])
+
+instance Set (OpenApiHandler m) UnknownContentBody Response where
+  {-# INLINE setTrait #-}
+  setTrait ::
+    UnknownContentBody ->
+    (Response `With` ts -> Response -> ResponseBody -> Response `With` (UnknownContentBody : ts)) ->
+    OpenApiHandler m (Response `With` ts, ResponseBody) (Response `With` (UnknownContentBody : ts))
+  setTrait UnknownContentBody _ = OpenApiHandler $ singletonNode (DocResponseBody mempty mempty)

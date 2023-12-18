@@ -2,7 +2,6 @@ module WebGear (application) where
 
 import Control.Arrow
 import Control.Monad.Reader (MonadReader (..), ReaderT (..))
-import Data.Proxy (Proxy (..))
 import Model
 import Network.HTTP.Types (StdMethod (..))
 import qualified Network.HTTP.Types as HTTP
@@ -19,8 +18,8 @@ type UserIdPathVar = PathVar "userId" Int
 
 allRoutes ::
   ( StdHandler h AppM
-  , Gets h [UserIdPathVar, Body '[JSON] User] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Gets h [UserIdPathVar, Body JSON User] Request
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   h (Request `With` '[]) Response
 allRoutes =
@@ -32,15 +31,15 @@ allRoutes =
     <+> method DELETE deleteUser
 
 getUser ::
-  forall h req.
-  ( HasTrait UserIdPathVar req
+  forall h ts.
+  ( HasTrait UserIdPathVar ts
   , StdHandler h AppM
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  h (Request `With` req) Response
+  h (Request `With` ts) Response
 getUser = findUser >>> respond
   where
-    findUser :: h (Request `With` req) (Maybe User)
+    findUser :: h (Request `With` ts) (Maybe User)
     findUser = arrM $ \request -> do
       let uid = pick @UserIdPathVar $ from request
       store <- ask
@@ -49,26 +48,26 @@ getUser = findUser >>> respond
     respond :: h (Maybe User) Response
     respond = proc maybeUser -> case maybeUser of
       Nothing -> unwitnessA <<< notFound404 -< ()
-      Just u -> respondA HTTP.ok200 (Proxy @JSON) -< u
+      Just u -> respondA HTTP.ok200 JSON -< u
 
 putUser ::
-  forall h req.
-  ( HasTrait UserIdPathVar req
+  forall h ts.
+  ( HasTrait UserIdPathVar ts
   , StdHandler h AppM
-  , Get h (Body '[JSON] User) Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body '[JSON] User] Response
+  , Get h (Body JSON User) Request
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
-  h (Request `With` req) Response
-putUser = requestBody @'[JSON] @User badPayload $ doUpdate >>> respond
+  h (Request `With` ts) Response
+putUser = requestBody @User JSON badPayload $ doUpdate >>> respond
   where
-    badPayload :: h (Request `With` req, Text) Response
+    badPayload :: h (Request `With` ts, Text) Response
     badPayload = proc _ ->
-      respondA HTTP.badRequest400 (Proxy @PlainText) -< "Invalid body payload" :: Text
+      respondA HTTP.badRequest400 PlainText -< "Invalid body payload" :: Text
 
-    doUpdate :: (HaveTraits [UserIdPathVar, Body '[JSON] User] ts) => h (Request `With` ts) User
+    doUpdate :: (HaveTraits [UserIdPathVar, Body JSON User] xs) => h (Request `With` xs) User
     doUpdate = arrM $ \request -> do
       let uid = pick @UserIdPathVar $ from request
-          user = pick @(Body '[JSON] User) $ from request
+          user = pick @(Body JSON User) $ from request
           user' = user{userId = UserId uid}
       store <- ask
       addUser store user'
@@ -76,15 +75,15 @@ putUser = requestBody @'[JSON] @User badPayload $ doUpdate >>> respond
 
     respond :: h User Response
     respond = proc user ->
-      respondA HTTP.ok200 (Proxy @JSON) -< user
+      respondA HTTP.ok200 JSON -< user
 
 deleteUser ::
-  forall h req.
-  (HasTrait UserIdPathVar req, StdHandler h AppM) =>
-  h (Request `With` req) Response
+  forall h ts.
+  (HasTrait UserIdPathVar ts, StdHandler h AppM) =>
+  h (Request `With` ts) Response
 deleteUser = doDelete >>> respond
   where
-    doDelete :: h (Request `With` req) Bool
+    doDelete :: h (Request `With` ts) Bool
     doDelete = arrM $ \request -> do
       let uid = pick @UserIdPathVar $ from request
       store <- ask

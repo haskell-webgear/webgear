@@ -15,7 +15,7 @@ list ::
   ( StdHandler h App
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody TagsResponse] Response
   ) =>
-  RequestHandler h req
+  RequestHandler h ts
 list =
   withDoc "Get all tags" ""
     $ proc _request -> do

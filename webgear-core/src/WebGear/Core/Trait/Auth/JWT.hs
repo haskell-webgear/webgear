@@ -22,7 +22,7 @@
  For example, given this handler:
 
  @
- myHandler :: ('Handler' h IO, 'HasTrait' ('JWTAuth' IO () 'JWT.ClaimsSet') req) => 'RequestHandler' h req
+ myHandler :: ('Handler' h IO, 'HasTrait' ('JWTAuth' IO () 'JWT.ClaimsSet') ts) => 'RequestHandler' h ts
  myHandler = ....
  @
 
@@ -39,7 +39,7 @@
  type ErrorTraits = [Status, RequiredRequestHeader \"Content-Type\" Text, RequiredRequestHeader \"WWW-Authenticate\" Text, Body Text]
 
  errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
-              => h (Request \`With\` req, 'JWTAuthError' e) Response
+              => h (Request \`With\` ts, 'JWTAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Bearer\" \"MyRealm\"
  @
 
@@ -47,7 +47,7 @@
 
  @
  myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'JWT.ClaimsSet') Request, Sets h ErrorTraits Response)
-                   => 'RequestHandler' h req
+                   => 'RequestHandler' h ts
  myHandlerWithAuth = 'jwtAuth' authConfig errorHandler myHandler
  @
 
@@ -149,8 +149,8 @@ jwtAuth ::
   -- | Authentication configuration
   JWTAuth m e t ->
   -- | Error handler
-  h (Request `With` req, JWTAuthError e) Response ->
-  Middleware h req (JWTAuth m e t : req)
+  h (Request `With` ts, JWTAuthError e) Response ->
+  Middleware h ts (JWTAuth m e t : ts)
 jwtAuth = jwtAuth' @"Bearer"
 {-# INLINE jwtAuth #-}
 
@@ -175,18 +175,18 @@ optionalJWTAuth ::
   ) =>
   -- | Authentication configuration
   JWTAuth' Optional "Bearer" m e t ->
-  Middleware h req (JWTAuth' Optional "Bearer" m e t : req)
+  Middleware h ts (JWTAuth' Optional "Bearer" m e t : ts)
 optionalJWTAuth = optionalJWTAuth' @"Bearer"
 {-# INLINE optionalJWTAuth #-}
 
 jwtAuthMiddleware ::
-  forall s e t x h m req.
+  forall s e t x h m ts.
   ( Get h (JWTAuth' x s m e t) Request
   , ArrowChoice h
   ) =>
   JWTAuth' x s m e t ->
-  h (Request `With` req, Absence (JWTAuth' x s m e t) Request) Response ->
-  Middleware h req (JWTAuth' x s m e t : req)
+  h (Request `With` ts, Absence (JWTAuth' x s m e t) Request) Response ->
+  Middleware h ts (JWTAuth' x s m e t : ts)
 jwtAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
     result <- probe authCfg -< request
@@ -210,15 +210,15 @@ jwtAuthMiddleware authCfg errorHandler nextHandler =
  retrieved successfully.
 -}
 jwtAuth' ::
-  forall s e t h m req.
+  forall s e t h m ts.
   ( Get h (JWTAuth' Required s m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration
   JWTAuth' Required s m e t ->
   -- | Error handler
-  h (Request `With` req, JWTAuthError e) Response ->
-  Middleware h req (JWTAuth' Required s m e t : req)
+  h (Request `With` ts, JWTAuthError e) Response ->
+  Middleware h ts (JWTAuth' Required s m e t : ts)
 jwtAuth' = jwtAuthMiddleware
 {-# INLINE jwtAuth' #-}
 
@@ -238,12 +238,12 @@ jwtAuth' = jwtAuthMiddleware
  authentication error appropriately.
 -}
 optionalJWTAuth' ::
-  forall s e t h m req.
+  forall s e t h m ts.
   ( Get h (JWTAuth' Optional s m e t) Request
   , ArrowChoice h
   ) =>
   -- | Authentication configuration
   JWTAuth' Optional s m e t ->
-  Middleware h req (JWTAuth' Optional s m e t : req)
+  Middleware h ts (JWTAuth' Optional s m e t : ts)
 optionalJWTAuth' cfg = jwtAuthMiddleware cfg $ arr (absurd . snd)
 {-# INLINE optionalJWTAuth' #-}

@@ -83,7 +83,7 @@ instance TraitAbsence PathEnd Request where
 path ::
   (Get h Path Request, ArrowChoice h, ArrowError RouteMismatch h) =>
   Text ->
-  Middleware h req (Path : req)
+  Middleware h ts (Path : ts)
 path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
 {-# INLINE path #-}
 
@@ -100,16 +100,16 @@ path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
  > pathVar @"objId" @Int handler
 -}
 pathVar ::
-  forall tag val h req.
+  forall tag val h ts.
   (Get h (PathVar tag val) Request, ArrowChoice h, ArrowError RouteMismatch h) =>
-  Middleware h req (PathVar tag val : req)
+  Middleware h ts (PathVar tag val : ts)
 pathVar nextHandler = probe PathVar >>> routeMismatch ||| nextHandler
 {-# INLINE pathVar #-}
 
 -- | A middleware that verifies that end of path is reached.
 pathEnd ::
   (Get h PathEnd Request, ArrowChoice h, ArrowError RouteMismatch h) =>
-  Middleware h req (PathEnd : req)
+  Middleware h ts (PathEnd : ts)
 pathEnd nextHandler = probe PathEnd >>> routeMismatch ||| nextHandler
 {-# INLINE pathEnd #-}
 
@@ -212,7 +212,7 @@ toMatchExp s = case List.words s of
 compose :: Exp -> Exp -> Exp
 compose l = UInfixE l (VarE $ mkName ".")
 
-splitOn :: Eq a => a -> [a] -> NonEmpty [a]
+splitOn :: (Eq a) => a -> [a] -> NonEmpty [a]
 splitOn sep = foldr f ([] :| [])
   where
     f x acc | x == sep = [] :| toList acc

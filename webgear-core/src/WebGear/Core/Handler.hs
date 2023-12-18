@@ -56,7 +56,7 @@ class (ArrowChoice h, ArrowPlus h, ArrowError RouteMismatch h, Monad m) => Handl
   setSummary :: Summary -> h a a
 
 -- | A handler arrow from a witnessed request to response.
-type RequestHandler h req = h (Request `With` req) Response
+type RequestHandler h ts = h (Request `With` ts) Response
 
 -- | A middleware enhances a `RequestHandler` and produces another handler.
 type Middleware h reqOut reqIn = RequestHandler h reqIn -> RequestHandler h reqOut

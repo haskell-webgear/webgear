@@ -21,11 +21,12 @@ import Data.Void (absurd)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Web.HttpApiData (FromHttpApiData (..))
 import WebGear.Core.Handler (Handler, unwitnessA, (>->))
+import WebGear.Core.MIMEType.PlainText (PlainText (..))
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Sets, With)
-import WebGear.Core.Trait.Body (Body, PlainText, setBody)
+import WebGear.Core.Trait.Body (Body, setBody)
 import WebGear.Core.Trait.Header (RequestHeader (..), RequiredResponseHeader, setHeader)
 import WebGear.Core.Trait.Status (Status, unauthorized401)
 import Prelude hiding (break, drop)
@@ -39,9 +40,9 @@ type AuthorizationHeader scheme = RequestHeader Optional Lenient "Authorization"
   The header is split into the scheme and token parts and returned.
 -}
 getAuthorizationHeaderTrait ::
-  forall scheme h req.
+  forall scheme h ts.
   (Get h (AuthorizationHeader scheme) Request) =>
-  h (Request `With` req) (Maybe (Either Text (AuthToken scheme)))
+  h (Request `With` ts) (Maybe (Either Text (AuthToken scheme)))
 getAuthorizationHeaderTrait = proc request -> do
   result <- getTrait (RequestHeader :: RequestHeader Optional Lenient "Authorization" (AuthToken scheme)) -< request
   returnA -< either absurd id result
@@ -84,7 +85,7 @@ respondUnauthorized ::
       [ Status
       , RequiredResponseHeader "Content-Type" Text
       , RequiredResponseHeader "WWW-Authenticate" Text
-      , Body '[PlainText] Text
+      , Body PlainText Text
       ]
       Response
   ) =>
@@ -96,7 +97,7 @@ respondUnauthorized ::
 respondUnauthorized scheme (Realm realm) = proc _ -> do
   let headerVal = decodeUtf8 $ original scheme <> " realm=\"" <> realm <> "\""
   (unauthorized401 -< ())
-    >-> (\resp -> setBody @PlainText -< (resp, "Unauthorized" :: Text))
+    >-> (\resp -> setBody PlainText -< (resp, "Unauthorized" :: Text))
     >-> (\resp -> setHeader @"WWW-Authenticate" -< (resp, headerVal))
     >-> (\resp -> unwitnessA -< resp)
 {-# INLINE respondUnauthorized #-}
