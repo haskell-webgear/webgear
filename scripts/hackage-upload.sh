@@ -25,4 +25,5 @@ cabal sdist all
 upload_package dist-newstyle/sdist/webgear-core-*.tar.gz
 upload_package dist-newstyle/sdist/webgear-server-*.tar.gz
 upload_package dist-newstyle/sdist/webgear-swagger-*.tar.gz
+upload_package dist-newstyle/sdist/webgear-swagger-ui-*.tar.gz
 upload_package dist-newstyle/sdist/webgear-openapi-*.tar.gz

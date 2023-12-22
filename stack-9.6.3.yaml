@@ -4,5 +4,6 @@ packages:
   - ./webgear-core
   - ./webgear-server
   - ./webgear-swagger
+  - ./webgear-swagger-ui
   - ./webgear-openapi
   - ./webgear-benchmarks

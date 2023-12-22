@@ -49,6 +49,8 @@ jobs:
           nix build --print-build-logs --no-link   \
             .#webgear-core-ghc${GHC_VERSION}       \
             .#webgear-server-ghc${GHC_VERSION}     \
+            .#webgear-swagger-ghc${GHC_VERSION}    \
+            .#webgear-swagger-ui-ghc${GHC_VERSION} \
             .#webgear-openapi-ghc${GHC_VERSION}    \
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
@@ -123,4 +125,4 @@ jobs:
         run: stack test --system-ghc --ta '--quickcheck-tests 100000'
 
       - name: Haddock
-        run: stack haddock --system-ghc webgear-core webgear-server webgear-openapi
+        run: stack haddock --system-ghc

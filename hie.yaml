@@ -20,6 +20,11 @@ cradle:
         cradle:
           cabal:
             component: "lib:webgear-swagger"
+    - path: "./webgear-swagger-ui/src"
+      config:
+        cradle:
+          cabal:
+            component: "lib:webgear-swagger-ui"
     - path: "./webgear-openapi/src"
       config:
         cradle:
