@@ -4,7 +4,7 @@ module Main where
 
 import qualified API.Article as Article
 import qualified API.Comment as Comment
-import API.Common (App (..), AppEnv (..), JSONBody, respondJsonA)
+import API.Common (App (..), AppEnv (..))
 import qualified API.Profile as Profile
 import qualified API.Tag as Tag
 import qualified API.UI as UI
@@ -13,17 +13,16 @@ import Control.Category ((.))
 import qualified Crypto.JWT as JWT
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as LBS
-import Data.OpenApi (OpenApi)
 import Data.Pool (Pool)
 import Database.Persist.Sql (SqlBackend)
 import Model.Common (withDBConnectionPool)
 import Network.HTTP.Types (StdMethod (..))
-import qualified Network.HTTP.Types as HTTP
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import Relude hiding ((.))
-import WebGear.OpenApi (OpenApiHandler, toOpenApi)
+import WebGear.OpenApi (toOpenApi)
 import WebGear.Server
+import WebGear.Swagger.UI (swaggerUI)
 
 --------------------------------------------------------------------------------
 -- A medium.com clone app specified by https://github.com/gothinkster/realworld
@@ -56,7 +55,7 @@ application pool jwk = toApplication $ transform appToIO allRoutes
     allRoutes =
       appRoutes jwk
         <+> uiRoutes
-        <+> [route| GET /openapi |] (genOpenApi $ appRoutes jwk)
+        <+> [match| /openapi |] (swaggerUI $ toOpenApi @App $ appRoutes jwk)
 
     uiRoutes =
       [match|       GET  /ui/assets |] UI.assets
@@ -65,16 +64,6 @@ application pool jwk = toApplication $ transform appToIO allRoutes
 
     appToIO :: App a -> IO a
     appToIO = flip runReaderT (AppEnv pool) . unApp
-
-genOpenApi ::
-  ( StdHandler h App
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody OpenApi] Response
-  ) =>
-  RequestHandler (OpenApiHandler App) '[] ->
-  RequestHandler h ts
-genOpenApi routes = proc _ -> do
-  let doc = toOpenApi routes
-  respondJsonA HTTP.ok200 -< doc
 
 main :: IO ()
 main = withDBConnectionPool $ \pool -> do

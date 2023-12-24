@@ -46,6 +46,7 @@ executable realworld
                     , warp
                     , webgear-server
                     , webgear-openapi
+                    , webgear-swagger-ui
   default-extensions: Arrows
                       DataKinds
                       DeriveAnyClass
