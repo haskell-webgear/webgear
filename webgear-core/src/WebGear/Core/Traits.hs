@@ -16,7 +16,7 @@ module WebGear.Core.Traits (
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LText
 import WebGear.Core.Handler (Handler)
-import WebGear.Core.MIMEType.PlainText (PlainText)
+import WebGear.Core.MIMETypes (PlainText)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Gets, Sets)

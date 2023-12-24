@@ -2,6 +2,8 @@
 
 [![Hackage](https://img.shields.io/hackage/v/webgear-core)](https://hackage.haskell.org/package/webgear-core)
 [![Hackage](https://img.shields.io/hackage/v/webgear-server)](https://hackage.haskell.org/package/webgear-server)
+[![Hackage](https://img.shields.io/hackage/v/webgear-swagger)](https://hackage.haskell.org/package/webgear-swagger)
+[![Hackage](https://img.shields.io/hackage/v/webgear-swagger-ui)](https://hackage.haskell.org/package/webgear-swagger-ui)
 [![Hackage](https://img.shields.io/hackage/v/webgear-openapi)](https://hackage.haskell.org/package/webgear-openapi)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/haskell-webgear/webgear/ci.yaml?branch=main)](https://github.com/haskell-webgear/webgear/actions/workflows/ci.yaml)
@@ -13,6 +15,7 @@ This is the main repository of WebGear project. It contains multiple packages:
 - `webgear-core`: The core library.
 - `webgear-server`: Serve WebGear applications using `wai` and `warp`.
 - `webgear-swagger`: Generate Swagger 2.0 specifications from WebGear specifications.
+- `webgear-swagger-ui`: Server to host swagger UI based on WebGear APIs.
 - `webgear-openapi`: Generate OpenAPI specifications from WebGear specifications.
 
 Examples of WebGear applications can be found at:
@@ -41,5 +44,10 @@ You can use the standard cabal commands in the development shell.
 You can build packages using Nix:
 
 ```shell
-nix build .#webgear-core-ghc<GHC-VERSION> .#webgear-server-ghc<GHC-VERSION> .#webgear-swagger-ghc<GHC-VERSION> .#webgear-openapi-ghc<GHC-VERSION>
+nix build \
+  .#webgear-core-ghc<GHC-VERSION> \
+  .#webgear-server-ghc<GHC-VERSION> \
+  .#webgear-swagger-ghc<GHC-VERSION> \
+  .#webgear-swagger-ui-ghc<GHC-VERSION> \
+  .#webgear-openapi-ghc<GHC-VERSION>
 ```

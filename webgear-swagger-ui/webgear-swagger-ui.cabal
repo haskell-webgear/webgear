@@ -1,0 +1,76 @@
+cabal-version:       2.4
+
+name:                webgear-swagger-ui
+version:             1.1.0
+synopsis:            Host swagger UI based on WebGear API specifications.
+description:
+    WebGear is a library to for building composable, type-safe HTTP API servers.
+    This package can be used to serve swagger UI based on WebGear API
+    specifications.
+homepage:            https://github.com/haskell-webgear/webgear#readme
+bug-reports:         https://github.com/haskell-webgear/webgear/issues
+author:              Raghu Kaippully
+maintainer:          rkaippully@gmail.com
+copyright:           2023 Raghu Kaippully
+license:             MPL-2.0
+license-file:        LICENSE
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+                     index.html
+                     swagger-ui-5.10.5/NOTICE
+                     swagger-ui-5.10.5/LICENSE
+                     swagger-ui-5.10.5/dist/swagger-ui-bundle.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle-core.js
+                     swagger-ui-5.10.5/dist/swagger-ui.css
+                     swagger-ui-5.10.5/dist/index.css
+                     swagger-ui-5.10.5/dist/favicon-16x16.png
+                     swagger-ui-5.10.5/dist/swagger-ui.js
+                     swagger-ui-5.10.5/dist/swagger-ui-standalone-preset.js
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle.js.map
+                     swagger-ui-5.10.5/dist/favicon-32x32.png
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle.js
+                     swagger-ui-5.10.5/dist/swagger-ui.css.map
+                     swagger-ui-5.10.5/dist/swagger-initializer.js
+                     swagger-ui-5.10.5/dist/swagger-ui.js.map
+                     swagger-ui-5.10.5/dist/oauth2-redirect.html
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle-core.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-standalone-preset.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-bundle.js
+
+source-repository head
+  type:      git
+  location:  https://github.com/haskell-webgear/webgear
+
+
+library
+  exposed-modules:    WebGear.Swagger.UI
+                    , WebGear.Swagger.UI.Embedded
+  hs-source-dirs:     src
+  default-language:   Haskell2010
+  build-depends:      base >=4.13.0.0 && <4.19
+                    , bytestring >=0.10.10.1 && <0.13
+                    , file-embed ==0.0.*
+                    , http-types ==0.12.*
+                    , mime-types ==0.1.*
+                    , text >=1.2.0.0 && <2.2
+                    , webgear-core ==1.1.0
+  default-extensions: Arrows
+                      DataKinds
+                      FlexibleContexts
+                      OverloadedStrings
+                      TypeApplications
+  ghc-options:        -Wall
+                      -Wno-unticked-promoted-constructors
+                      -Wcompat
+                      -Widentities
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wmissing-fields
+                      -Wmissing-home-modules
+                      -Wmissing-deriving-strategies
+                      -Wpartial-fields
+                      -Wredundant-constraints
+                      -Wunused-packages
+                      -fshow-warning-groups

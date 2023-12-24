@@ -1,0 +1,54 @@
+<!-- HTML for static distribution bundle build -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+
+    <!-- Added for webgear-swagger-ui -->
+
+    <!-- Add a trailing / to the base URL -->
+    <script type="text/javascript">
+      // servant-swagger-ui: All UI assets are served from a relative paths. Hence we redirect to a location with index.html
+      if (window.location.href.match(/\/$/)) {
+          window.location.href += 'index.html';
+      } else if (!window.location.href.match(/\/index.html$/)) {
+          window.location.href += '/index.html';
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
+    <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
+
+    <!-- Added for webgear-swagger-ui -->
+    <!--script src="./swagger-initializer.js" charset="UTF-8"> </script-->
+    <script type="text/javascript">
+      window.onload = function () {
+          if (window.location.href.match(/\/index.html$/)) {
+              var specURL = window.location.pathname.replace(/\/index.html$/, "/swagger.json");
+
+              window.ui = SwaggerUIBundle({
+                  url: specURL,
+                  dom_id: '#swagger-ui',
+                  deepLinking: true,
+                  presets: [
+                      SwaggerUIBundle.presets.apis,
+                      SwaggerUIStandalonePreset
+                  ],
+                  plugins: [
+                      SwaggerUIBundle.plugins.DownloadUrl
+                  ],
+                  layout: "StandaloneLayout"
+              });
+          }
+      }
+    </script>
+  </body>
+</html>

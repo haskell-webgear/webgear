@@ -33,8 +33,8 @@ create jwk =
       case result of
         Left e -> handleDBError -< e
         Right user ->
-          respondJsonA HTTP.ok200
-            . setDescription okDescription
+          setDescription okDescription
+            . respondJsonA HTTP.ok200
             -<
               Wrapped user :: UserResponse
   where
@@ -50,8 +50,8 @@ handleDBError ::
 handleDBError = proc e ->
   if DB.seError e == DB.ErrorConstraint
     then
-      respondJsonA HTTP.badRequest400
-        . setDescription (dupDescription "user account")
+      setDescription (dupDescription "user account")
+        . respondJsonA HTTP.badRequest400
         -<
           "Another user account exists with these values" :: ErrorResponse
     else respondJsonA HTTP.internalServerError500 -< show @ErrorResponse e
@@ -74,13 +74,13 @@ login jwk =
       result <- checkCreds -< request
       case result of
         Nothing ->
-          respondJsonA HTTP.forbidden403
-            . setDescription resp403Description
+          setDescription resp403Description
+            . respondJsonA HTTP.forbidden403
             -<
               "Invalid credentials" :: ErrorResponse
         Just user ->
-          respondJsonA HTTP.ok200
-            . setDescription okDescription
+          setDescription okDescription
+            . respondJsonA HTTP.ok200
             -<
               Wrapped user :: UserResponse
   where
@@ -105,8 +105,8 @@ current jwk =
       case result of
         Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
         Just user ->
-          respondJsonA HTTP.ok200
-            . setDescription okDescription
+          setDescription okDescription
+            . respondJsonA HTTP.ok200
             -<
               Wrapped user :: UserResponse
   where
@@ -135,8 +135,8 @@ update jwk =
         Left e -> handleDBError -< e
         Right Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
         Right (Just user) ->
-          respondJsonA HTTP.ok200
-            . setDescription okDescription
+          setDescription okDescription
+            . respondJsonA HTTP.ok200
             -<
               Wrapped user :: UserResponse
   where

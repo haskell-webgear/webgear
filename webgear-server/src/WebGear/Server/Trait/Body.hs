@@ -14,7 +14,7 @@ import WebGear.Core.Response (Response (..), ResponseBody)
 import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
 import WebGear.Core.Trait.Body (Body (..), UnknownContentBody (..))
 import WebGear.Server.Handler (ServerHandler (..))
-import WebGear.Server.MIMEType (BodyRender (..), BodyUnrender (..))
+import WebGear.Server.MIMETypes (BodyRender (..), BodyUnrender (..))
 
 instance (Monad m, BodyUnrender m mt val) => Get (ServerHandler m) (Body mt val) Request where
   {-# INLINE getTrait #-}

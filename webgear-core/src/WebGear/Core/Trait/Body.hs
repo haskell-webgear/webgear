@@ -32,7 +32,7 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Network.HTTP.Media as HTTP
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Handler (..), Middleware, unwitnessA)
-import WebGear.Core.MIMEType (MIMEType (..))
+import WebGear.Core.MIMETypes (MIMEType (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response, ResponseBody)
 import WebGear.Core.Trait (

@@ -31,7 +31,7 @@ getByName jwk =
       maybeProfile <- fetchProfile -< request
       case maybeProfile of
         Nothing -> unwitnessA . setDescription (resp404Description "Profile") . notFound404 -< ()
-        Just profile -> respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped profile :: ProfileResponse
+        Just profile -> setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped profile :: ProfileResponse
   where
     fetchProfile = arrM $ \request -> do
       let maybeCurrentUserId = rightToMaybe $ pick @OptionalAuth $ from request
@@ -53,7 +53,7 @@ follow jwk =
       maybeProfile <- doFollow -< request
       case maybeProfile of
         Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
-        Just profile -> respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped profile :: ProfileResponse
+        Just profile -> setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped profile :: ProfileResponse
   where
     doFollow = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
@@ -74,8 +74,8 @@ unfollow jwk =
     $ proc request -> do
       maybeProfile <- doUnfollow -< request
       case maybeProfile of
-        Nothing -> unwitnessA <<< setDescription (resp404Description "User") . notFound404 -< ()
-        Just profile -> respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped profile :: ProfileResponse
+        Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
+        Just profile -> setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped profile :: ProfileResponse
   where
     doUnfollow = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request

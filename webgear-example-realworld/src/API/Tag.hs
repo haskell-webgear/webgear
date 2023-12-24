@@ -20,6 +20,6 @@ list =
   withDoc "Get all tags" ""
     $ proc _request -> do
       tags <- fetchTags -< ()
-      respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped tags :: TagsResponse
+      setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped tags :: TagsResponse
   where
     fetchTags = arrM $ const $ runDBAction Model.list

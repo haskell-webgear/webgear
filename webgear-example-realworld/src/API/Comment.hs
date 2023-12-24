@@ -34,7 +34,7 @@ create jwk =
       maybeComment <- createComment -< request
       case maybeComment of
         Nothing -> unwitnessA . setDescription (resp404Description "Comment") . notFound404 -< ()
-        Just comment -> respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped comment :: CommentResponse
+        Just comment -> setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped comment :: CommentResponse
   where
     createComment = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
@@ -59,7 +59,7 @@ list jwk =
     $ optionalTokenAuth jwk
     $ proc request -> do
       comments <- listComments -< request
-      respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped comments :: CommentListResponse
+      setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped comments :: CommentListResponse
   where
     listComments = arrM $ \request -> do
       let maybeCurrentUserId = rightToMaybe $ pick @OptionalAuth $ from request
@@ -79,10 +79,10 @@ delete ::
 delete jwk =
   withDoc "Delete a comment" "Only an author can delete their comments"
     $ requiredTokenAuth jwk
-    $ deleteComment
-    >>> unwitnessA
+    $ unwitnessA
     . setDescription okDescription
     . noContent204
+    . deleteComment
   where
     deleteComment = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request

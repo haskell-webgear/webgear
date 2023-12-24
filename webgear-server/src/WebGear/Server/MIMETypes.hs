@@ -1,4 +1,4 @@
-module WebGear.Server.MIMEType (
+module WebGear.Server.MIMETypes (
   -- * Parsing and rendering MIME types
   BodyUnrender (..),
   BodyRender (..),
@@ -28,12 +28,16 @@ import Web.FormUrlEncoded (
   urlDecodeForm,
   urlEncodeFormStable,
  )
-import WebGear.Core.MIMEType (MIMEType (..))
-import WebGear.Core.MIMEType.FormURLEncoded (FormURLEncoded (..))
-import WebGear.Core.MIMEType.JSON (JSON)
-import WebGear.Core.MIMEType.MultiPartFormData (FormData (..), FormDataResult (..))
-import WebGear.Core.MIMEType.OctetStream (OctetStream)
-import WebGear.Core.MIMEType.PlainText (PlainText)
+import WebGear.Core.MIMETypes (
+  FormData (..),
+  FormDataResult (..),
+  FormURLEncoded (..),
+  HTML,
+  JSON,
+  MIMEType (..),
+  OctetStream,
+  PlainText,
+ )
 import WebGear.Core.Request (Request (..), getRequestBody)
 import WebGear.Core.Response (Response, ResponseBody (..))
 
@@ -63,6 +67,20 @@ instance (Monad m, ToForm a) => BodyRender m FormURLEncoded a where
   bodyRender FormURLEncoded _response a = do
     let body = ResponseBodyBuilder $ B.fromLazyByteString $ urlEncodeFormStable $ toForm a
     pure (mimeType FormURLEncoded, body)
+
+--------------------------------------------------------------------------------
+
+instance (MonadIO m, FromByteString a) => BodyUnrender m HTML a where
+  bodyUnrender :: HTML -> Request -> m (Either Text a)
+  bodyUnrender _ request = do
+    body <- liftIO $ getRequestBody request
+    pure $ first pack $ runParser' parser body
+
+instance (Monad m, ToByteString a) => BodyRender m HTML a where
+  bodyRender :: HTML -> Response -> a -> m (HTTP.MediaType, ResponseBody)
+  bodyRender html _response a = do
+    let body = ResponseBodyBuilder $ builder a
+    pure (mimeType html, body)
 
 --------------------------------------------------------------------------------
 
@@ -98,6 +116,7 @@ instance (MonadIO m) => BodyUnrender m (FormData a) (FormDataResult a) where
     pure $ Right FormDataResult{formDataParams, formDataFiles}
 
 --------------------------------------------------------------------------------
+
 instance (MonadIO m, FromByteString a) => BodyUnrender m OctetStream a where
   bodyUnrender :: OctetStream -> Request -> m (Either Text a)
   bodyUnrender _ request = do

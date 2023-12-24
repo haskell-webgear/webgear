@@ -13,6 +13,7 @@ let
     "webgear-core" = ../../webgear-core;
     "webgear-server" = ../../webgear-server;
     "webgear-swagger" = ../../webgear-swagger;
+    "webgear-swagger-ui" = ../../webgear-swagger-ui;
     "webgear-openapi" = ../../webgear-openapi;
     "webgear-benchmarks" = ../../webgear-benchmarks;
 

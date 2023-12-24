@@ -41,7 +41,7 @@ create jwk =
       case result of
         Left e -> handleDBError -< e
         Right article ->
-          respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped article :: ArticleResponse
+          setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
     createArticle = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
@@ -55,7 +55,7 @@ handleDBError ::
   h DB.SqliteException Response
 handleDBError = proc e ->
   if DB.seError e == DB.ErrorConstraint
-    then respondJsonA HTTP.badRequest400 . setDescription (dupDescription "article") -< "Article already exists" :: ErrorResponse
+    then setDescription (dupDescription "article") . respondJsonA HTTP.badRequest400 -< "Article already exists" :: ErrorResponse
     else respondJsonA HTTP.internalServerError500 -< show @ErrorResponse e
 
 --------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ update jwk =
         Nothing -> unwitnessA . setDescription (resp404Description "Article") . notFound404 -< ()
         Just (articleId, authorId)
           | authorId /= userId ->
-              respondJsonA HTTP.forbidden403 . setDescription resp403Description -< "Permission denied" :: ErrorResponse
+              setDescription resp403Description . respondJsonA HTTP.forbidden403 -< "Permission denied" :: ErrorResponse
           | otherwise -> do
               updateResult <- updateArticle -< (authorId, articleId, unwrap updatePayload)
               case updateResult of
@@ -120,7 +120,7 @@ update jwk =
                 Right Nothing ->
                   unwitnessA . setDescription (resp404Description "Article") . notFound404 -< ()
                 Right (Just article) ->
-                  respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped article :: ArticleResponse
+                  setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
     getArticleIdAndAuthor :: h Text (Maybe (Key Article, Key User))
     getArticleIdAndAuthor = arrM $ \slug -> runDBAction (Model.getArticleIdAndAuthorBySlug slug)
@@ -197,7 +197,7 @@ list jwk =
     $ proc request -> do
       articles <- listArticles -< request
       let resp = ArticleListResponse articles (length articles)
-      respondJsonA HTTP.ok200 . setDescription okDescription -< resp
+      setDescription okDescription . respondJsonA HTTP.ok200 -< resp
   where
     listArticles = arrM $ \request -> do
       let maybeCurrentUserId = rightToMaybe $ pick @OptionalAuth $ from request
@@ -232,7 +232,7 @@ feed jwk =
     $ proc request -> do
       articles <- getArticles -< request
       let resp = ArticleListResponse articles (length articles)
-      respondJsonA HTTP.ok200 . setDescription okDescription -< resp
+      setDescription okDescription . respondJsonA HTTP.ok200 -< resp
   where
     getArticles = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
@@ -262,7 +262,7 @@ favorite jwk =
         Nothing ->
           unwitnessA . setDescription (resp404Description "Article") . notFound404 -< ()
         Just article ->
-          respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped article :: ArticleResponse
+          setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
     doFavorite = arrM $ \(userId, slug) ->
       runDBAction $ Model.favorite userId slug
@@ -288,7 +288,7 @@ unfavorite jwk =
         Nothing ->
           unwitnessA . setDescription (resp404Description "Article") . notFound404 -< ()
         Just article ->
-          respondJsonA HTTP.ok200 . setDescription okDescription -< Wrapped article :: ArticleResponse
+          setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
     doUnfavorite = arrM $ \(userId, slug) ->
       runDBAction $ Model.unfavorite userId slug
