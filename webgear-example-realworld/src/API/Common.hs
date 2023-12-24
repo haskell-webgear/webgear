@@ -2,6 +2,7 @@
 
 module API.Common where
 
+import Control.Category ((.))
 import Control.Exception.Safe (MonadCatch, MonadThrow)
 import Control.Lens (view, (.~), (?~))
 import Control.Monad.Time (MonadTime (..))
@@ -31,7 +32,7 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Model.Common (DBAction, aesonDropPrefixOptions, schemaDropPrefixOptions)
 import Model.Entities (Key, User)
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding (Set)
+import Relude hiding (Set, (.))
 import WebGear.Server
 
 -- The API handlers run in the App monad.
@@ -79,7 +80,7 @@ resp404Description :: Text -> Description
 resp404Description name = Description $ name <> " not found"
 
 withDoc :: (Handler h m) => Summary -> Description -> Middleware h ts ts
-withDoc summ descr handler = setSummary summ >>> setDescription descr >>> handler
+withDoc summ descr handler = handler . setDescription descr . setSummary summ
 
 --------------------------------------------------------------------------------
 
@@ -101,13 +102,13 @@ requiredTokenAuth jwk = tokenAuth jwk (`jwtAuth'` forbidden)
   where
     forbidden = proc (_, err) -> case err of
       JWTAuthTokenBadFormat e ->
-        respondJsonA HTTP.forbidden403
-          <<< setDescription "Authentication failure"
+        setDescription "Authentication failure"
+          . respondJsonA HTTP.forbidden403
           -<
             show @ErrorResponse e
       e ->
-        respondJsonA HTTP.unauthorized401
-          <<< setDescription "Unauthorized"
+        setDescription "Unauthorized"
+          . respondJsonA HTTP.unauthorized401
           -<
             show @ErrorResponse e
 
@@ -123,7 +124,7 @@ tokenAuth ::
   (JWTAuth' x "token" App () (Key User) -> Middleware h ts (r : ts)) ->
   Middleware h ts (r : ts)
 tokenAuth jwk auth nextHandler =
-  auth authCfg (setDescription "JWT authorization based on `token' scheme" >>> nextHandler)
+  auth authCfg (nextHandler . setDescription "JWT authorization based on `token' scheme")
   where
     authCfg =
       JWTAuth'
@@ -188,8 +189,8 @@ badRequestBody ::
   ) =>
   h a Response
 badRequestBody = proc _ ->
-  respondJsonA HTTP.badRequest400
-    <<< setDescription "Invalid request body"
+  setDescription "Invalid request body"
+    . respondJsonA HTTP.badRequest400
     -<
       "Could not parse body" :: ErrorResponse
 
@@ -199,8 +200,8 @@ badRequestParam ::
   ) =>
   h (Request `With` ts, ParamParseError) Response
 badRequestParam = proc (_, e) ->
-  respondJsonA HTTP.badRequest400
-    <<< setDescription "Invalid query parameter"
+  setDescription "Invalid query parameter"
+    . respondJsonA HTTP.badRequest400
     -<
       show @ErrorResponse e
 
