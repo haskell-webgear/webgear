@@ -18,7 +18,26 @@ category:            Web
 build-type:          Simple
 extra-source-files:  README.md
                      CHANGELOG.md
-
+                     index.html
+                     swagger-ui-5.10.5/NOTICE
+                     swagger-ui-5.10.5/LICENSE
+                     swagger-ui-5.10.5/dist/swagger-ui-bundle.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle-core.js
+                     swagger-ui-5.10.5/dist/swagger-ui.css
+                     swagger-ui-5.10.5/dist/index.css
+                     swagger-ui-5.10.5/dist/favicon-16x16.png
+                     swagger-ui-5.10.5/dist/swagger-ui.js
+                     swagger-ui-5.10.5/dist/swagger-ui-standalone-preset.js
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle.js.map
+                     swagger-ui-5.10.5/dist/favicon-32x32.png
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle.js
+                     swagger-ui-5.10.5/dist/swagger-ui.css.map
+                     swagger-ui-5.10.5/dist/swagger-initializer.js
+                     swagger-ui-5.10.5/dist/swagger-ui.js.map
+                     swagger-ui-5.10.5/dist/oauth2-redirect.html
+                     swagger-ui-5.10.5/dist/swagger-ui-es-bundle-core.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-standalone-preset.js.map
+                     swagger-ui-5.10.5/dist/swagger-ui-bundle.js
 
 source-repository head
   type:      git
