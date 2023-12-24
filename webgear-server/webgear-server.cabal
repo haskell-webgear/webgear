@@ -80,7 +80,7 @@ library
   import:             webgear-common
   exposed-modules:    WebGear.Server
                     , WebGear.Server.Handler
-                    , WebGear.Server.MIMEType
+                    , WebGear.Server.MIMETypes
                     , WebGear.Server.Traits
                     , WebGear.Server.Trait.Auth.Basic
                     , WebGear.Server.Trait.Auth.JWT
