@@ -59,7 +59,7 @@ class (ArrowChoice h, ArrowPlus h, ArrowError RouteMismatch h, Monad m) => Handl
 type RequestHandler h ts = h (Request `With` ts) Response
 
 -- | A middleware enhances a `RequestHandler` and produces another handler.
-type Middleware h reqOut reqIn = RequestHandler h reqIn -> RequestHandler h reqOut
+type Middleware h tsOut tsIn = RequestHandler h tsIn -> RequestHandler h tsOut
 
 -- | Description associated with part of an API
 newtype Description = Description {getDescription :: Text}

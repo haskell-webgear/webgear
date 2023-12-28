@@ -232,15 +232,15 @@ instance (TypeError (MissingTrait t)) => HasTrait t '[] where
 
 -- | Type error for nicer UX of missing traits
 type MissingTrait t =
-  Text "The value doesn't have the trait ‘"
+  Text "The value doesn't have the ‘"
     :<>: ShowType t
-    :<>: Text "’."
+    :<>: Text "’ trait."
     :$$: Text ""
-    :$$: Text "Did you use a wrong trait type?"
-    :$$: Text "For e.g., ‘QueryParam \"foo\" Int’ instead of ‘QueryParam \"foo\" String’?"
+    :$$: Text "Did you forget to apply an appropriate middleware?"
+    :$$: Text "For e.g. The trait ‘Body JSON t’ requires ‘requestBody @t JSON’ middleware."
     :$$: Text ""
-    :$$: Text "Or did you forget to apply an appropriate middleware?"
-    :$$: Text "For e.g. The trait ‘JSONBody t’ can be used with ‘jsonRequestBody @t’ middleware."
+    :$$: Text "or did you use a wrong trait type?"
+    :$$: Text "For e.g., ‘RequiredQueryParam \"foo\" Int’ instead of ‘RequiredQueryParam \"foo\" String’?"
     :$$: Text ""
 
 {- | Constraint that proves that all the traits in the list @ts@ are
