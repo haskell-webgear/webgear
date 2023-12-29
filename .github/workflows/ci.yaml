@@ -66,11 +66,6 @@ jobs:
           BENCHMARK=$(nix build --no-link --json .#webgear-benchmarks-ghc${GHC_VERSION} | jq -r .[].outputs.out)
           ${BENCHMARK}/bin/users +RTS -N -RTS
 
-      - name: Haddock
-        run: |
-          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
-          nix develop .#webgear-dev-ghc${GHC_VERSION} --command cabal haddock all
-
   stack-build:
     name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
 
