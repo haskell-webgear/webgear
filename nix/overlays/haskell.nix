@@ -51,11 +51,12 @@ let
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
             # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
-            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
 
-            # GHC 9.8 config does not contain this setting
+            # For ghc-9.8
+            some = hprev.some_1_0_6;
             system-cxx-std-lib = null;
           });
       };
