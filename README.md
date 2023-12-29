@@ -1,12 +1,16 @@
 # WebGear - Build HTTP APIs
 
-[![Hackage](https://img.shields.io/hackage/v/webgear-core)](https://hackage.haskell.org/package/webgear-core)
-[![Hackage](https://img.shields.io/hackage/v/webgear-server)](https://hackage.haskell.org/package/webgear-server)
-[![Hackage](https://img.shields.io/hackage/v/webgear-swagger)](https://hackage.haskell.org/package/webgear-swagger)
-[![Hackage](https://img.shields.io/hackage/v/webgear-swagger-ui)](https://hackage.haskell.org/package/webgear-swagger-ui)
-[![Hackage](https://img.shields.io/hackage/v/webgear-openapi)](https://hackage.haskell.org/package/webgear-openapi)
+-------------------------------------------------------------------------------
+
+* webgear-core - [![Hackage](https://img.shields.io/hackage/v/webgear-core)](https://hackage.haskell.org/package/webgear-core)
+* webgear-server - [![Hackage](https://img.shields.io/hackage/v/webgear-server)](https://hackage.haskell.org/package/webgear-server)
+* webgear-swagger - [![Hackage](https://img.shields.io/hackage/v/webgear-swagger)](https://hackage.haskell.org/package/webgear-swagger)
+* webgear-swagger-ui - [![Hackage](https://img.shields.io/hackage/v/webgear-swagger-ui)](https://hackage.haskell.org/package/webgear-swagger-ui)
+* webgear-openapi - [![Hackage](https://img.shields.io/hackage/v/webgear-openapi)](https://hackage.haskell.org/package/webgear-openapi)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/haskell-webgear/webgear/ci.yaml?branch=main)](https://github.com/haskell-webgear/webgear/actions/workflows/ci.yaml)
+
+-------------------------------------------------------------------------------
 
 WebGear is a Haskell library for building composable, type-safe HTTP APIs.
 

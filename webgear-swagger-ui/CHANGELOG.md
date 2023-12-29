@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2023-12-29
+
 ### Added
 - First version of webgear-swagger-ui
 

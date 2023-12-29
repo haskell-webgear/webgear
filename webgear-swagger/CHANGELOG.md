@@ -2,7 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2023-12-29
+
 ### Added
+- Streaming responses support (#26)
+- Support for cookies (#29)
+- Support file uploads (#32)
 - First version of webgear-swagger
 
 [Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.1.0...HEAD

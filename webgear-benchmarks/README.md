@@ -17,56 +17,58 @@ cabal run webgear-benchmarks:users
 ```
 Build profile: -w ghc-9.6.2 -O1
 benchmarking webgear/500
-time                 1.471 ms   (1.469 ms .. 1.474 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 1.467 ms   (1.466 ms .. 1.469 ms)
-std dev              4.246 μs   (3.379 μs .. 5.759 μs)
+time                 2.643 ms   (2.628 ms .. 2.662 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 2.679 ms   (2.662 ms .. 2.703 ms)
+std dev              62.23 μs   (43.60 μs .. 91.04 μs)
 
 benchmarking webgear/1000
-time                 2.942 ms   (2.938 ms .. 2.947 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 2.918 ms   (2.914 ms .. 2.924 ms)
-std dev              17.13 μs   (15.27 μs .. 20.36 μs)
+time                 5.323 ms   (5.291 ms .. 5.370 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 5.344 ms   (5.323 ms .. 5.373 ms)
+std dev              75.56 μs   (54.20 μs .. 99.89 μs)
 
 benchmarking webgear/5000
-time                 14.72 ms   (14.61 ms .. 14.88 ms)
+time                 26.50 ms   (26.22 ms .. 26.78 ms)
                      1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 14.63 ms   (14.60 ms .. 14.70 ms)
-std dev              121.7 μs   (62.96 μs .. 216.3 μs)
+mean                 26.74 ms   (26.61 ms .. 26.93 ms)
+std dev              342.2 μs   (219.5 μs .. 520.5 μs)
 
 benchmarking servant/500
-time                 7.188 ms   (7.158 ms .. 7.220 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 7.187 ms   (7.170 ms .. 7.212 ms)
-std dev              62.01 μs   (50.88 μs .. 78.39 μs)
+time                 13.28 ms   (13.16 ms .. 13.38 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 13.39 ms   (13.32 ms .. 13.46 ms)
+std dev              187.0 μs   (139.6 μs .. 250.8 μs)
 
 benchmarking servant/1000
-time                 14.40 ms   (14.21 ms .. 14.56 ms)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 14.51 ms   (14.43 ms .. 14.82 ms)
-std dev              345.9 μs   (90.11 μs .. 675.3 μs)
+time                 26.42 ms   (26.20 ms .. 26.63 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 26.58 ms   (26.45 ms .. 26.83 ms)
+std dev              357.5 μs   (163.4 μs .. 580.0 μs)
 
 benchmarking servant/5000
-time                 71.61 ms   (70.92 ms .. 72.25 ms)
+time                 132.2 ms   (131.5 ms .. 133.1 ms)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 72.41 ms   (72.06 ms .. 72.79 ms)
-std dev              662.9 μs   (507.6 μs .. 884.0 μs)
+mean                 132.7 ms   (132.3 ms .. 133.4 ms)
+std dev              900.6 μs   (502.2 μs .. 1.355 ms)
+variance introduced by outliers: 11% (moderately inflated)
 
 benchmarking scotty/500
-time                 7.941 ms   (7.900 ms .. 7.976 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 7.999 ms   (7.977 ms .. 8.017 ms)
-std dev              54.05 μs   (44.34 μs .. 72.74 μs)
+time                 14.83 ms   (14.71 ms .. 14.93 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 14.89 ms   (14.81 ms .. 15.02 ms)
+std dev              243.8 μs   (162.6 μs .. 370.9 μs)
 
 benchmarking scotty/1000
-time                 15.96 ms   (15.80 ms .. 16.18 ms)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 16.07 ms   (16.01 ms .. 16.17 ms)
-std dev              189.6 μs   (135.3 μs .. 294.9 μs)
+time                 29.64 ms   (29.25 ms .. 30.08 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 29.91 ms   (29.67 ms .. 30.74 ms)
+std dev              865.6 μs   (201.4 μs .. 1.612 ms)
 
 benchmarking scotty/5000
-time                 78.93 ms   (77.49 ms .. 79.69 ms)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 79.69 ms   (79.10 ms .. 80.45 ms)
-std dev              1.128 ms   (749.1 μs .. 1.632 ms)
+time                 149.4 ms   (148.5 ms .. 150.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 148.6 ms   (147.8 ms .. 149.0 ms)
+std dev              855.5 μs   (378.7 μs .. 1.294 ms)
+variance introduced by outliers: 12% (moderately inflated)
 ```

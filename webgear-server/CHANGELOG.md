@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2023-12-29
+
+### Added
+- Streaming responses support (#26)
+- Support for cookies (#29)
+- Support file uploads (#32)
+
+### Changed
+- Redesign APIs for ease of use (breaking change) (#24)
+- Switch ServerHandler to a standard monad transformer stack (breaking change) (#27)
+
 ## [1.0.5] - 2023-05-04
 
 ### Changed
@@ -57,7 +68,8 @@
 - Automated tests
 - Documentation
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.0
 [1.0.5]: https://github.com/haskell-webgear/webgear/releases/tag/v1.0.5
 [1.0.4]: https://github.com/haskell-webgear/webgear/releases/tag/v1.0.4
 [1.0.3]: https://github.com/haskell-webgear/webgear/releases/tag/v1.0.3
