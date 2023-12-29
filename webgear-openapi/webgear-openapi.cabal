@@ -11,7 +11,7 @@ homepage:            https://github.com/haskell-webgear/webgear#readme
 bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2020 Raghu Kaippully
+copyright:           2020-2023 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 category:            Web

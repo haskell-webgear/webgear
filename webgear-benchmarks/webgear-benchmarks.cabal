@@ -6,7 +6,7 @@ homepage:            https://github.com/haskell-webgear/webgear-benchmarks#readm
 bug-reports:         https://github.com/haskell-webgear/webgear-benchmarks/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2020-2022 Raghu Kaippully
+copyright:           2020-2023 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 build-type:          Simple
