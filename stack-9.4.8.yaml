@@ -1,4 +1,4 @@
-resolver: lts-22.3
+resolver: lts-21.25
 
 packages:
   - ./webgear-core
@@ -7,3 +7,6 @@ packages:
   - ./webgear-swagger-ui
   - ./webgear-openapi
   - ./webgear-benchmarks
+
+extra-deps:
+  - bytestring-conversion-0.3.2@sha256:156804ee1178e1d57a4c834968a1f70ba490a158fad410771910bd0be6444122,2546

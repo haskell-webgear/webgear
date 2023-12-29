@@ -5,8 +5,8 @@ final: prev:
 let
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["962" "946" "928" "902" "8107"];
-  defaultGHCVersion = "962";
+  ghcVersions = ["981" "963" "948" "928" "902" "8107"];
+  defaultGHCVersion = "981";
 
   localHsPackages = {
     # Libraries
@@ -75,13 +75,15 @@ let
           buildInputs = [
             final.cabal-install
             final.cabal2nix
-            haskell-language-server
             hsPkgs.ghc
             final.hlint
             final.stack
             final.newman
           ] ++ final.lib.optionals (ghcVersion == defaultGHCVersion) [
             haskell.packages."ghc${defaultGHCVersion}".fourmolu
+          ] ++ final.lib.optionals (ghcVersion != "8107") [
+            # HLS no longer supports GHC-8.10
+            haskell-language-server
           ];
 
           src = null;
