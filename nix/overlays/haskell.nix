@@ -58,6 +58,7 @@ let
             # For ghc-9.8
             some = hprev.some_1_0_6;
             tagged = hprev.tagged_0_8_8;
+            th-abstraction = hprev.th-abstraction_0_6_0_0;
             system-cxx-std-lib = null;
           });
       };
