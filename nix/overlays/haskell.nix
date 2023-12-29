@@ -57,6 +57,7 @@ let
 
             # For ghc-9.8
             some = hprev.some_1_0_6;
+            tagged = hprev.tagged_0_8_8;
             system-cxx-std-lib = null;
           });
       };
