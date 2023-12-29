@@ -56,6 +56,7 @@ let
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
             # For ghc-9.8
+            bifunctors = hprev.bifunctors_5_6_1;
             some = hprev.some_1_0_6;
             tagged = hprev.tagged_0_8_8;
             th-abstraction = hprev.th-abstraction_0_6_0_0;
