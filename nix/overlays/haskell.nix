@@ -54,6 +54,9 @@ let
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
             scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+
+            # GHC 9.8 config does not contain this setting
+            system-cxx-std-lib = null;
           });
       };
     }) ghcVersions;
