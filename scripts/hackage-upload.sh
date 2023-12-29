@@ -12,18 +12,26 @@ if [[ "$HACKAGE_API_KEY" == "" ]]; then
 fi
 
 upload_package() {
-    local archive=$1
-    curl --silent \
+    local package=dist-newstyle/sdist/$1-*.tar.gz
+    local doc=dist-newstyle/haddock/$1-*.tar.gz
+    curl --verbose \
          --header "Accept: text/plain" \
          --header "Authorization: X-ApiKey $HACKAGE_API_KEY" \
-         --form "package=@$archive" \
+         --form "package=@$package" \
          https://hackage.haskell.org/packages/
+    curl --verbose \
+         --request PUT \
+         --header "Accept: text/plain" \
+         --header "Authorization: X-ApiKey $HACKAGE_API_KEY" \
+         --data-binary "@$doc" \
+         https://hackage.haskell.org/package/$1/docs
 }
 
 cabal sdist all
+cabal haddock --haddock-for-hackage --enable-doc --builddir=dist-newstyle/haddock all
 
-upload_package dist-newstyle/sdist/webgear-core-*.tar.gz
-upload_package dist-newstyle/sdist/webgear-server-*.tar.gz
-upload_package dist-newstyle/sdist/webgear-swagger-*.tar.gz
-upload_package dist-newstyle/sdist/webgear-swagger-ui-*.tar.gz
-upload_package dist-newstyle/sdist/webgear-openapi-*.tar.gz
+upload_package webgear-core
+upload_package webgear-server
+upload_package webgear-swagger
+upload_package webgear-swagger-ui
+upload_package webgear-openapi

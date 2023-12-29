@@ -1,0 +1,36 @@
+name: Publish to Hackage
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The git ref to publish to Hackage
+        required: true
+        type: string
+
+jobs:
+  hackage-publish:
+    name: Publish to Hackage
+
+    runs-on: ubuntu-latest
+    env:
+      GHC_VERSION: 962
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
+
+      - name: Set up Cachix
+        uses: cachix/cachix-action@v12
+        with:
+          name: haskell-webgear
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Upload to Hackage
+        run: |
+          nix develop .#webgear-dev-ghc${GHC_VERSION} --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
