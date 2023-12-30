@@ -48,6 +48,7 @@ let
             bifunctors = hprev.bifunctors_5_6_1;
             free = hprev.free_5_2;
             generics-sop = hprev.generics-sop_0_5_1_4;
+            hspec-core = hprev.hspec-core_2_11_7;
             some = hprev.some_1_0_6;
             tagged = hprev.tagged_0_8_8;
             th-abstraction = hprev.th-abstraction_0_6_0_0;
@@ -61,15 +62,28 @@ let
       ghc963 = prev.haskell.packages.ghc963.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
             openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # For th-abstraction-0.6
+            generics-sop = hprev.generics-sop_0_5_1_4;
           };
       };
 
       ghc948 = prev.haskell.packages.ghc948.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
             openapi3 = hsLib.unmarkBroken hprev.openapi3;
@@ -79,6 +93,11 @@ let
       ghc928 = prev.haskell.packages.ghc928.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
             openapi3 = hsLib.unmarkBroken hprev.openapi3;
@@ -88,6 +107,11 @@ let
       ghc902 = prev.haskell.packages.ghc902.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
             openapi3 = hsLib.unmarkBroken hprev.openapi3;
@@ -97,6 +121,11 @@ let
       ghc8107 = prev.haskell.packages.ghc8107.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
             openapi3 = hsLib.unmarkBroken hprev.openapi3;
