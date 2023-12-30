@@ -49,6 +49,7 @@ let
             free = hprev.free_5_2;
             generics-sop = hprev.generics-sop_0_5_1_4;
             hspec-core = hprev.hspec-core_2_11_7;
+            hspec-meta = hprev.hspec-meta_2_11_7;
             some = hprev.some_1_0_6;
             tagged = hprev.tagged_0_8_8;
             th-abstraction = hprev.th-abstraction_0_6_0_0;
