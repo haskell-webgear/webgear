@@ -3,6 +3,7 @@
 final: prev:
 
 let
+  hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
   ghcVersions = ["981" "963" "948" "928" "902" "8107"];
@@ -32,40 +33,76 @@ let
       });
 
   haskell = prev.haskell // {
-    packages = prev.haskell.packages // mapcat (ghcVersion: {
-      "ghc${ghcVersion}" = prev.haskell.packages."ghc${ghcVersion}".override {
+    packages = prev.haskell.packages // {
+      ghc981 = prev.haskell.packages.ghc981.override {
         overrides = hfinal: hprev:
-          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages
-          //
-          (let
-            hsLib = final.haskell.lib.compose;
-          in {
-            # jailbreak for text > 2.0
-            bytestring-conversion = hsLib.doJailbreak (hsLib.unmarkBroken hprev.bytestring-conversion);
-
-            # For ghc-9.6 support
-            generics-sop = hsLib.doJailbreak hprev.generics-sop;
-            optics-th = hsLib.doJailbreak hprev.optics-th;
-
-            # Tests fail on GHC >9.2
-            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
-
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
             # Need specific versions for benchmarking
             scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
             # For ghc-9.8
+            system-cxx-std-lib = null;
             aeson = hprev.aeson_2_2_1_0;
             bifunctors = hprev.bifunctors_5_6_1;
             free = hprev.free_5_2;
+            generics-sop = hprev.generics-sop_0_5_1_4;
             some = hprev.some_1_0_6;
             tagged = hprev.tagged_0_8_8;
             th-abstraction = hprev.th-abstraction_0_6_0_0;
-            system-cxx-std-lib = null;
-          });
+
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
       };
-    }) ghcVersions;
+
+      ghc963 = prev.haskell.packages.ghc963.override {
+        overrides = hfinal: hprev:
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
+      };
+
+      ghc948 = prev.haskell.packages.ghc948.override {
+        overrides = hfinal: hprev:
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
+      };
+
+      ghc928 = prev.haskell.packages.ghc928.override {
+        overrides = hfinal: hprev:
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
+      };
+
+      ghc902 = prev.haskell.packages.ghc902.override {
+        overrides = hfinal: hprev:
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
+      };
+
+      ghc8107 = prev.haskell.packages.ghc8107.override {
+        overrides = hfinal: hprev:
+          final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
+            # No longer broken
+            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
+            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+          };
+      };
+    };
   };
 
   mkDevShell = ghcVersion:
