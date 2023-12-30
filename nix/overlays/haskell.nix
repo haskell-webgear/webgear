@@ -55,7 +55,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
       };
 
@@ -69,7 +71,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
             # For th-abstraction-0.6
             generics-sop = hprev.generics-sop_0_5_1_4;
@@ -86,7 +90,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
       };
 
@@ -100,7 +106,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
       };
 
@@ -114,7 +122,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
       };
 
@@ -128,7 +138,9 @@ let
 
             # No longer broken
             bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-            openapi3 = hsLib.unmarkBroken hprev.openapi3;
+
+            # doctests fail
+            openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
       };
     };
