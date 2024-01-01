@@ -12,8 +12,8 @@ if [[ "$HACKAGE_API_KEY" == "" ]]; then
 fi
 
 upload_package() {
-    local package=dist-newstyle/sdist/$1-*.tar.gz
-    local doc=dist-newstyle/haddock/$1-*.tar.gz
+    local package=$(ls dist-newstyle/sdist/$1-*.tar.gz)
+    local doc=$(ls dist-newstyle/haddock/$1-*.tar.gz)
     curl --verbose \
          --header "Accept: text/plain" \
          --header "Authorization: X-ApiKey $HACKAGE_API_KEY" \
