@@ -13,8 +13,6 @@ jobs:
     name: Publish to Hackage
 
     runs-on: ubuntu-latest
-    env:
-      GHC_VERSION: 962
 
     steps:
       - name: Checkout Source Code
@@ -33,4 +31,4 @@ jobs:
 
       - name: Upload to Hackage
         run: |
-          nix develop .#webgear-dev-ghc${GHC_VERSION} --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
+          nix develop --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
