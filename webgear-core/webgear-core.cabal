@@ -10,7 +10,7 @@ homepage:            https://github.com/haskell-webgear/webgear#readme
 bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2020-2023 Raghu Kaippully
+copyright:           2020-2024 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 category:            Web
@@ -53,7 +53,7 @@ common webgear-common
                       TypeApplications
                       TypeFamilies
                       TypeOperators
-  build-depends:      base >=4.13.0.0 && <4.20
+  build-depends:      base >=4.13.0.0 && <4.19
                     , binary >= 0.8.0.0 && <0.9
                     , bytestring >=0.10.10.1 && <0.13
                     , case-insensitive ==1.2.*
@@ -64,7 +64,7 @@ common webgear-common
                     , http-types ==0.12.*
                     , network ==3.1.*
                     , tagged ==0.8.*
-                    , template-haskell >=2.15.0.0 && <2.22
+                    , template-haskell >=2.15.0.0 && <2.21
                     , text >=1.2.0.0 && <2.2
                     , wai ==3.2.*
                     , wai-extra ==3.1.*

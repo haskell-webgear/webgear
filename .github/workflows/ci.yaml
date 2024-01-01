@@ -21,7 +21,6 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.8.1
           - 9.6.3
           - 9.4.8
           - 9.2.8
@@ -53,7 +52,7 @@ jobs:
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
       - name: Build Examples
-        if: matrix.ghc == '9.8.1'
+        if: matrix.ghc == '9.6.3'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link           \

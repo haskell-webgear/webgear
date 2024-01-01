@@ -11,7 +11,7 @@ homepage:            https://github.com/haskell-webgear/webgear#readme
 bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2023 Raghu Kaippully
+copyright:           2023-2024 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 category:            Web
@@ -68,7 +68,7 @@ library
                       TypeFamilies
                       TypeOperators
   build-depends:      arrows ==0.4.*
-                    , base >=4.13.0.0 && <4.20
+                    , base >=4.13.0.0 && <4.19
                     , http-types ==0.12.*
                     , insert-ordered-containers ==0.2.*
                     , lens >=4.18.1 && <5.3
