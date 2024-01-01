@@ -1,9 +1,0 @@
-resolver: lts-21.14
-
-packages:
-  - ./webgear-core
-  - ./webgear-server
-  - ./webgear-swagger
-  - ./webgear-swagger-ui
-  - ./webgear-openapi
-  - ./webgear-benchmarks

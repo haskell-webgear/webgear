@@ -2,10 +2,16 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2024-01-01
+
+### Changed
+- Updated dependency bounds and GHC versions (#35)
+
 ## [1.1.0] - 2023-12-29
 
 ### Added
 - First version of webgear-swagger-ui
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.1
 [1.1.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.0

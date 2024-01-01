@@ -21,8 +21,8 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.6.2
-          - 9.4.6
+          - 9.6.3
+          - 9.4.8
           - 9.2.8
           - 9.0.2
           - 8.10.7
@@ -52,7 +52,7 @@ jobs:
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
       - name: Build Examples
-        if: matrix.ghc == '9.6.2'
+        if: matrix.ghc == '9.6.3'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link           \
@@ -65,11 +65,6 @@ jobs:
           BENCHMARK=$(nix build --no-link --json .#webgear-benchmarks-ghc${GHC_VERSION} | jq -r .[].outputs.out)
           ${BENCHMARK}/bin/users +RTS -N -RTS
 
-      - name: Haddock
-        run: |
-          GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
-          nix develop .#webgear-dev-ghc${GHC_VERSION} --command cabal haddock all
-
   stack-build:
     name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
 
@@ -81,8 +76,7 @@ jobs:
           - ubuntu-latest
         ghc:
           - 9.6.3
-          # Stack 9.4 is broken because bytestring-conversion is missing from snapshot
-          # - 9.4.7
+          - 9.4.8
           - 9.2.8
           - 9.0.2
           - 8.10.7
@@ -94,12 +88,11 @@ jobs:
       - uses: actions/checkout@v3
         name: Checkout Source Code
 
-      - uses: haskell/actions/setup@v2
+      - uses: haskell-actions/setup@v2
         name: Setup Haskell Build Environment
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-          stack-version: 2.9.3
 
       - uses: actions/cache@v3
         name: Cache dependencies
