@@ -1,12 +1,12 @@
 cabal-version:       2.4
 name:                webgear-benchmarks
-version:             1.1.0
+version:             1.1.1
 description:         Benchmarks for webgear
 homepage:            https://github.com/haskell-webgear/webgear-benchmarks#readme
 bug-reports:         https://github.com/haskell-webgear/webgear-benchmarks/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2020-2023 Raghu Kaippully
+copyright:           2020-2024 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 build-type:          Simple
@@ -33,7 +33,7 @@ executable users
                     , servant-server ==0.20
                     , scotty ==0.20.1
                     , wai ==3.2.*
-                    , webgear-server ==1.1.0
+                    , webgear-server ==1.1.1
   default-extensions: Arrows
                       ConstraintKinds
                       DataKinds

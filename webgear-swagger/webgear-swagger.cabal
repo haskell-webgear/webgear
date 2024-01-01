@@ -1,7 +1,7 @@
 cabal-version:       2.4
 
 name:                webgear-swagger
-version:             1.1.0
+version:             1.1.1
 synopsis:            Composable, type-safe library to build HTTP API servers
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -74,7 +74,7 @@ library
                     , lens >=4.18.1 && <5.3
                     , swagger2 >=2.6 && <2.9
                     , text >=1.2.0.0 && <2.2
-                    , webgear-core ==1.1.0
+                    , webgear-core ^>=1.1.1
   ghc-options:        -Wall
                       -Wno-unticked-promoted-constructors
                       -Wcompat
