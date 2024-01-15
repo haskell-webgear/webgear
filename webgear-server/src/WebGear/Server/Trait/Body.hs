@@ -29,15 +29,12 @@ instance (Monad m, BodyRender m mt val) => Set (ServerHandler m) (Body mt val) R
     ServerHandler m (Response `With` ts, val) (Response `With` (Body mt val : ts))
   setTrait (Body mt) f = ServerHandler $ \(wResponse, val) -> do
     let response = unwitness wResponse
-    (mediaType, responseBody) <- lift $ lift $ bodyRender mt response val
-
-    let response' =
-          response
-            { responseBody
-            , responseHeaders = alterContentType mediaType (responseHeaders response)
-            }
-
-    pure $ f wResponse response' val
+    case response of
+      Response status hdrs _ -> do
+        (mediaType, body') <- lift $ lift $ bodyRender mt response val
+        let response' = Response status (alterContentType mediaType hdrs) body'
+        pure $ f wResponse response' val
+      _ -> pure $ f wResponse response val
 
 alterContentType :: HTTP.MediaType -> HTTP.ResponseHeaders -> HTTP.ResponseHeaders
 alterContentType mt = go
@@ -54,6 +51,7 @@ instance (Monad m) => Set (ServerHandler m) UnknownContentBody Response where
     UnknownContentBody ->
     (Response `With` ts -> Response -> ResponseBody -> Response `With` (UnknownContentBody : ts)) ->
     ServerHandler m (Response `With` ts, ResponseBody) (Response `With` (UnknownContentBody : ts))
-  setTrait UnknownContentBody f = ServerHandler $ \(wResponse, responseBody) -> do
-    let response' = (unwitness wResponse){responseBody}
-    pure $ f wResponse response' responseBody
+  setTrait UnknownContentBody f = ServerHandler $ \(wResponse, body') ->
+    case unwitness wResponse of
+      Response status hdrs _ -> pure $ f wResponse (Response status hdrs body') body'
+      response -> pure $ f wResponse response body'

@@ -67,8 +67,11 @@ instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Require
     ServerHandler m (Response `With` ts, Cookie.SetCookie) (Response `With` (SetCookie Required name : ts))
   setTrait SetCookie f = proc (l, cookie) -> do
     let cookieName :: ByteString = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unwitness l
-        response' = response{responseHeaders = ("Set-Cookie", cookieToBS cookieName cookie) : responseHeaders}
+        response = unwitness l
+        response' =
+          case response of
+            Response status hdrs body -> Response status (("Set-Cookie", cookieToBS cookieName cookie) : hdrs) body
+            _ -> response
     returnA -< f l response' cookie
 
 instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optional name) Response where
@@ -80,8 +83,11 @@ instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optiona
     ServerHandler m (Response `With` ts, Maybe Cookie.SetCookie) (Response `With` (SetCookie Optional name : ts))
   setTrait SetCookie f = proc (l, maybeCookie) -> do
     let cookieName :: ByteString = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unwitness l
-        response' = response{responseHeaders = alterCookie cookieName maybeCookie responseHeaders}
+        response = unwitness l
+        response' =
+          case response of
+            Response status hdrs body -> Response status (alterCookie cookieName maybeCookie hdrs) body
+            _ -> response
     returnA -< f l response' maybeCookie
 
 alterCookie :: ByteString -> Maybe Cookie.SetCookie -> ResponseHeaders -> ResponseHeaders
@@ -95,6 +101,6 @@ alterCookie name Nothing hdrs = filter (not . isMatchingCookie) hdrs
 
 cookieToBS :: ByteString -> Cookie.SetCookie -> ByteString
 cookieToBS name cookie =
-  toByteString'
-    $ Cookie.renderSetCookie
-    $ cookie{Cookie.setCookieName = name}
+  toByteString' $
+    Cookie.renderSetCookie $
+      cookie{Cookie.setCookieName = name}

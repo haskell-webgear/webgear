@@ -84,8 +84,11 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
     ServerHandler m (Response `With` ts, val) (Response `With` (ResponseHeader Required name val : ts))
   setTrait ResponseHeader f = proc (l, val) -> do
     let headerName :: HeaderName = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unwitness l
-        response' = response{responseHeaders = (headerName, toByteString' val) : responseHeaders}
+        response = unwitness l
+        response' =
+          case response of
+            Response status hdrs body -> Response status ((headerName, toByteString' val) : hdrs) body
+            _ -> response
     returnA -< f l response' val
 
 instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) (ResponseHeader Optional name val) Response where
@@ -97,8 +100,11 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
     ServerHandler m (Response `With` ts, Maybe val) (Response `With` (ResponseHeader Optional name val : ts))
   setTrait ResponseHeader f = proc (l, maybeVal) -> do
     let headerName :: HeaderName = fromString $ symbolVal $ Proxy @name
-        response@Response{..} = unwitness l
-        response' = response{responseHeaders = alterHeader headerName (toByteString' <$> maybeVal) responseHeaders}
+        response = unwitness l
+        response' =
+          case response of
+            Response status hdrs body -> Response status (alterHeader headerName (toByteString' <$> maybeVal) hdrs) body
+            _ -> response
     returnA -< f l response' maybeVal
 
 alterHeader :: HeaderName -> Maybe ByteString -> ResponseHeaders -> ResponseHeaders

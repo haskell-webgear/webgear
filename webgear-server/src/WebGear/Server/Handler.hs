@@ -46,7 +46,7 @@ import WebGear.Core.Handler (
   Summary,
  )
 import WebGear.Core.Request (Request (..))
-import WebGear.Core.Response (Response (..), ResponseBody (..), toWaiResponse)
+import WebGear.Core.Response (Response (..), ResponseBody (..))
 import WebGear.Core.Trait (With, wzero)
 
 {- | An arrow implementing a WebGear server.
@@ -104,8 +104,8 @@ instance (Monad m) => Handler (ServerHandler m) m where
   {-# INLINE consumeRoute #-}
   consumeRoute :: ServerHandler m RoutePath a -> ServerHandler m () a
   consumeRoute (ServerHandler h) =
-    ServerHandler
-      $ \() -> do
+    ServerHandler $
+      \() -> do
         a <- get >>= h
         put (RoutePath [])
         pure a
@@ -137,10 +137,9 @@ runServerHandler (ServerHandler h) path a =
 toApplication :: ServerHandler IO (Request `With` '[]) Response -> Wai.Application
 toApplication h rqt cont =
   runServerHandler h path request
-    >>= cont
-    . toWaiResponse
-    . addServerHeader
-    . mkWebGearResponse
+    >>= processResponse
+      . addServerHeader
+      . mkWebGearResponse
   where
     request :: Request `With` '[]
     request = wzero $ Request rqt
@@ -152,7 +151,9 @@ toApplication h rqt cont =
     mkWebGearResponse = fromRight $ Response HTTP.notFound404 [] $ ResponseBodyBuilder mempty
 
     addServerHeader :: Response -> Response
-    addServerHeader resp@Response{..} = resp{responseHeaders = foldr insertServerHeader [] responseHeaders}
+    addServerHeader = \case
+      Response status hdrs body -> Response status (foldr insertServerHeader [] hdrs) body
+      resp -> resp
 
     insertServerHeader :: HTTP.Header -> HTTP.ResponseHeaders -> HTTP.ResponseHeaders
     insertServerHeader hdr@(name, _) hdrs
@@ -161,6 +162,18 @@ toApplication h rqt cont =
 
     webGearServerHeader :: ByteString
     webGearServerHeader = fromString $ "WebGear/" ++ showVersion version
+
+    processResponse :: Response -> IO Wai.ResponseReceived
+    processResponse resp =
+      case resp of
+        ResponseCont f -> f cont
+        ResponseRaw raw fallback -> cont $ Wai.responseRaw raw fallback
+        Response status hdrs body ->
+          cont $
+            case body of
+              ResponseBodyFile fpath fpart -> Wai.responseFile status hdrs fpath fpart
+              ResponseBodyBuilder b -> Wai.responseBuilder status hdrs b
+              ResponseBodyStream sb -> Wai.responseStream status hdrs sb
 {-# INLINE toApplication #-}
 
 {- | Transform a `ServerHandler` running in one monad to another monad.
