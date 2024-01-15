@@ -54,13 +54,10 @@ application pool jwk = toApplication $ transform appToIO allRoutes
   where
     allRoutes =
       appRoutes jwk
-        <+> uiRoutes
         <+> [match| /openapi |] (swaggerUI $ toOpenApi @App $ appRoutes jwk)
+        <+> uiRoutes
 
-    uiRoutes =
-      [match|       GET  /ui/assets |] UI.assets
-        <+> [match| GET  /ui        |] UI.index
-        <+> [route| GET  /          |] UI.index
+    uiRoutes = method GET UI.assets
 
     appToIO :: App a -> IO a
     appToIO = flip runReaderT (AppEnv pool) . unApp
