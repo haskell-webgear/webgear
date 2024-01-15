@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Support for embedding WAI applications in handlers (#36)
+
 ## [1.1.1] - 2024-01-01
 
 ### Changed

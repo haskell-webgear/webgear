@@ -1,30 +1,12 @@
 module API.UI where
 
 import API.Common (App)
-import Network.Mime (MimeType)
+import Network.Wai.Application.Static (StaticSettings (..), defaultWebAppSettings)
 import Relude
+import WaiAppStatic.Types (unsafeToPiece)
 import WebGear.Server
 
-assets ::
-  ( StdHandler h App
-  , Sets
-      h
-      [ RequiredResponseHeader "Content-Type" MimeType
-      , UnknownContentBody
-      ]
-      Response
-  ) =>
-  RequestHandler h ts
-assets = serveDir "ui/assets" Nothing
-
-index ::
-  ( StdHandler h App
-  , Sets
-      h
-      [ RequiredResponseHeader "Content-Type" MimeType
-      , UnknownContentBody
-      ]
-      Response
-  ) =>
-  RequestHandler h ts
-index = proc _ -> serveFile -< "ui/index.html"
+assets :: (Handler h App) => RequestHandler h ts
+assets =
+  let settings = (defaultWebAppSettings "ui"){ssIndices = unsafeToPiece <$> ["index.html", "index.htm"]}
+   in serveStatic settings

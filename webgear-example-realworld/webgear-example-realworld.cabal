@@ -28,7 +28,6 @@ executable realworld
                     , http-types
                     , jose
                     , lens
-                    , mime-types
                     , monad-logger
                     , monad-time
                     , mtl
@@ -43,6 +42,7 @@ executable realworld
                     , time
                     , uri-encode
                     , wai
+                    , wai-app-static
                     , warp
                     , webgear-server
                     , webgear-openapi
