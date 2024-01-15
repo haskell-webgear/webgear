@@ -5,36 +5,28 @@ module WebGear.Swagger.UI (
   swaggerUI,
 ) where
 
-import Control.Arrow (returnA, (<+>))
+import Control.Arrow ((<+>))
 import Data.ByteString (ByteString)
-import Data.ByteString.Builder (byteString)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Network.HTTP.Types as HTTP
 import qualified Network.Mime as Mime
+import Network.Wai.Application.Static (embeddedSettings)
 import WebGear.Core (
   Body,
   HTML (..),
-  Handler (consumeRoute),
   JSON (..),
-  PlainText (..),
   RequestHandler,
   RequiredResponseHeader,
   Response (..),
-  ResponseBody (ResponseBodyBuilder),
-  RoutePath (..),
   Sets,
   StdHandler,
   UnknownContentBody,
   match,
   method,
-  ok200,
   pathEnd,
   respondA,
   route,
-  setBodyWithoutContentType,
-  setHeader,
-  unwitnessA,
-  (>->),
+  serveStatic,
  )
 import qualified WebGear.Swagger.UI.Embedded as Embedded
 
@@ -96,35 +88,10 @@ swaggerJson ::
   apiSpec ->
   RequestHandler h ts
 swaggerJson apiSpec =
-  [route| HTTP.GET /swagger.json |]
-    $ proc _request -> respondA HTTP.ok200 JSON -< apiSpec
+  [route| HTTP.GET /swagger.json |] $
+    proc _request -> respondA HTTP.ok200 JSON -< apiSpec
 
-uiAssets ::
-  ( StdHandler h m
-  , Sets
-      h
-      [ RequiredResponseHeader "Content-Type" Text
-      , RequiredResponseHeader "Content-Type" Mime.MimeType
-      , UnknownContentBody
-      ]
-      Response
-  ) =>
-  RequestHandler h ts
+uiAssets :: (StdHandler h m) => RequestHandler h ts
 uiAssets =
-  [match| HTTP.GET / |]
-    $ proc _request -> do
-      RoutePath path <- consumeRoute returnA -< ()
-      case path of
-        [filename] ->
-          case lookup (unpack filename) Embedded.uiAssetsDir of
-            Nothing -> notFound -< ()
-            Just content -> do
-              let contentType = Mime.defaultMimeLookup filename
-              (ok200 -< ())
-                >-> (\resp -> setBodyWithoutContentType -< (resp, ResponseBodyBuilder $ byteString content))
-                >-> (\resp -> setHeader @"Content-Type" -< (resp, contentType))
-                >-> (\resp -> unwitnessA -< resp)
-        _ -> notFound -< ()
-  where
-    notFound = proc () -> do
-      respondA HTTP.notFound404 PlainText -< "" :: Text
+  [match| HTTP.GET / |] $
+    serveStatic (embeddedSettings Embedded.uiAssetsDir)
