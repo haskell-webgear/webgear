@@ -58,7 +58,6 @@ common webgear-common
                     , bytestring >=0.10.10.1 && <0.13
                     , case-insensitive ==1.2.*
                     , cookie >=0.4.5 && <0.5
-                    , filepath >=1.4.2.1 && <1.6
                     , http-api-data >=0.4.2 && <0.7
                     , http-media ==0.8.*
                     , http-types ==0.12.*
@@ -67,6 +66,7 @@ common webgear-common
                     , template-haskell >=2.15.0.0 && <2.21
                     , text >=1.2.0.0 && <2.2
                     , wai ==3.2.*
+                    , wai-app-static ==3.1.*
                     , wai-extra ==3.1.*
   ghc-options:        -Wall
                       -Wno-unticked-promoted-constructors
@@ -108,4 +108,3 @@ library
   hs-source-dirs:     src
   build-depends:      arrows ==0.4.*
                     , jose >=0.8.3.1 && <0.12
-                    , mime-types ==0.1.*
