@@ -128,6 +128,10 @@ instance Trait (JWTAuth' Optional scheme m e a) Request where
 instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
   type Absence (JWTAuth' Optional scheme m e a) Request = Void
 
+type instance
+  Prerequisite (JWTAuth' x scheme m e a) ts Request =
+    HasTrait (AuthorizationHeader scheme) ts
+
 {- | Middleware to add JWT authentication protection for a
  handler. Expects the JWT to be available via a standard bearer
  authorization header in the format:
@@ -143,8 +147,9 @@ instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
  retrieved successfully.
 -}
 jwtAuth ::
-  ( Get h (JWTAuth m e t) Request
-  , ArrowChoice h
+  ( ArrowChoice h
+  , Get h (JWTAuth m e t) Request
+  , HasTrait (AuthorizationHeader "Bearer") ts
   ) =>
   -- | Authentication configuration
   JWTAuth m e t ->
@@ -170,8 +175,9 @@ jwtAuth = jwtAuth' @"Bearer"
  authentication error appropriately.
 -}
 optionalJWTAuth ::
-  ( Get h (JWTAuth' Optional "Bearer" m e t) Request
-  , ArrowChoice h
+  ( ArrowChoice h
+  , Get h (JWTAuth' Optional "Bearer" m e t) Request
+  , HasTrait (AuthorizationHeader "Bearer") ts
   ) =>
   -- | Authentication configuration
   JWTAuth' Optional "Bearer" m e t ->
@@ -180,13 +186,14 @@ optionalJWTAuth = optionalJWTAuth' @"Bearer"
 {-# INLINE optionalJWTAuth #-}
 
 jwtAuthMiddleware ::
-  forall s e t x h m ts.
-  ( Get h (JWTAuth' x s m e t) Request
-  , ArrowChoice h
+  forall scheme e t x h m ts.
+  ( ArrowChoice h
+  , Get h (JWTAuth' x scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
   ) =>
-  JWTAuth' x s m e t ->
-  h (Request `With` ts, Absence (JWTAuth' x s m e t) Request) Response ->
-  Middleware h ts (JWTAuth' x s m e t : ts)
+  JWTAuth' x scheme m e t ->
+  h (Request `With` ts, Absence (JWTAuth' x scheme m e t) Request) Response ->
+  Middleware h ts (JWTAuth' x scheme m e t : ts)
 jwtAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
     result <- probe authCfg -< request
@@ -210,15 +217,16 @@ jwtAuthMiddleware authCfg errorHandler nextHandler =
  retrieved successfully.
 -}
 jwtAuth' ::
-  forall s e t h m ts.
-  ( Get h (JWTAuth' Required s m e t) Request
-  , ArrowChoice h
+  forall scheme e t h m ts.
+  ( ArrowChoice h
+  , Get h (JWTAuth' Required scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration
-  JWTAuth' Required s m e t ->
+  JWTAuth' Required scheme m e t ->
   -- | Error handler
   h (Request `With` ts, JWTAuthError e) Response ->
-  Middleware h ts (JWTAuth' Required s m e t : ts)
+  Middleware h ts (JWTAuth' Required scheme m e t : ts)
 jwtAuth' = jwtAuthMiddleware
 {-# INLINE jwtAuth' #-}
 
@@ -238,12 +246,13 @@ jwtAuth' = jwtAuthMiddleware
  authentication error appropriately.
 -}
 optionalJWTAuth' ::
-  forall s e t h m ts.
-  ( Get h (JWTAuth' Optional s m e t) Request
-  , ArrowChoice h
+  forall scheme e t h m ts.
+  ( ArrowChoice h
+  , Get h (JWTAuth' Optional scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration
-  JWTAuth' Optional s m e t ->
-  Middleware h ts (JWTAuth' Optional s m e t : ts)
+  JWTAuth' Optional scheme m e t ->
+  Middleware h ts (JWTAuth' Optional scheme m e t : ts)
 optionalJWTAuth' cfg = jwtAuthMiddleware cfg $ arr (absurd . snd)
 {-# INLINE optionalJWTAuth' #-}

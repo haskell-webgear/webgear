@@ -19,10 +19,21 @@ import Data.Text (Text)
 import GHC.TypeLits (Symbol)
 import qualified Web.Cookie as Cookie
 import WebGear.Core.Handler (Middleware)
-import WebGear.Core.Modifiers (Existence (..))
+import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Set, Trait (..), TraitAbsence (..), With, plant, probe)
+import WebGear.Core.Trait (
+  Get,
+  HasTrait,
+  Prerequisite,
+  Set,
+  Trait (..),
+  TraitAbsence (..),
+  With,
+  plant,
+  probe,
+ )
+import WebGear.Core.Trait.Header (RequestHeader)
 
 -- | Indicates a missing cookie
 data CookieNotFound = CookieNotFound
@@ -38,6 +49,10 @@ data Cookie (e :: Existence) (name :: Symbol) (val :: Type) = Cookie
 instance Trait (Cookie Required name val) Request where
   type Attribute (Cookie Required name val) Request = val
 
+type instance
+  Prerequisite (Cookie e name val) ts Request =
+    HasTrait (RequestHeader e Strict "Cookie" Text) ts
+
 instance TraitAbsence (Cookie Required name val) Request where
   type Absence (Cookie Required name val) Request = Either CookieNotFound CookieParseError
 
@@ -49,7 +64,10 @@ instance TraitAbsence (Cookie Optional name val) Request where
 
 cookieHandler ::
   forall name val e h ts.
-  (Get h (Cookie e name val) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (Cookie e name val) Request
+  , HasTrait (RequestHeader e Strict "Cookie" Text) ts
+  ) =>
   -- | error handler
   h (Request `With` ts, Absence (Cookie e name val) Request) Response ->
   Middleware h ts (Cookie e name val : ts)
@@ -70,7 +88,10 @@ cookieHandler errorHandler nextHandler = proc request -> do
 -}
 cookie ::
   forall name val h ts.
-  (Get h (Cookie Required name val) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (Cookie Required name val) Request
+  , HasTrait (RequestHeader Required Strict "Cookie" Text) ts
+  ) =>
   -- | Error handler
   h (Request `With` ts, Either CookieNotFound CookieParseError) Response ->
   Middleware h ts (Cookie Required name val : ts)
@@ -88,7 +109,10 @@ cookie = cookieHandler
 -}
 optionalCookie ::
   forall name val h ts.
-  (Get h (Cookie Optional name val) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (Cookie Optional name val) Request
+  , HasTrait (RequestHeader Optional Strict "Cookie" Text) ts
+  ) =>
   -- | Error handler
   h (Request `With` ts, CookieParseError) Response ->
   Middleware h ts (Cookie Optional name val : ts)

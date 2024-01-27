@@ -37,6 +37,7 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response, ResponseBody)
 import WebGear.Core.Trait (
   Get,
+  Prerequisite,
   Set,
   Sets,
   Trait (..),
@@ -56,6 +57,8 @@ instance Trait (Body mt t) Request where
 
 instance TraitAbsence (Body mt t) Request where
   type Absence (Body mt t) Request = Text
+
+type instance Prerequisite (Body mt t) ts Request = ()
 
 instance Trait (Body mt t) Response where
   type Attribute (Body mt t) Response = t

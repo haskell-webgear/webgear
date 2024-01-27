@@ -43,7 +43,7 @@ import WebGear.Core.Handler (Middleware)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Trait (..), TraitAbsence (..), With, probe)
+import WebGear.Core.Trait (Get, Prerequisite, Trait (..), TraitAbsence (..), With, probe)
 
 {- | Capture a query parameter with a specified @name@ and convert it to
  a value of type @val@. The type parameter @e@ denotes whether the
@@ -90,6 +90,8 @@ instance Trait (QueryParam Optional Lenient name val) Request where
 
 instance TraitAbsence (QueryParam Optional Lenient name val) Request where
   type Absence (QueryParam Optional Lenient name val) Request = Void
+
+type instance Prerequisite (QueryParam e p name val) ts Request = ()
 
 queryParamHandler ::
   forall name val e p h ts.

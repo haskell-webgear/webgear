@@ -56,6 +56,7 @@ import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (
   Get (..),
+  Prerequisite,
   Set,
   Trait (..),
   TraitAbsence (..),
@@ -108,6 +109,8 @@ instance Trait (RequestHeader Optional Lenient name val) Request where
 
 instance TraitAbsence (RequestHeader Optional Lenient name val) Request where
   type Absence (RequestHeader Optional Lenient name val) Request = Void
+
+type instance Prerequisite (RequestHeader e p name val) ts Request = ()
 
 headerHandler ::
   forall name val e p h ts.

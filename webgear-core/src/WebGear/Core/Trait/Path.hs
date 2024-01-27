@@ -29,7 +29,7 @@ import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait (Get, Prerequisite, Trait (..), TraitAbsence (..), probe)
 import WebGear.Core.Trait.Method (method)
 import Prelude hiding (drop, filter, take)
 
@@ -43,6 +43,8 @@ instance Trait Path Request where
 
 instance TraitAbsence Path Request where
   type Absence Path Request = ()
+
+type instance Prerequisite Path ts Request = ()
 
 {- | A path variable that is extracted and converted to a value of
  type @val@. The @tag@ is usually a type-level symbol (string) to
@@ -60,6 +62,8 @@ instance Trait (PathVar tag val) Request where
 instance TraitAbsence (PathVar tag val) Request where
   type Absence (PathVar tag val) Request = PathVarError
 
+type instance Prerequisite (PathVar tag val) ts Request = ()
+
 -- | Trait to indicate that no more path components are present in the request
 data PathEnd = PathEnd
 
@@ -68,6 +72,8 @@ instance Trait PathEnd Request where
 
 instance TraitAbsence PathEnd Request where
   type Absence PathEnd Request = ()
+
+type instance Prerequisite PathEnd ts Request = ()
 
 {- | A middleware that literally matches path @s@.
 

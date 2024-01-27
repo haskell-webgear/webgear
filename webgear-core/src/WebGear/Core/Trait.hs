@@ -47,6 +47,7 @@ module WebGear.Core.Trait (
   -- * Core Types
   Trait (..),
   TraitAbsence (..),
+  Prerequisite,
   Get (..),
   Gets,
   Set (..),
@@ -84,10 +85,21 @@ class (Trait t a) => TraitAbsence t a where
   -- value. This could be an error message, exception etc.
   type Absence t a :: Type
 
+{- | Indicates the constraints a trait depends upon as a
+prerequisite. This is used to assert that a trait @t@ can be
+extracted from a value @a@ only if one or more other traits are
+present in the trait list @ts@ associated with it.
+
+If a trait does not depend on other traits this can be set to the
+empty contraint @()@.
+-}
+type family Prerequisite (t :: Type) (ts :: [Type]) (a :: Type) :: Constraint
+
 -- | Extract trait attributes from a value.
 class (Arrow h, TraitAbsence t a) => Get h t a where
   -- | Attempt to witness the trait attribute from the value @a@.
   getTrait ::
+    (Prerequisite t ts a) =>
     -- | The trait to witness
     t ->
     -- | Arrow that attemtps to witness the trait and can possibly
@@ -168,7 +180,7 @@ wminus (With (_, rv) a) = With rv a
 -}
 probe ::
   forall t ts h a.
-  (Get h t a) =>
+  (Get h t a, Prerequisite t ts a) =>
   t ->
   h (a `With` ts) (Either (Absence t a) (a `With` (t : ts)))
 probe t = proc l -> do
