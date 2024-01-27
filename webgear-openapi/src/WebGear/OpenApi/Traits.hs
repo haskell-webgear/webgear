@@ -5,6 +5,7 @@
 -}
 module WebGear.OpenApi.Traits () where
 
+import WebGear.OpenApi.Trait.Auth ()
 import WebGear.OpenApi.Trait.Auth.Basic ()
 import WebGear.OpenApi.Trait.Auth.JWT ()
 import WebGear.OpenApi.Trait.Body ()
