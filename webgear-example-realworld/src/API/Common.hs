@@ -88,17 +88,20 @@ type JSONBody a = Body JSON a
 
 -- Middlewares for JWT authentication with "token" scheme
 
+type AuthHeader = AuthorizationHeader "token"
 type RequiredAuth = JWTAuth' Required "token" App () (Key User)
 type OptionalAuth = JWTAuth' Optional "token" App () (Key User)
 
 requiredTokenAuth ::
   ( StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [RequiredAuth, AuthHeader] Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
   JWT.JWK ->
-  Middleware h ts (RequiredAuth : ts)
-requiredTokenAuth jwk = tokenAuth jwk (`jwtAuth'` forbidden)
+  Middleware h ts (RequiredAuth : AuthHeader : ts)
+requiredTokenAuth jwk =
+  optionalLenientHeader @"Authorization" @(AuthToken "token")
+    . tokenAuth jwk (`jwtAuth'` forbidden)
   where
     forbidden = proc (_, err) -> case err of
       JWTAuthTokenBadFormat e ->
@@ -113,13 +116,19 @@ requiredTokenAuth jwk = tokenAuth jwk (`jwtAuth'` forbidden)
             show @ErrorResponse e
 
 optionalTokenAuth ::
-  (StdHandler h App, Get h OptionalAuth Request) =>
+  ( StdHandler h App
+  , Gets h [OptionalAuth, AuthHeader] Request
+  ) =>
   JWT.JWK ->
-  Middleware h ts (OptionalAuth : ts)
-optionalTokenAuth jwk = tokenAuth jwk optionalJWTAuth'
+  Middleware h ts (OptionalAuth : AuthHeader : ts)
+optionalTokenAuth jwk =
+  optionalLenientHeader @"Authorization" @(AuthToken "token")
+    . tokenAuth jwk optionalJWTAuth'
 
 tokenAuth ::
-  (Handler h App) =>
+  ( Handler h App
+  , Get h AuthHeader Request
+  ) =>
   JWT.JWK ->
   (JWTAuth' x "token" App () (Key User) -> Middleware h ts (r : ts)) ->
   Middleware h ts (r : ts)

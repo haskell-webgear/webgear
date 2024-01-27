@@ -19,7 +19,7 @@ type PathVarUsername = PathVar "username" Text
 getByName ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Get h OptionalAuth Request
+  , Gets h [AuthHeader, OptionalAuth] Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ProfileResponse] Response
   ) =>
   JWT.JWK ->
@@ -41,7 +41,7 @@ getByName jwk =
 follow ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h (JSONBodyOrError ProfileResponse) Response
   ) =>
   JWT.JWK ->
@@ -63,7 +63,7 @@ follow jwk =
 unfollow ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h (JSONBodyOrError ProfileResponse) Response
   ) =>
   JWT.JWK ->

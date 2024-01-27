@@ -33,10 +33,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -79,10 +79,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -127,10 +127,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -161,10 +161,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/2020",
+					"raw": "http://127.0.0.1:3000/v1/users/2020",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -212,10 +212,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -249,10 +249,10 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -283,10 +283,10 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/1976",
+					"raw": "http://127.0.0.1:3000/v1/users/1976",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [
@@ -317,10 +317,10 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/v1/users/2020",
+					"raw": "http://127.0.0.1:3000/v1/users/2020",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"127.0.0.1"
 					],
 					"port": "3000",
 					"path": [

@@ -19,6 +19,7 @@ import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Reader (MonadReader (..), ReaderT (..))
 import Data.Aeson (FromJSON, ToJSON)
+import Data.Function ((&))
 import qualified Data.HashMap.Strict as HM
 import Data.Hashable (Hashable)
 import Data.IORef (IORef, modifyIORef, newIORef, readIORef)
@@ -82,8 +83,8 @@ authConfig :: BasicAuth App () Credentials
 authConfig =
   BasicAuth'
     { toBasicAttribute = \creds ->
-        pure
-          $ if creds == Credentials "panther" "forever"
+        pure $
+          if creds == Credentials "panther" "forever"
             then Right creds
             else Left ()
     }
@@ -119,13 +120,17 @@ protectedRoutes ::
   forall h ts.
   ( HasTrait IntUserId ts
   , StdHandler h App
-  , Gets h '[BasicAuth App () Credentials, Body JSON User] Request
+  , Gets h '[AuthorizationHeader "Basic", BasicAuth App () Credentials, Body JSON User] Request
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h ts
-protectedRoutes = basicAuth authConfig authError $ putUser <+> deleteUser
+protectedRoutes =
+  optionalLenientHeader @"Authorization" @(AuthToken "Basic") $
+    basicAuth authConfig authError $
+      putUser
+        <+> deleteUser
   where
-    authError :: h (Request `With` ts, BasicAuthError ()) Response
+    authError :: h (Request `With` xs, BasicAuthError ()) Response
     authError = proc (_request, err) -> case err of
       BasicAuthAttributeError () ->
         respondA HTTP.forbidden403 PlainText -< "Forbidden" :: Text
@@ -139,8 +144,8 @@ getUser ::
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h ts
-getUser = method HTTP.GET
-  $ proc request -> do
+getUser = method HTTP.GET $
+  proc request -> do
     let uid = pick @IntUserId $ from request
     maybeUser <- fetchUser -< uid
     case maybeUser of
@@ -160,14 +165,14 @@ putUser ::
   , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
   ) =>
   RequestHandler h ts
-putUser = method HTTP.PUT
-  $ requestBody @User JSON badRequestBody
-  $ proc request -> do
-    let uid = pick @IntUserId $ from request
-        user = pick @(Body JSON User) $ from request
-        user' = user{userId = uid}
-    doAdd -< (request, user')
-    respondA HTTP.ok200 JSON -< user'
+putUser = method HTTP.PUT $
+  requestBody @User JSON badRequestBody $
+    proc request -> do
+      let uid = pick @IntUserId $ from request
+          user = pick @(Body JSON User) $ from request
+          user' = user{userId = uid}
+      doAdd -< (request, user')
+      respondA HTTP.ok200 JSON -< user'
   where
     badRequestBody :: h a Response
     badRequestBody = proc _ ->
@@ -184,8 +189,8 @@ deleteUser ::
   , StdHandler h App
   ) =>
   RequestHandler h ts
-deleteUser = method HTTP.DELETE
-  $ proc request -> do
+deleteUser = method HTTP.DELETE $
+  proc request -> do
     let uid = pick @IntUserId $ from request
     removed <- doRemove -< (request, uid)
     if removed
@@ -195,8 +200,8 @@ deleteUser = method HTTP.DELETE
     doRemove = arrM $ \(request, uid) -> do
       store <- ask
       found <- removeUser store uid
-      when found
-        $ logActivity request "deleted"
+      when found $
+        logActivity request "deleted"
       pure found
 
 logActivity :: (MonadIO m, HasTrait Auth ts) => Request `With` ts -> String -> m ()
@@ -216,4 +221,8 @@ application store = toApplication $ transform appToRouter userRoutes
 main :: IO ()
 main = do
   store <- newIORef HM.empty
-  Warp.run 3000 (application $ UserStore store)
+  let settings =
+        Warp.defaultSettings
+          & Warp.setHost "127.0.0.1"
+          & Warp.setPort 3000
+  Warp.runSettings settings (application $ UserStore store)

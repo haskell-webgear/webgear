@@ -27,7 +27,7 @@ type ArticleResponse = Wrapped "article" Model.ArticleRecord
 
 create ::
   ( StdHandler h App
-  , Gets h [RequiredAuth, JSONBody CreateArticleRequest] Request
+  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateArticleRequest] Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
@@ -62,7 +62,7 @@ handleDBError = proc e ->
 
 getBySlug ::
   ( StdHandler h App
-  , Get h OptionalAuth Request
+  , Gets h [AuthHeader, OptionalAuth] Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ArticleResponse] Response
   , HasTrait PathVarSlug ts
   ) =>
@@ -92,7 +92,7 @@ update ::
   forall h ts.
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Gets h [RequiredAuth, JSONBody UpdateArticleRequest] Request
+  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateArticleRequest] Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
@@ -134,7 +134,7 @@ update jwk =
 delete ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   ) =>
   JWT.JWK ->
@@ -174,7 +174,8 @@ list ::
   ( StdHandler h App
   , Gets
       h
-      [ OptionalAuth
+      [ AuthHeader
+      , OptionalAuth
       , OptionalQueryParam "tag" Text
       , OptionalQueryParam "author" Text
       , OptionalQueryParam "favorited" Text
@@ -215,7 +216,8 @@ feed ::
   ( StdHandler h App
   , Gets
       h
-      [ RequiredAuth
+      [ AuthHeader
+      , RequiredAuth
       , OptionalQueryParam "limit" Model.Limit
       , OptionalQueryParam "offset" Model.Offset
       ]
@@ -246,7 +248,7 @@ feed jwk =
 favorite ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->
@@ -272,7 +274,7 @@ favorite jwk =
 unfavorite ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h (JSONBodyOrError ArticleResponse) Response
   ) =>
   JWT.JWK ->

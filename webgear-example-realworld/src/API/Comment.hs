@@ -20,7 +20,7 @@ type PathVarCommentId = PathVar "commentId" Int64
 
 create ::
   ( StdHandler h App
-  , Gets h [RequiredAuth, JSONBody CreateCommentRequest] Request
+  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateCommentRequest] Request
   , Sets h (JSONBodyOrError CommentResponse) Response
   , HasTrait PathVarSlug ts
   ) =>
@@ -48,7 +48,7 @@ type CommentListResponse = Wrapped "comments" [Model.CommentRecord]
 
 list ::
   ( StdHandler h App
-  , Get h OptionalAuth Request
+  , Gets h [AuthHeader, OptionalAuth] Request
   , Sets h (JSONBodyOrError CommentListResponse) Response
   , HasTrait PathVarSlug ts
   ) =>
@@ -70,7 +70,7 @@ list jwk =
 
 delete ::
   ( StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
   , HaveTraits [PathVarSlug, PathVarCommentId] ts
   ) =>
