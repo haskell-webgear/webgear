@@ -136,8 +136,15 @@ instance Trait (BasicAuth' Optional scheme m e a) Request where
 instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
   type Absence (BasicAuth' Optional scheme m e a) Request = Void
 
+type instance
+  Prerequisite (BasicAuth' x scheme m e a) ts Request =
+    HasTrait (AuthorizationHeader scheme) ts
+
 basicAuthMiddleware ::
-  (Get h (BasicAuth' x scheme m e t) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (BasicAuth' x scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
+  ) =>
   BasicAuth' x scheme m e t ->
   h (Request `With` ts, Absence (BasicAuth' x scheme m e t) Request) Response ->
   Middleware h ts (BasicAuth' x scheme m e t : ts)
@@ -161,7 +168,10 @@ basicAuthMiddleware authCfg errorHandler nextHandler =
 -}
 basicAuth ::
   forall m e t h ts.
-  (Get h (BasicAuth' Required "Basic" m e t) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (BasicAuth' Required "Basic" m e t) Request
+  , HasTrait (AuthorizationHeader "Basic") ts
+  ) =>
   -- | Authentication configuration
   BasicAuth m e t ->
   -- | Error handler
@@ -178,7 +188,10 @@ basicAuth = basicAuth'
 -}
 basicAuth' ::
   forall scheme m e t h ts.
-  (Get h (BasicAuth' Required scheme m e t) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (BasicAuth' Required scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
+  ) =>
   -- | Authentication configuration
   BasicAuth' Required scheme m e t ->
   -- | Error handler
@@ -200,7 +213,10 @@ basicAuth' = basicAuthMiddleware
 -}
 optionalBasicAuth ::
   forall m e t h ts.
-  (Get h (BasicAuth' Optional "Basic" m e t) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (BasicAuth' Optional "Basic" m e t) Request
+  , HasTrait (AuthorizationHeader "Basic") ts
+  ) =>
   -- | Authentication configuration
   BasicAuth' Optional "Basic" m e t ->
   Middleware h ts (BasicAuth' Optional "Basic" m e t : ts)
@@ -216,7 +232,10 @@ optionalBasicAuth = optionalBasicAuth'
 -}
 optionalBasicAuth' ::
   forall scheme m e t h ts.
-  (Get h (BasicAuth' Optional scheme m e t) Request, ArrowChoice h) =>
+  ( ArrowChoice h
+  , Get h (BasicAuth' Optional scheme m e t) Request
+  , HasTrait (AuthorizationHeader scheme) ts
+  ) =>
   -- | Authentication configuration
   BasicAuth' Optional scheme m e t ->
   Middleware h ts (BasicAuth' Optional scheme m e t : ts)

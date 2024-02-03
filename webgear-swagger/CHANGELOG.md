@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Prerequisite traits (#37)
+
 ## [1.1.1] - 2024-01-01
 
 ### Changed

@@ -29,6 +29,7 @@ library
   exposed-modules:    WebGear.Swagger
                     , WebGear.Swagger.Handler
                     , WebGear.Swagger.Traits
+                    , WebGear.Swagger.Trait.Auth
                     , WebGear.Swagger.Trait.Auth.Basic
                     , WebGear.Swagger.Trait.Auth.JWT
                     , WebGear.Swagger.Trait.Body

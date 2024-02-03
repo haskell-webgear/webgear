@@ -92,7 +92,7 @@ login jwk =
 
 current ::
   ( StdHandler h App
-  , Get h RequiredAuth Request
+  , Gets h [AuthHeader, RequiredAuth] Request
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->
@@ -120,7 +120,7 @@ type UpdateUserRequest = Wrapped "user" Model.UpdateUserPayload
 
 update ::
   ( StdHandler h App
-  , Gets h [RequiredAuth, JSONBody UpdateUserRequest] Request
+  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateUserRequest] Request
   , Sets h (JSONBodyOrError UserResponse) Response
   ) =>
   JWT.JWK ->

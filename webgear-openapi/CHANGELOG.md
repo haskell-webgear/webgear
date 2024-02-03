@@ -4,6 +4,9 @@
 
 ## [1.1.1] - 2024-01-01
 
+### Added
+- Prerequisite traits (#37)
+
 ### Changed
 - Updated dependency bounds and GHC versions (#35)
 

@@ -29,6 +29,7 @@ library
   exposed-modules:    WebGear.OpenApi
                     , WebGear.OpenApi.Handler
                     , WebGear.OpenApi.Traits
+                    , WebGear.OpenApi.Trait.Auth
                     , WebGear.OpenApi.Trait.Auth.Basic
                     , WebGear.OpenApi.Trait.Auth.JWT
                     , WebGear.OpenApi.Trait.Body

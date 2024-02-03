@@ -14,11 +14,10 @@ import Data.Void (Void)
 import WebGear.Core.Handler (arrM)
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), With)
+import WebGear.Core.Trait (Get (..), HasTrait, With, from, pick)
 import WebGear.Core.Trait.Auth.Common (
   AuthToken (..),
   AuthorizationHeader,
-  getAuthorizationHeaderTrait,
  )
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..), JWTAuthError (..))
 import WebGear.Server.Handler (ServerHandler)
@@ -26,10 +25,11 @@ import WebGear.Server.Handler (ServerHandler)
 instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Required scheme m e a) Request where
   {-# INLINE getTrait #-}
   getTrait ::
+    (HasTrait (AuthorizationHeader scheme) ts) =>
     JWTAuth' Required scheme m e a ->
     ServerHandler m (Request `With` ts) (Either (JWTAuthError e) a)
   getTrait JWTAuth'{..} = proc request -> do
-    result <- getAuthorizationHeaderTrait @scheme -< request
+    let result = pick @(AuthorizationHeader scheme) $ from request
     case result of
       Nothing -> returnA -< Left JWTAuthHeaderMissing
       (Just (Left _)) -> returnA -< Left JWTAuthSchemeMismatch
@@ -49,6 +49,7 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
 instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Optional scheme m e a) Request where
   {-# INLINE getTrait #-}
   getTrait ::
+    (HasTrait (AuthorizationHeader scheme) ts) =>
     JWTAuth' Optional scheme m e a ->
     ServerHandler m (Request `With` ts) (Either Void (Either (JWTAuthError e) a))
   getTrait JWTAuth'{..} = getTrait (JWTAuth'{..} :: JWTAuth' Required scheme m e a) >>> arr Right

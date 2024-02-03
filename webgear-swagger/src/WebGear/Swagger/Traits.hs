@@ -5,6 +5,7 @@
 -}
 module WebGear.Swagger.Traits () where
 
+import WebGear.Swagger.Trait.Auth ()
 import WebGear.Swagger.Trait.Auth.Basic ()
 import WebGear.Swagger.Trait.Auth.JWT ()
 import WebGear.Swagger.Trait.Body ()
