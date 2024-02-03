@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Prerequisite traits (#37)
+
 ### Changed
 - Support for embedding WAI applications in handlers (#36)
 
