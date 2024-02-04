@@ -42,9 +42,6 @@ let
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
-            # No longer broken
-            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
@@ -61,9 +58,6 @@ let
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
-            # No longer broken
-            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
@@ -76,9 +70,6 @@ let
             scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
-
-            # No longer broken
-            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
 
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
@@ -93,9 +84,6 @@ let
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
-            # No longer broken
-            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
-
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
           };
@@ -108,9 +96,6 @@ let
             scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
-
-            # No longer broken
-            bytestring-conversion = hsLib.unmarkBroken hprev.bytestring-conversion;
 
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);

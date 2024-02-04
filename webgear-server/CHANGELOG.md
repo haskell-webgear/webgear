@@ -6,6 +6,7 @@
 - Prerequisite traits (#37)
 
 ### Changed
+- Removed the dependency on bytestring-conversion package (#38)
 - Support for embedding WAI applications in handlers (#36)
 
 ## [1.1.1] - 2024-01-01

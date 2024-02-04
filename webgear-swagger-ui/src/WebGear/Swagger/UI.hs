@@ -9,7 +9,6 @@ import Control.Arrow ((<+>))
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import qualified Network.HTTP.Types as HTTP
-import qualified Network.Mime as Mime
 import Network.Wai.Application.Static (embeddedSettings)
 import WebGear.Core (
   Body,
@@ -42,7 +41,6 @@ swaggerUI ::
   , Sets
       h
       [ RequiredResponseHeader "Content-Type" Text
-      , RequiredResponseHeader "Content-Type" Mime.MimeType
       , Body HTML ByteString
       , Body JSON apiSpec
       , UnknownContentBody
