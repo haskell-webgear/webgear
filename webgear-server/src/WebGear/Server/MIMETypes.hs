@@ -74,7 +74,7 @@ instance (MonadIO m) => BodyUnrender m HTML BS.ByteString where
   bodyUnrender :: HTML -> Request -> m (Either Text BS.ByteString)
   bodyUnrender _ request = do
     body <- liftIO $ getRequestBody request
-    pure $ Right $ BS.toStrict body
+    pure $ Right $ LBS.toStrict body
 
 instance (Monad m) => BodyRender m HTML BS.ByteString where
   bodyRender :: HTML -> Response -> BS.ByteString -> m (HTTP.MediaType, ResponseBody)
@@ -133,7 +133,7 @@ instance (MonadIO m) => BodyUnrender m OctetStream BS.ByteString where
   bodyUnrender :: OctetStream -> Request -> m (Either Text BS.ByteString)
   bodyUnrender _ request = do
     body <- liftIO $ getRequestBody request
-    pure $ Right $ BS.toStrict body
+    pure $ Right $ LBS.toStrict body
 
 instance (Monad m) => BodyRender m OctetStream BS.ByteString where
   bodyRender :: OctetStream -> Response -> BS.ByteString -> m (HTTP.MediaType, ResponseBody)

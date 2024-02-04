@@ -5,7 +5,8 @@ module WebGear.Server.Trait.Cookie () where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.Binary.Builder (toLazyByteString)
-import Data.ByteString (ByteString, toStrict)
+import Data.ByteString (ByteString)
+import Data.ByteString.Lazy (toStrict)
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
