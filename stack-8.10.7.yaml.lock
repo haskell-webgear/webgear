@@ -5,26 +5,26 @@
 
 packages:
 - completed:
-    hackage: scotty-0.12.1@sha256:ba1b01d21b0ba3c65bdd82961b22710350158c8edd7943bd14c02a364ade8412,5437
+    hackage: scotty-0.20.1@sha256:f51d7062b2732115cb8b9c63ded0c7a94467ee4fc68ebbde18687a836b74bcd5,5226
     pantry-tree:
-      sha256: 5e3491c30482946ccd2bc3a03a8558e1d38d1902779783bb3cd8b39920532a01
-      size: 1701
+      sha256: 0a42c300e7e5ed06fba6216f28b3c67be3d46fafba9b68957786fb52d6517a3b
+      size: 1945
   original:
-    hackage: scotty-0.12.1@sha256:ba1b01d21b0ba3c65bdd82961b22710350158c8edd7943bd14c02a364ade8412,5437
+    hackage: scotty-0.20.1@sha256:f51d7062b2732115cb8b9c63ded0c7a94467ee4fc68ebbde18687a836b74bcd5,5226
 - completed:
-    hackage: servant-0.19.1@sha256:4a9673b01b42d028f21bc40ea5416b0cdc6d5ca02520fe808f98386882f0b3f0,5564
+    hackage: servant-0.20.1@sha256:ec6b11132f3448a0f7daa6b3d0daf2634062017df89855c6b9d8268944c72243,5436
     pantry-tree:
-      sha256: a330b96027c37f85357b9e1603a29c6e765b9dfc5e4b19bee4027e87066433da
-      size: 2802
+      sha256: 1d165bc7ebf50280ba39191112eba0368bb9af55b7345bc17318fdcf803efdba
+      size: 2873
   original:
-    hackage: servant-0.19.1@sha256:4a9673b01b42d028f21bc40ea5416b0cdc6d5ca02520fe808f98386882f0b3f0,5564
+    hackage: servant-0.20.1@sha256:ec6b11132f3448a0f7daa6b3d0daf2634062017df89855c6b9d8268944c72243,5436
 - completed:
-    hackage: servant-server-0.19.2@sha256:a300e17d1c779ea404be0af84dfda3b996825afa6b429c0f8cb490cdeceb7ec7,5709
+    hackage: servant-server-0.20@sha256:1bb179f028b0b2b28222f04bd589f9fbc6f855194e73a7cbc692e097f3b30574,5739
     pantry-tree:
-      sha256: aeacefa2fad27eef606c5dbb7339e233ca148eb4c3c986c8409e5f23cfdbfa58
-      size: 2614
+      sha256: 8ae235fc825018111ecfeb74fe63753010ed4585a1fc391422b8083ce3ba3ae8
+      size: 2615
   original:
-    hackage: servant-server-0.19.2@sha256:a300e17d1c779ea404be0af84dfda3b996825afa6b429c0f8cb490cdeceb7ec7,5709
+    hackage: servant-server-0.20@sha256:1bb179f028b0b2b28222f04bd589f9fbc6f855194e73a7cbc692e097f3b30574,5739
 snapshots:
 - completed:
     sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68

@@ -5,12 +5,26 @@
 
 packages:
 - completed:
-    hackage: scotty-0.12.1@sha256:ba1b01d21b0ba3c65bdd82961b22710350158c8edd7943bd14c02a364ade8412,5437
+    hackage: scotty-0.20.1@sha256:f51d7062b2732115cb8b9c63ded0c7a94467ee4fc68ebbde18687a836b74bcd5,5226
     pantry-tree:
-      sha256: 5e3491c30482946ccd2bc3a03a8558e1d38d1902779783bb3cd8b39920532a01
-      size: 1701
+      sha256: 0a42c300e7e5ed06fba6216f28b3c67be3d46fafba9b68957786fb52d6517a3b
+      size: 1945
   original:
-    hackage: scotty-0.12.1@sha256:ba1b01d21b0ba3c65bdd82961b22710350158c8edd7943bd14c02a364ade8412,5437
+    hackage: scotty-0.20.1@sha256:f51d7062b2732115cb8b9c63ded0c7a94467ee4fc68ebbde18687a836b74bcd5,5226
+- completed:
+    hackage: servant-0.20.1@sha256:ec6b11132f3448a0f7daa6b3d0daf2634062017df89855c6b9d8268944c72243,5436
+    pantry-tree:
+      sha256: 1d165bc7ebf50280ba39191112eba0368bb9af55b7345bc17318fdcf803efdba
+      size: 2873
+  original:
+    hackage: servant-0.20.1@sha256:ec6b11132f3448a0f7daa6b3d0daf2634062017df89855c6b9d8268944c72243,5436
+- completed:
+    hackage: servant-server-0.20@sha256:1bb179f028b0b2b28222f04bd589f9fbc6f855194e73a7cbc692e097f3b30574,5739
+    pantry-tree:
+      sha256: 8ae235fc825018111ecfeb74fe63753010ed4585a1fc391422b8083ce3ba3ae8
+      size: 2615
+  original:
+    hackage: servant-server-0.20@sha256:1bb179f028b0b2b28222f04bd589f9fbc6f855194e73a7cbc692e097f3b30574,5739
 snapshots:
 - completed:
     sha256: 6d1532d40621957a25bad5195bfca7938e8a06d923c91bc52aa0f3c41181f2d4
