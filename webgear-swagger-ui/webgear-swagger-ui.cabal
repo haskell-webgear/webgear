@@ -53,7 +53,6 @@ library
                     , bytestring >=0.10.10.1 && <0.13
                     , file-embed ==0.0.*
                     , http-types ==0.12.*
-                    , mime-types ==0.1.*
                     , text >=1.2.0.0 && <2.2
                     , wai-app-static ==3.1.*
                     , webgear-core ^>=1.1.1

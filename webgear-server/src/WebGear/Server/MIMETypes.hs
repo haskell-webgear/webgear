@@ -13,7 +13,7 @@ import Control.Monad.Trans.Resource (MonadResource, getInternalState, liftResour
 import qualified Data.Aeson as Aeson
 import Data.Bifunctor (Bifunctor (first))
 import qualified Data.Binary.Builder as B
-import Data.ByteString.Conversion (FromByteString (..), ToByteString (..), runParser')
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import Data.Text (Text, pack)
 import Data.Text.Conversions (FromText (..), ToText (..))
@@ -70,16 +70,28 @@ instance (Monad m, ToForm a) => BodyRender m FormURLEncoded a where
 
 --------------------------------------------------------------------------------
 
-instance (MonadIO m, FromByteString a) => BodyUnrender m HTML a where
-  bodyUnrender :: HTML -> Request -> m (Either Text a)
+instance (MonadIO m) => BodyUnrender m HTML BS.ByteString where
+  bodyUnrender :: HTML -> Request -> m (Either Text BS.ByteString)
   bodyUnrender _ request = do
     body <- liftIO $ getRequestBody request
-    pure $ first pack $ runParser' parser body
+    pure $ Right $ BS.toStrict body
 
-instance (Monad m, ToByteString a) => BodyRender m HTML a where
-  bodyRender :: HTML -> Response -> a -> m (HTTP.MediaType, ResponseBody)
+instance (Monad m) => BodyRender m HTML BS.ByteString where
+  bodyRender :: HTML -> Response -> BS.ByteString -> m (HTTP.MediaType, ResponseBody)
   bodyRender html _response a = do
-    let body = ResponseBodyBuilder $ builder a
+    let body = ResponseBodyBuilder $ B.fromByteString a
+    pure (mimeType html, body)
+
+instance (MonadIO m) => BodyUnrender m HTML LBS.ByteString where
+  bodyUnrender :: HTML -> Request -> m (Either Text LBS.ByteString)
+  bodyUnrender _ request = do
+    body <- liftIO $ getRequestBody request
+    pure $ Right body
+
+instance (Monad m) => BodyRender m HTML LBS.ByteString where
+  bodyRender :: HTML -> Response -> LBS.ByteString -> m (HTTP.MediaType, ResponseBody)
+  bodyRender html _response a = do
+    let body = ResponseBodyBuilder $ B.fromLazyByteString a
     pure (mimeType html, body)
 
 --------------------------------------------------------------------------------
@@ -117,16 +129,28 @@ instance (MonadIO m) => BodyUnrender m (FormData a) (FormDataResult a) where
 
 --------------------------------------------------------------------------------
 
-instance (MonadIO m, FromByteString a) => BodyUnrender m OctetStream a where
-  bodyUnrender :: OctetStream -> Request -> m (Either Text a)
+instance (MonadIO m) => BodyUnrender m OctetStream BS.ByteString where
+  bodyUnrender :: OctetStream -> Request -> m (Either Text BS.ByteString)
   bodyUnrender _ request = do
     body <- liftIO $ getRequestBody request
-    pure $ first pack $ runParser' parser body
+    pure $ Right $ BS.toStrict body
 
-instance (Monad m, ToByteString a) => BodyRender m OctetStream a where
-  bodyRender :: OctetStream -> Response -> a -> m (HTTP.MediaType, ResponseBody)
+instance (Monad m) => BodyRender m OctetStream BS.ByteString where
+  bodyRender :: OctetStream -> Response -> BS.ByteString -> m (HTTP.MediaType, ResponseBody)
   bodyRender os _response a = do
-    let body = ResponseBodyBuilder $ builder a
+    let body = ResponseBodyBuilder $ B.fromByteString a
+    pure (mimeType os, body)
+
+instance (MonadIO m) => BodyUnrender m OctetStream LBS.ByteString where
+  bodyUnrender :: OctetStream -> Request -> m (Either Text LBS.ByteString)
+  bodyUnrender _ request = do
+    body <- liftIO $ getRequestBody request
+    pure $ Right body
+
+instance (Monad m) => BodyRender m OctetStream LBS.ByteString where
+  bodyRender :: OctetStream -> Response -> LBS.ByteString -> m (HTTP.MediaType, ResponseBody)
+  bodyRender os _response a = do
+    let body = ResponseBodyBuilder $ B.fromLazyByteString a
     pure (mimeType os, body)
 
 --------------------------------------------------------------------------------

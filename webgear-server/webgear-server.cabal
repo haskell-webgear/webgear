@@ -97,7 +97,6 @@ library
   build-depends:      aeson >=1.4 && <1.6 || >=2.0 && <2.3
                     , arrows ==0.4.*
                     , binary >= 0.8.0.0 && <0.9
-                    , bytestring-conversion ==0.3.*
                     , cookie >=0.4.5 && <0.5
                     , http-api-data >=0.4.2 && <0.7
                     , http-media ==0.8.*

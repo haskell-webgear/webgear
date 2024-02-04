@@ -5,14 +5,13 @@ module WebGear.Server.Trait.Header () where
 
 import Control.Arrow (arr, returnA, (>>>))
 import Data.ByteString (ByteString)
-import Data.ByteString.Conversion (ToByteString, toByteString')
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
 import Data.Void (Void)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import Network.HTTP.Types (HeaderName, ResponseHeaders)
-import Web.HttpApiData (FromHttpApiData, parseHeader)
+import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 import WebGear.Core.Modifiers
 import WebGear.Core.Request (Request, requestHeader)
 import WebGear.Core.Response (Response (..))
@@ -76,7 +75,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Right $ Just $ Left e
         Just (Right x) -> Right $ Just $ Right x
 
-instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) (ResponseHeader Required name val) Response where
+instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Required name val) Response where
   {-# INLINE setTrait #-}
   setTrait ::
     ResponseHeader Required name val ->
@@ -87,11 +86,11 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
         response = unwitness l
         response' =
           case response of
-            Response status hdrs body -> Response status ((headerName, toByteString' val) : hdrs) body
+            Response status hdrs body -> Response status ((headerName, toHeader val) : hdrs) body
             _ -> response
     returnA -< f l response' val
 
-instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) (ResponseHeader Optional name val) Response where
+instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Optional name val) Response where
   {-# INLINE setTrait #-}
   -- If the optional value is 'Nothing', the header is removed from the response
   setTrait ::
@@ -103,7 +102,7 @@ instance (Monad m, KnownSymbol name, ToByteString val) => Set (ServerHandler m) 
         response = unwitness l
         response' =
           case response of
-            Response status hdrs body -> Response status (alterHeader headerName (toByteString' <$> maybeVal) hdrs) body
+            Response status hdrs body -> Response status (alterHeader headerName (toHeader <$> maybeVal) hdrs) body
             _ -> response
     returnA -< f l response' maybeVal
 

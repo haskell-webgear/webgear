@@ -4,8 +4,8 @@
 module WebGear.Server.Trait.Cookie () where
 
 import Control.Arrow (arr, returnA, (>>>))
-import Data.ByteString (ByteString)
-import Data.ByteString.Conversion (toByteString')
+import Data.Binary.Builder (toLazyByteString)
+import Data.ByteString (ByteString, toStrict)
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
@@ -101,6 +101,7 @@ alterCookie name Nothing hdrs = filter (not . isMatchingCookie) hdrs
 
 cookieToBS :: ByteString -> Cookie.SetCookie -> ByteString
 cookieToBS name cookie =
-  toByteString' $
-    Cookie.renderSetCookie $
-      cookie{Cookie.setCookieName = name}
+  toStrict $
+    toLazyByteString $
+      Cookie.renderSetCookie $
+        cookie{Cookie.setCookieName = name}
