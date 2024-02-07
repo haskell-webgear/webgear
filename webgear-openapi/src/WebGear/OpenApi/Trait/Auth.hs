@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
+-- | Functions and instances for authentication
 module WebGear.OpenApi.Trait.Auth () where
 
 import Control.Lens ((?~))

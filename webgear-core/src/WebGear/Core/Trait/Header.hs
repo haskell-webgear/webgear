@@ -87,10 +87,10 @@ newtype HeaderParseError = HeaderParseError Text
 -}
 data RequestHeader (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = RequestHeader
 
--- | A `Header` that is required in the request and parsed strictly
+-- | A `RequestHeader` that is required and parsed strictly
 type RequiredRequestHeader = RequestHeader Required Strict
 
--- | A `Header` that is optional in the request and parsed strictly
+-- | A `RequestHeader` that is optional and parsed strictly
 type OptionalRequestHeader = RequestHeader Optional Strict
 
 instance Trait (RequestHeader Required Strict name val) Request where
@@ -205,16 +205,16 @@ optionalLenientHeader = headerHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientHeader #-}
 
 {- | A 'Trait' for setting a header in the HTTP response. It has a
- specified @name@ and a value of type @val@ which can be converted to
- a 'ByteString'. The header name is compared case-insensitively. The
- modifier @e@ determines whether the header is mandatory or optional.
+ specified @name@ and a value of type @val@. The header name is
+ compared case-insensitively. The modifier @e@ determines whether the
+ header is mandatory or optional.
 -}
 data ResponseHeader (e :: Existence) (name :: Symbol) (val :: Type) = ResponseHeader
 
--- | A `Header` that is required in the response
+-- | A `ResponseHeader` that is required
 type RequiredResponseHeader = ResponseHeader Required
 
--- | A `Header` that is optional in the response
+-- | A `ResponseHeader` that is optional
 type OptionalResponseHeader = ResponseHeader Optional
 
 instance Trait (ResponseHeader Required name val) Response where

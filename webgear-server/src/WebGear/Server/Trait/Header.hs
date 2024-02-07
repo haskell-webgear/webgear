@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | Server implementation of the `Header` trait.
+{- | Server implementation of the `RequestHeader` and `ResponseHeader`
+traits.
+-}
 module WebGear.Server.Trait.Header () where
 
 import Control.Arrow (arr, returnA, (>>>))

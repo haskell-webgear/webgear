@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-{- | Swagger implementation of 'Cookie' and 'SetCookie' traits.
+{- | Swagger implementation of 'WG.Cookie' and 'WG.SetCookie' traits.
 
 Swagger 2.0 does not support cookie authentication. So these
 implementations are no-ops.
