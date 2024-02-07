@@ -77,7 +77,7 @@ instance Trait UnknownContentBody Response where
  Usage:
 
 @
- requestBody \@'Text' 'PlainText' errorHandler nextHandler
+ requestBody \@'Text' 'WebGear.Core.MIMETypes.PlainText' errorHandler nextHandler
 @
 -}
 requestBody ::
@@ -105,7 +105,7 @@ requestBody mt errorHandler nextHandler = proc request -> do
 
 @
  let body :: SomeJSONType = ...
- response' <- setBody 'JSON' -< (response, body)
+ response' <- setBody 'WebGear.Core.MIMETypes.JSON' -< (response, body)
 @
 -}
 setBody ::
@@ -145,7 +145,7 @@ setBodyWithoutContentType = plant UnknownContentBody
 
 @
  let body :: SomeJSONType = ...
- respondA 'HTTP.ok200' 'JSON' -< body
+ respondA 'HTTP.ok200' 'WebGear.Core.MIMETypes.JSON' -< body
 @
 -}
 respondA ::

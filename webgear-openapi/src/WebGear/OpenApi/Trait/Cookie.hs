@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | OpenApi implementation of 'Cookie' and 'SetCookie' traits.
+-- | OpenApi implementation of 'WG.Cookie' and 'WG.SetCookie' traits.
 module WebGear.OpenApi.Trait.Cookie () where
 
 import Data.OpenApi hiding (Response)

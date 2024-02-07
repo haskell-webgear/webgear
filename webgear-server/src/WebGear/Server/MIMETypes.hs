@@ -1,3 +1,4 @@
+-- | Parsing and rendering of MIME types
 module WebGear.Server.MIMETypes (
   -- * Parsing and rendering MIME types
   BodyUnrender (..),
@@ -41,11 +42,17 @@ import WebGear.Core.MIMETypes (
 import WebGear.Core.Request (Request (..), getRequestBody)
 import WebGear.Core.Response (Response, ResponseBody (..))
 
+{- | Instances of this class are used to parse the body of a request
+as specified by a MIME type.
+-}
 class (MIMEType mt) => BodyUnrender m mt a where
   -- | Parse a request body. Return a 'Left' value with error messages
   -- in case of failure.
   bodyUnrender :: mt -> Request -> m (Either Text a)
 
+{- | Instances of this class serializes a value to a response body as
+specified by a MIME type.
+-}
 class (MIMEType mt) => BodyRender m mt a where
   -- | Render a value in the format specified by the media type.
   --

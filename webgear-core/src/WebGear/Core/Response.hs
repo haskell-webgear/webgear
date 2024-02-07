@@ -18,6 +18,7 @@ data Response
   | ResponseRaw (IO ByteString -> (ByteString -> IO ()) -> IO ()) Wai.Response
   | ResponseCont ((Wai.Response -> IO Wai.ResponseReceived) -> IO Wai.ResponseReceived)
 
+-- | HTTP response body
 data ResponseBody
   = ResponseBodyFile FilePath (Maybe Wai.FilePart)
   | ResponseBodyBuilder B.Builder

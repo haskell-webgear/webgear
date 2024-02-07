@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+-- | Functions and instances for authentication
 module WebGear.Swagger.Trait.Auth () where
 
 import Data.Proxy (Proxy (..))
