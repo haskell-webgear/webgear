@@ -4,6 +4,7 @@
 
 ### Added
 - Prerequisite traits (#37)
+- acceptMatch middleware (#39)
 
 ### Changed
 - Support for embedding WAI applications in handlers (#36)

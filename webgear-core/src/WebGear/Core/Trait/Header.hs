@@ -43,16 +43,22 @@ module WebGear.Core.Trait.Header (
   optionalLenientHeader,
   setHeader,
   setOptionalHeader,
+  acceptMatch,
 ) where
 
 import Control.Arrow (ArrowChoice, arr)
+import Control.Arrow.Operations (ArrowError)
 import Data.Kind (Type)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Void (Void, absurd)
 import GHC.TypeLits (Symbol)
-import WebGear.Core.Handler (Middleware)
+import qualified Network.HTTP.Media as HTTP
+import qualified Network.HTTP.Types as HTTP
+import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
+import WebGear.Core.MIMETypes (MIMEType (..))
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
-import WebGear.Core.Request (Request)
+import WebGear.Core.Request (Request, requestHeader)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (
   Get (..),
@@ -63,6 +69,7 @@ import WebGear.Core.Trait (
   With,
   plant,
   probe,
+  unwitness,
  )
 
 -- | Indicates a missing header
@@ -245,3 +252,20 @@ setOptionalHeader ::
   h (Response `With` ts, Maybe val) (Response `With` (ResponseHeader Optional name val : ts))
 setOptionalHeader = plant ResponseHeader
 {-# INLINE setOptionalHeader #-}
+
+{- | Match the Accept header of the incoming request with the specified mediatype. Another handler will be tried
+ if the match fails.
+
+ Example usage:
+
+ @
+   acceptMatch 'WebGear.Core.MIMETypes.JSON' handler
+ @
+-}
+acceptMatch :: (ArrowChoice h, ArrowError RouteMismatch h, MIMEType mt) => mt -> Middleware h ts ts
+acceptMatch mt nextHandler =
+  proc request -> do
+    let acceptHeader = fromMaybe "*/*" $ requestHeader HTTP.hAccept $ unwitness request
+    case HTTP.matchAccept [mimeType mt] acceptHeader of
+      Just _ -> nextHandler -< request
+      Nothing -> routeMismatch -< ()
