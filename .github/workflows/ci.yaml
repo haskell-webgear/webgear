@@ -75,11 +75,11 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
+          - 9.8.1
           - 9.6.4
           - 9.4.8
           - 9.2.8
           - 9.0.2
-          - 8.10.7
 
     env:
       STACK_YAML: stack-${{ matrix.ghc }}.yaml
