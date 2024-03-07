@@ -70,7 +70,7 @@ library
                       TypeFamilies
                       TypeOperators
   build-depends:      arrows ==0.4.*
-                    , base >=4.13.0.0 && <4.19
+                    , base >=4.13.0.0 && <4.20
                     , http-media ==0.8.*
                     , http-types ==0.12.*
                     , insert-ordered-containers ==0.2.*
