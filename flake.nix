@@ -28,12 +28,12 @@
             value = pkgs.haskell.packages."ghc${ghcVersion}".${name};
           }) pkgs.localHsPackages;
 
-        devShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.ghcVersions;
+        versionedDevShells = pkgs.lib.mapcat pkgs.mkDevShell pkgs.ghcVersions;
       in {
         packages = pkgs.lib.mapcat mkVersionedPackages pkgs.ghcVersions;
 
-        devShells = devShells // {
-          default = devShells."webgear-dev-ghc${pkgs.defaultGHCVersion}";
+        devShells = versionedDevShells // {
+          default = versionedDevShells."webgear-dev-ghc${pkgs.defaultGHCVersion}";
         };
       });
 }

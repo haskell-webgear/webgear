@@ -21,21 +21,21 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.6.3
+          - 9.8.1
+          - 9.6.4
           - 9.4.8
           - 9.2.8
           - 9.0.2
-          - 8.10.7
 
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v25
 
       - name: Set up Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v14
         with:
           name: haskell-webgear
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
@@ -52,7 +52,7 @@ jobs:
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
       - name: Build Examples
-        if: matrix.ghc == '9.6.3'
+        if: matrix.ghc == '9.8.1'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link           \
@@ -75,7 +75,7 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.6.3
+          - 9.6.4
           - 9.4.8
           - 9.2.8
           - 9.0.2
@@ -85,7 +85,7 @@ jobs:
       STACK_YAML: stack-${{ matrix.ghc }}.yaml
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout Source Code
 
       - uses: haskell-actions/setup@v2
@@ -94,7 +94,7 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Cache dependencies
         with:
           path: ~/.stack
