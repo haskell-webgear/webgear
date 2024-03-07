@@ -5,12 +5,12 @@
 
 packages:
 - completed:
-    hackage: scotty-0.20.1@sha256:c6c38727407c1e925ba44b55686f7a18526dbddb138317eb637a1cb1df3cff09,5382
+    hackage: scotty-0.21@sha256:d17f6aa30fc4763670922b3e554db35858b9f7aa9c19937c47568480c4d1e031,5948
     pantry-tree:
-      sha256: e2380abbb22fbd384f54543689b972c97c942ab3a0a506661f70213d5b81b5d2
-      size: 1945
+      sha256: 9999357ebe8e98b9f52da601a7c051819c661ea8381825078f990266b32c335b
+      size: 2068
   original:
-    hackage: scotty-0.20.1@sha256:c6c38727407c1e925ba44b55686f7a18526dbddb138317eb637a1cb1df3cff09,5382
+    hackage: scotty-0.21@sha256:d17f6aa30fc4763670922b3e554db35858b9f7aa9c19937c47568480c4d1e031,5948
 - completed:
     hackage: servant-0.20.1@sha256:3f0850b019cfcb66501048e6e881a005b2decfee9abb36efc8a2bb5e4f76fe8c,5626
     pantry-tree:
