@@ -31,7 +31,7 @@ executable users
                     , unordered-containers ==0.2.*
                     , servant ==0.20.1
                     , servant-server ==0.20
-                    , scotty ==0.20.1
+                    , scotty ==0.21
                     , wai ==3.2.*
                     , webgear-server ==1.1.1
   default-extensions: Arrows

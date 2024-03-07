@@ -1,0 +1,9 @@
+resolver: nightly-2024-03-06
+
+packages:
+  - ./webgear-core
+  - ./webgear-server
+  - ./webgear-swagger
+  - ./webgear-swagger-ui
+  - ./webgear-openapi
+  - ./webgear-benchmarks
