@@ -1,7 +1,7 @@
 cabal-version:       2.4
 
 name:                webgear-swagger-ui
-version:             1.1.1
+version:             1.2.0
 synopsis:            Host swagger UI based on WebGear API specifications.
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -55,7 +55,7 @@ library
                     , http-types ==0.12.*
                     , text >=1.2.0.0 && <2.2
                     , wai-app-static ==3.1.*
-                    , webgear-core ^>=1.1.1
+                    , webgear-core ^>=1.2.0
   default-extensions: Arrows
                       DataKinds
                       FlexibleContexts
