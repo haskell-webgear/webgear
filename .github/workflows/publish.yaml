@@ -31,4 +31,4 @@ jobs:
 
       - name: Upload to Hackage
         run: |
-          nix develop --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}
+          nix develop .#webgear-hackage-upload-shell --command ./scripts/hackage-upload.sh ${{ secrets.HACKAGE_TOKEN }}

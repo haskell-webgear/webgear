@@ -32,7 +32,7 @@
       in {
         packages = pkgs.lib.mapcat mkVersionedPackages pkgs.ghcVersions;
 
-        devShells = versionedDevShells // {
+        devShells = pkgs.hackageUploadShell // versionedDevShells // {
           default = versionedDevShells."webgear-dev-ghc${pkgs.defaultGHCVersion}";
         };
       });

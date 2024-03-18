@@ -12,13 +12,16 @@ if [[ "$HACKAGE_API_KEY" == "" ]]; then
 fi
 
 upload_package() {
-    local package=$(ls dist-newstyle/sdist/$1-*.tar.gz)
-    local doc=$(ls dist-newstyle/haddock/$1-*.tar.gz)
+    local package=$(find dist-newstyle/sdist -maxdepth 1 -regex "dist-newstyle/sdist/$1-[0-9.]+\.tar\.gz")
+    local doc=$(find dist-newstyle/haddock -maxdepth 1 -regex "dist-newstyle/haddock/webgear-swagger-[0-9.]+-docs\.tar\.gz")
+    echo "Uploading package $package"
     curl --verbose \
          --header "Accept: text/plain" \
          --header "Authorization: X-ApiKey $HACKAGE_API_KEY" \
          --form "package=@$package" \
          https://hackage.haskell.org/packages/
+    sleep 10
+    echo "Uploading doc $doc"
     curl --verbose \
          --request PUT \
          --header "Accept: text/plain" \

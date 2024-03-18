@@ -170,6 +170,29 @@ let
           src = null;
         };
     in { ${shell.name} = shell; };
+
+  # Shell used to upload packages to hackage; contains a minimal set
+  # of dependencies
+  hackageUploadShell =
+    let hsPkgs = haskell.packages."ghc${defaultGHCVersion}";
+
+        shell = hsPkgs.shellFor {
+          name = "webgear-hackage-upload-shell";
+          doBenchmark = false;
+
+          packages = pkgs: map (name: pkgs.${name}) (builtins.attrNames localHsPackages);
+
+          buildInputs = [
+            final.cabal-install
+            final.cabal2nix
+            final.curl
+            final.findutils
+            hsPkgs.ghc
+          ];
+
+          src = null;
+        };
+    in { ${shell.name} = shell; };
 in {
   inherit ghcVersions defaultGHCVersion;
 
@@ -177,5 +200,5 @@ in {
     inherit mapcat;
   };
 
-  inherit localHsPackages haskell mkDevShell;
+  inherit localHsPackages haskell mkDevShell hackageUploadShell;
 }
