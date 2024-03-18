@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-03-18
+
 ### Added
 - Prerequisite traits (#37)
 
@@ -18,6 +20,7 @@
 - Support file uploads (#32)
 - First version of webgear-swagger
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.2.0
 [1.1.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.1
 [1.1.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.0
