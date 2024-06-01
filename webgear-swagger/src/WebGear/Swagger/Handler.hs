@@ -4,7 +4,7 @@
 module WebGear.Swagger.Handler (
   SwaggerHandler (..),
   DocNode (..),
-  Tree,
+  Tree (..),
   singletonNode,
   nullNode,
   toSwagger,
@@ -30,6 +30,18 @@ data Tree a
   | SingleNode a (Tree a)
   | BinaryNode (Tree a) (Tree a)
   deriving stock (Show)
+
+instance Semigroup (Tree a) where
+  (<>) :: Tree a -> Tree a -> Tree a
+  parent <> child =
+    case parent of
+      NullNode -> child
+      SingleNode doc next -> SingleNode doc (next <> child)
+      BinaryNode b1 b2 -> BinaryNode (b1 <> child) (b2 <> child)
+
+instance Monoid (Tree a) where
+  mempty = NullNode
+  mappend = (<>)
 
 -- | Different types of documentation elements captured by the handler
 data DocNode
