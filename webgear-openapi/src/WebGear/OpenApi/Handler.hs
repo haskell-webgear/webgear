@@ -5,7 +5,7 @@
 module WebGear.OpenApi.Handler (
   OpenApiHandler (..),
   DocNode (..),
-  Tree,
+  Tree (..),
   singletonNode,
   nullNode,
   toOpenApi,
@@ -32,6 +32,18 @@ data Tree a
   | SingleNode a (Tree a)
   | BinaryNode (Tree a) (Tree a)
   deriving stock (Show)
+
+instance Semigroup (Tree a) where
+  (<>) :: Tree a -> Tree a -> Tree a
+  parent <> child =
+    case parent of
+      NullNode -> child
+      SingleNode doc next -> SingleNode doc (next <> child)
+      BinaryNode b1 b2 -> BinaryNode (b1 <> child) (b2 <> child)
+
+instance Monoid (Tree a) where
+  mempty = NullNode
+  mappend = (<>)
 
 -- | Different types of documentation elements captured by the handler
 data DocNode
@@ -83,13 +95,7 @@ instance Cat.Category (OpenApiHandler m) where
   id = OpenApiHandler{openApiDoc = NullNode}
 
   (.) :: OpenApiHandler m b c -> OpenApiHandler m a b -> OpenApiHandler m a c
-  OpenApiHandler doc2 . OpenApiHandler doc1 = OpenApiHandler $ insertAsLeaf doc1 doc2
-    where
-      insertAsLeaf :: Tree DocNode -> Tree DocNode -> Tree DocNode
-      insertAsLeaf parent child = case parent of
-        NullNode -> child
-        SingleNode doc next -> SingleNode doc (insertAsLeaf next child)
-        BinaryNode b1 b2 -> BinaryNode (insertAsLeaf b1 child) (insertAsLeaf b2 child)
+  OpenApiHandler doc2 . OpenApiHandler doc1 = OpenApiHandler $ doc1 <> doc2
 
 instance Arrow (OpenApiHandler m) where
   arr :: (a -> b) -> OpenApiHandler m a b
