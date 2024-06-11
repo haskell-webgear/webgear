@@ -10,7 +10,8 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), TraitAbsence (..), With)
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..))
-import WebGear.Swagger.Handler (DocNode (DocSecurityScheme), SwaggerHandler (..), singletonNode)
+import WebGear.Swagger.Handler (SwaggerHandler (..))
+import WebGear.Swagger.Trait.Auth (addSecurityScheme)
 
 instance
   (TraitAbsence (JWTAuth' x scheme m e a) Request, KnownSymbol scheme) =>
@@ -23,7 +24,7 @@ instance
   getTrait _ =
     let schemeName = fromString (symbolVal (Proxy @scheme))
         -- Swagger 2.0 does not support JWT: https://stackoverflow.com/a/32995636
-        securityScheme =
+        scheme =
           SecurityScheme
             { _securitySchemeType =
                 SecuritySchemeApiKey
@@ -34,4 +35,4 @@ instance
                   )
             , _securitySchemeDescription = Just ("Enter the token with the `" <> schemeName <> ": ` prefix")
             }
-     in SwaggerHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)
+     in SwaggerHandler $ addSecurityScheme schemeName scheme

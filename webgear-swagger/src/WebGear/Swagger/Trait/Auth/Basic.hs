@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
--- | Swagger implementation of 'BasicAuth'' trait.
+-- | Swagger implementation of `BasicAuth'` trait.
 module WebGear.Swagger.Trait.Auth.Basic where
 
 import Data.Proxy (Proxy (..))
@@ -10,7 +10,8 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), TraitAbsence (Absence), With)
 import WebGear.Core.Trait.Auth.Basic (BasicAuth' (..))
-import WebGear.Swagger.Handler (DocNode (DocSecurityScheme), SwaggerHandler (..), singletonNode)
+import WebGear.Swagger.Handler (SwaggerHandler (..))
+import WebGear.Swagger.Trait.Auth (addSecurityScheme)
 
 instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) => Get (SwaggerHandler m) (BasicAuth' x scheme m e a) Request where
   {-# INLINE getTrait #-}
@@ -19,9 +20,9 @@ instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) 
     SwaggerHandler m (Request `With` ts) (Either (Absence (BasicAuth' x scheme m e a) Request) (Attribute (BasicAuth' x scheme m e a) Request))
   getTrait _ =
     let schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
-        securityScheme =
+        scheme =
           SecurityScheme
             { _securitySchemeType = SecuritySchemeBasic
             , _securitySchemeDescription = Nothing
             }
-     in SwaggerHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)
+     in SwaggerHandler $ addSecurityScheme schemeName scheme

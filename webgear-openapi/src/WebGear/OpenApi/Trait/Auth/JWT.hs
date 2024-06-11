@@ -10,7 +10,8 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Attribute, Get (..), TraitAbsence (..), With)
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..))
-import WebGear.OpenApi.Handler (DocNode (DocSecurityScheme), OpenApiHandler (..), singletonNode)
+import WebGear.OpenApi.Handler (OpenApiHandler (..))
+import WebGear.OpenApi.Trait.Auth (addSecurityScheme)
 
 instance
   (TraitAbsence (JWTAuth' x scheme m e a) Request, KnownSymbol scheme) =>
@@ -22,9 +23,9 @@ instance
     OpenApiHandler m (Request `With` ts) (Either (Absence (JWTAuth' x scheme m e a) Request) (Attribute (JWTAuth' x scheme m e a) Request))
   getTrait _ =
     let schemeName = "http" <> fromString (symbolVal (Proxy @scheme))
-        securityScheme =
+        scheme =
           SecurityScheme
             { _securitySchemeType = SecuritySchemeHttp (HttpSchemeBearer (Just "JWT"))
             , _securitySchemeDescription = Nothing
             }
-     in OpenApiHandler $ singletonNode (DocSecurityScheme schemeName securityScheme)
+     in OpenApiHandler $ addSecurityScheme schemeName scheme

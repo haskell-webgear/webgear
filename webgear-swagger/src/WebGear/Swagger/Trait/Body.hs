@@ -3,50 +3,118 @@
 -- | Swagger implementation of 'Body' trait.
 module WebGear.Swagger.Trait.Body where
 
-import Control.Lens ((&), (.~), (?~))
+import Control.Lens ((%~), (&), (.~), (?~), (^.))
+import Control.Monad.State.Strict (MonadState)
+import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Proxy (Proxy (..))
-import Data.Swagger hiding (Response)
+import Data.Swagger (
+  Definitions,
+  MimeList (..),
+  Param,
+  ParamAnySchema (..),
+  Referenced (..),
+  Response,
+  Schema,
+  Swagger,
+  ToSchema,
+  allOperations,
+  consumes,
+  declareSchemaRef,
+  definitions,
+  description,
+  name,
+  parameters,
+  paths,
+  produces,
+  required,
+  responses,
+  schema,
+ )
 import Data.Swagger.Declare (runDeclare)
+import Data.Swagger.Internal.Utils (swaggerMappend)
 import Data.Text (Text)
+import WebGear.Core.Handler (Description (..))
 import WebGear.Core.MIMETypes (MIMEType (..))
 import WebGear.Core.Request (Request)
-import WebGear.Core.Response (Response (..), ResponseBody)
+import qualified WebGear.Core.Response as WG
 import WebGear.Core.Trait (Get (..), Set (..), With)
 import WebGear.Core.Trait.Body (Body (..), UnknownContentBody (..))
 import WebGear.Swagger.Handler (
-  DocNode (DocRequestBody, DocResponseBody),
+  Documentation (..),
   SwaggerHandler (..),
-  singletonNode,
+  addRootPath,
+  consumeDescription,
  )
 
 instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) Request where
   {-# INLINE getTrait #-}
   getTrait :: Body mt val -> SwaggerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body mt) =
-    let mimeList = MimeList [mimeType mt]
-        (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-        body =
-          mempty @Param
-            & schema .~ ParamBody ref
-            & required ?~ True
-            & name .~ "body"
-     in SwaggerHandler $ singletonNode (DocRequestBody defs mimeList body)
+    SwaggerHandler $ \doc -> do
+      desc <- consumeDescription
+      let mimeList = MimeList [mimeType mt]
+          (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
+          body =
+            (mempty @Param)
+              & schema .~ ParamBody ref
+              & required ?~ True
+              & name .~ "body"
+              & description .~ fmap getDescription desc
+      pure $
+        doc
+          & allOperations
+            %~ ( \op ->
+                  op
+                    & parameters %~ (Inline body :)
+                    & consumes %~ Just . maybe mimeList (<> mimeList)
+               )
+          & definitions %~ (<> defs)
 
-instance (ToSchema val, MIMEType mt) => Set (SwaggerHandler m) (Body mt val) Response where
+instance (ToSchema val, MIMEType mt) => Set (SwaggerHandler m) (Body mt val) WG.Response where
   {-# INLINE setTrait #-}
   setTrait ::
     Body mt val ->
-    (Response `With` ts -> Response -> val -> Response `With` (Body mt val : ts)) ->
-    SwaggerHandler m (Response `With` ts, val) (Response `With` (Body mt val : ts))
+    (WG.Response `With` ts -> WG.Response -> val -> WG.Response `With` (Body mt val : ts)) ->
+    SwaggerHandler m (WG.Response `With` ts, val) (WG.Response `With` (Body mt val : ts))
   setTrait (Body mt) _ =
     let mimeList = MimeList [mimeType mt]
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
-     in SwaggerHandler $ singletonNode (DocResponseBody defs mimeList (Just ref))
+     in SwaggerHandler $ addResponseBody defs mimeList (Just ref)
 
-instance Set (SwaggerHandler m) UnknownContentBody Response where
+instance Set (SwaggerHandler m) UnknownContentBody WG.Response where
   {-# INLINE setTrait #-}
   setTrait ::
     UnknownContentBody ->
-    (Response `With` ts -> Response -> ResponseBody -> Response `With` (UnknownContentBody : ts)) ->
-    SwaggerHandler m (Response `With` ts, ResponseBody) (Response `With` (UnknownContentBody : ts))
-  setTrait UnknownContentBody _ = SwaggerHandler $ singletonNode (DocResponseBody mempty mempty Nothing)
+    (WG.Response `With` ts -> WG.Response -> WG.ResponseBody -> WG.Response `With` (UnknownContentBody : ts)) ->
+    SwaggerHandler m (WG.Response `With` ts, WG.ResponseBody) (WG.Response `With` (UnknownContentBody : ts))
+  setTrait UnknownContentBody _ = SwaggerHandler $ addResponseBody mempty mempty Nothing
+
+addResponseBody ::
+  (MonadState Documentation m) =>
+  Definitions Schema ->
+  MimeList ->
+  Maybe (Referenced Schema) ->
+  Swagger ->
+  m Swagger
+addResponseBody defs mimeList respSchema doc = do
+  desc <- consumeDescription
+
+  let addDescription :: Referenced Response -> Referenced Response
+      addDescription (Ref r) = Ref r
+      addDescription (Inline r) =
+        case desc of
+          Nothing -> Inline r
+          Just (Description d) -> Inline (r & description .~ d)
+
+  let resp = mempty @Response & schema .~ respSchema
+      doc' = if Map.null (doc ^. paths) then addRootPath doc else doc
+
+  pure $
+    doc'
+      & allOperations
+        %~ ( \op ->
+              op
+                & responses . responses %~ Map.map (addDescription . (`swaggerMappend` Inline resp))
+                & produces %~ Just . maybe mimeList (`swaggerMappend` mimeList)
+           )
+      & definitions %~ (<> defs)
