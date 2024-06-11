@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Reimplement Swagger/OpenAPI internals (#45)
+
 ## [1.2.0] - 2024-03-18
 
 ### Added
