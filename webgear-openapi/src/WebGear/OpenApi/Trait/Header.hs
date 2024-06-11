@@ -35,15 +35,15 @@ import WebGear.Core.Handler (Description (..))
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import qualified WebGear.Core.Response as WG
-import WebGear.Core.Trait (Get (..), Set (..), TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.OpenApi.Handler (Documentation, OpenApiHandler (..), consumeDescription)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Required ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) Request where
+instance (KnownSymbol name, ToSchema val) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = OpenApiHandler $ addRequestHeader (Proxy @name) (Proxy @val) True
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Optional ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Optional ps name val) Request where
+instance (KnownSymbol name, ToSchema val) => Get (OpenApiHandler m) (WG.RequestHeader Optional ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = OpenApiHandler $ addRequestHeader (Proxy @name) (Proxy @val) False
 

@@ -40,8 +40,8 @@ import WebGear.Core.Trait (
   Prerequisite,
   Set,
   Sets,
-  Trait (..),
-  TraitAbsence (..),
+  Attribute,
+  Absence,
   With (..),
   plant,
   probe,
@@ -52,22 +52,18 @@ import WebGear.Core.Trait.Status (Status, mkResponse)
 -- | Request or response body with MIME types @mimeTypes@ and type @t@.
 newtype Body (mimeType :: Type) (t :: Type) = Body mimeType
 
-instance Trait (Body mt t) Request where
-  type Attribute (Body mt t) Request = t
+type instance Attribute (Body mt t) Request = t
 
-instance TraitAbsence (Body mt t) Request where
-  type Absence (Body mt t) Request = Text
+type instance Absence (Body mt t) Request = Text
 
 type instance Prerequisite (Body mt t) ts Request = ()
 
-instance Trait (Body mt t) Response where
-  type Attribute (Body mt t) Response = t
+type instance Attribute (Body mt t) Response = t
 
 -- | Type representing responses without a statically known MIME type
 data UnknownContentBody = UnknownContentBody
 
-instance Trait UnknownContentBody Response where
-  type Attribute UnknownContentBody Response = ResponseBody
+type instance Attribute UnknownContentBody Response = ResponseBody
 
 {- | Middleware to extract a request body.
 

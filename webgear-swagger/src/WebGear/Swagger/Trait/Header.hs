@@ -35,14 +35,13 @@ import WebGear.Core.Handler (Description (..))
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
 import qualified WebGear.Core.Response as WG
-import WebGear.Core.Trait (Get (..), Set (..), TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.Swagger.Handler (Documentation, SwaggerHandler (..), consumeDescription)
 
 instance
   ( KnownSymbol name
   , ToParamSchema val
-  , TraitAbsence (WG.RequestHeader Required ps name val) Request
   ) =>
   Get (SwaggerHandler m) (WG.RequestHeader Required ps name val) Request
   where
@@ -52,7 +51,6 @@ instance
 instance
   ( KnownSymbol name
   , ToParamSchema val
-  , TraitAbsence (WG.RequestHeader Optional ps name val) Request
   ) =>
   Get (SwaggerHandler m) (WG.RequestHeader Optional ps name val) Request
   where

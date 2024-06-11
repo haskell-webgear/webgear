@@ -29,7 +29,7 @@ import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get, Prerequisite, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait (Get, Prerequisite, Attribute, Absence, probe)
 import WebGear.Core.Trait.Method (method)
 import Prelude hiding (drop, filter, take)
 
@@ -38,11 +38,9 @@ import Prelude hiding (drop, filter, take)
 -}
 newtype Path = Path Text
 
-instance Trait Path Request where
-  type Attribute Path Request = ()
+type instance Attribute Path Request = ()
 
-instance TraitAbsence Path Request where
-  type Absence Path Request = ()
+type instance Absence Path Request = ()
 
 type instance Prerequisite Path ts Request = ()
 
@@ -56,22 +54,18 @@ data PathVar (tag :: Symbol) (val :: Data.Kind.Type) = PathVar
 data PathVarError = PathVarNotFound | PathVarParseError Text
   deriving stock (Eq, Show, Read)
 
-instance Trait (PathVar tag val) Request where
-  type Attribute (PathVar tag val) Request = val
+type instance Attribute (PathVar tag val) Request = val
 
-instance TraitAbsence (PathVar tag val) Request where
-  type Absence (PathVar tag val) Request = PathVarError
+type instance Absence (PathVar tag val) Request = PathVarError
 
 type instance Prerequisite (PathVar tag val) ts Request = ()
 
 -- | Trait to indicate that no more path components are present in the request
 data PathEnd = PathEnd
 
-instance Trait PathEnd Request where
-  type Attribute PathEnd Request = ()
+type instance Attribute PathEnd Request = ()
 
-instance TraitAbsence PathEnd Request where
-  type Absence PathEnd Request = ()
+type instance Absence PathEnd Request = ()
 
 type instance Prerequisite PathEnd ts Request = ()
 

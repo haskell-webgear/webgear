@@ -8,13 +8,13 @@ import Data.String (fromString)
 import Data.Typeable (Proxy (..))
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Attribute, Get (..), TraitAbsence (..), With)
+import WebGear.Core.Trait (Attribute, Absence, Get (..), With)
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..))
 import WebGear.OpenApi.Trait.Auth (addSecurityScheme)
 
 instance
-  (TraitAbsence (JWTAuth' x scheme m e a) Request, KnownSymbol scheme) =>
+  (KnownSymbol scheme) =>
   Get (OpenApiHandler m) (JWTAuth' x scheme m e a) Request
   where
   {-# INLINE getTrait #-}

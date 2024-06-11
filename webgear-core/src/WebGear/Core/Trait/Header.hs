@@ -64,8 +64,8 @@ import WebGear.Core.Trait (
   Get (..),
   Prerequisite,
   Set,
-  Trait (..),
-  TraitAbsence (..),
+  Attribute,
+  Absence,
   With,
   plant,
   probe,
@@ -80,7 +80,7 @@ data HeaderNotFound = HeaderNotFound
 newtype HeaderParseError = HeaderParseError Text
   deriving stock (Read, Show, Eq)
 
-{- | A 'Trait' for capturing an HTTP header of specified @name@ and
+{- | A trait for capturing an HTTP header of specified @name@ and
  converting it to some type @val@. The modifiers @e@ and @p@ determine
  how missing headers and parsing errors are handled. The header name
  is compared case-insensitively.
@@ -93,29 +93,21 @@ type RequiredRequestHeader = RequestHeader Required Strict
 -- | A `RequestHeader` that is optional and parsed strictly
 type OptionalRequestHeader = RequestHeader Optional Strict
 
-instance Trait (RequestHeader Required Strict name val) Request where
-  type Attribute (RequestHeader Required Strict name val) Request = val
+type instance Attribute (RequestHeader Required Strict name val) Request = val
 
-instance TraitAbsence (RequestHeader Required Strict name val) Request where
-  type Absence (RequestHeader Required Strict name val) Request = Either HeaderNotFound HeaderParseError
+type instance Absence (RequestHeader Required Strict name val) Request = Either HeaderNotFound HeaderParseError
 
-instance Trait (RequestHeader Optional Strict name val) Request where
-  type Attribute (RequestHeader Optional Strict name val) Request = Maybe val
+type instance Attribute (RequestHeader Optional Strict name val) Request = Maybe val
 
-instance TraitAbsence (RequestHeader Optional Strict name val) Request where
-  type Absence (RequestHeader Optional Strict name val) Request = HeaderParseError
+type instance Absence (RequestHeader Optional Strict name val) Request = HeaderParseError
 
-instance Trait (RequestHeader Required Lenient name val) Request where
-  type Attribute (RequestHeader Required Lenient name val) Request = Either Text val
+type instance Attribute (RequestHeader Required Lenient name val) Request = Either Text val
 
-instance TraitAbsence (RequestHeader Required Lenient name val) Request where
-  type Absence (RequestHeader Required Lenient name val) Request = HeaderNotFound
+type instance Absence (RequestHeader Required Lenient name val) Request = HeaderNotFound
 
-instance Trait (RequestHeader Optional Lenient name val) Request where
-  type Attribute (RequestHeader Optional Lenient name val) Request = Maybe (Either Text val)
+type instance Attribute (RequestHeader Optional Lenient name val) Request = Maybe (Either Text val)
 
-instance TraitAbsence (RequestHeader Optional Lenient name val) Request where
-  type Absence (RequestHeader Optional Lenient name val) Request = Void
+type instance Absence (RequestHeader Optional Lenient name val) Request = Void
 
 type instance Prerequisite (RequestHeader e p name val) ts Request = ()
 
@@ -204,7 +196,7 @@ optionalLenientHeader ::
 optionalLenientHeader = headerHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientHeader #-}
 
-{- | A 'Trait' for setting a header in the HTTP response. It has a
+{- | A trait for setting a header in the HTTP response. It has a
  specified @name@ and a value of type @val@. The header name is
  compared case-insensitively. The modifier @e@ determines whether the
  header is mandatory or optional.
@@ -217,11 +209,9 @@ type RequiredResponseHeader = ResponseHeader Required
 -- | A `ResponseHeader` that is optional
 type OptionalResponseHeader = ResponseHeader Optional
 
-instance Trait (ResponseHeader Required name val) Response where
-  type Attribute (ResponseHeader Required name val) Response = val
+type instance Attribute (ResponseHeader Required name val) Response = val
 
-instance Trait (ResponseHeader Optional name val) Response where
-  type Attribute (ResponseHeader Optional name val) Response = Maybe val
+type instance Attribute (ResponseHeader Optional name val) Response = Maybe val
 
 {- | Set a header value in a response.
 

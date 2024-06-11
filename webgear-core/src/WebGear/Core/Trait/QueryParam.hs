@@ -43,7 +43,7 @@ import WebGear.Core.Handler (Middleware)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Prerequisite, Trait (..), TraitAbsence (..), With, probe)
+import WebGear.Core.Trait (Get, Prerequisite, Attribute, Absence, With, probe)
 
 {- | Capture a query parameter with a specified @name@ and convert it to
  a value of type @val@. The type parameter @e@ denotes whether the
@@ -67,29 +67,21 @@ data ParamNotFound = ParamNotFound
 newtype ParamParseError = ParamParseError Text
   deriving stock (Read, Show, Eq)
 
-instance Trait (QueryParam Required Strict name val) Request where
-  type Attribute (QueryParam Required Strict name val) Request = val
+type instance Attribute (QueryParam Required Strict name val) Request = val
 
-instance TraitAbsence (QueryParam Required Strict name val) Request where
-  type Absence (QueryParam Required Strict name val) Request = Either ParamNotFound ParamParseError
+type instance Absence (QueryParam Required Strict name val) Request = Either ParamNotFound ParamParseError
 
-instance Trait (QueryParam Optional Strict name val) Request where
-  type Attribute (QueryParam Optional Strict name val) Request = Maybe val
+type instance Attribute (QueryParam Optional Strict name val) Request = Maybe val
 
-instance TraitAbsence (QueryParam Optional Strict name val) Request where
-  type Absence (QueryParam Optional Strict name val) Request = ParamParseError
+type instance Absence (QueryParam Optional Strict name val) Request = ParamParseError
 
-instance Trait (QueryParam Required Lenient name val) Request where
-  type Attribute (QueryParam Required Lenient name val) Request = Either Text val
+type instance Attribute (QueryParam Required Lenient name val) Request = Either Text val
 
-instance TraitAbsence (QueryParam Required Lenient name val) Request where
-  type Absence (QueryParam Required Lenient name val) Request = ParamNotFound
+type instance Absence (QueryParam Required Lenient name val) Request = ParamNotFound
 
-instance Trait (QueryParam Optional Lenient name val) Request where
-  type Attribute (QueryParam Optional Lenient name val) Request = Maybe (Either Text val)
+type instance Attribute (QueryParam Optional Lenient name val) Request = Maybe (Either Text val)
 
-instance TraitAbsence (QueryParam Optional Lenient name val) Request where
-  type Absence (QueryParam Optional Lenient name val) Request = Void
+type instance Absence (QueryParam Optional Lenient name val) Request = Void
 
 type instance Prerequisite (QueryParam e p name val) ts Request = ()
 

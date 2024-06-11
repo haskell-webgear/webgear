@@ -10,12 +10,12 @@ import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get (..), Set (..), Trait, TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Cookie as WG
 import WebGear.OpenApi.Handler (OpenApiHandler (..))
 import WebGear.OpenApi.Trait.Auth (addSecurityScheme)
 
-instance (KnownSymbol name, TraitAbsence (WG.Cookie e name val) Request) => Get (OpenApiHandler m) (WG.Cookie e name val) Request where
+instance (KnownSymbol name) => Get (OpenApiHandler m) (WG.Cookie e name val) Request where
   {-# INLINE getTrait #-}
   getTrait WG.Cookie =
     OpenApiHandler $ addSecurityScheme cookieName securityScheme
@@ -36,6 +36,6 @@ instance (KnownSymbol name, TraitAbsence (WG.Cookie e name val) Request) => Get 
 
 -- Response cookie information is not captured by OpenAPI
 
-instance (Trait (WG.SetCookie e name) Response) => Set (OpenApiHandler m) (WG.SetCookie e name) Response where
+instance Set (OpenApiHandler m) (WG.SetCookie e name) Response where
   {-# INLINE setTrait #-}
   setTrait WG.SetCookie _ = OpenApiHandler pure

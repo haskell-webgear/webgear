@@ -124,17 +124,13 @@ data BasicAuthError e
   | BasicAuthAttributeError e
   deriving stock (Eq, Show, Read)
 
-instance Trait (BasicAuth' Required scheme m e a) Request where
-  type Attribute (BasicAuth' Required scheme m e a) Request = a
+type instance Attribute (BasicAuth' Required scheme m e a) Request = a
 
-instance TraitAbsence (BasicAuth' Required scheme m e a) Request where
-  type Absence (BasicAuth' Required scheme m e a) Request = BasicAuthError e
+type instance Absence (BasicAuth' Required scheme m e a) Request = BasicAuthError e
 
-instance Trait (BasicAuth' Optional scheme m e a) Request where
-  type Attribute (BasicAuth' Optional scheme m e a) Request = Either (BasicAuthError e) a
+type instance Attribute (BasicAuth' Optional scheme m e a) Request = Either (BasicAuthError e) a
 
-instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
-  type Absence (BasicAuth' Optional scheme m e a) Request = Void
+type instance Absence (BasicAuth' Optional scheme m e a) Request = Void
 
 type instance
   Prerequisite (BasicAuth' x scheme m e a) ts Request =

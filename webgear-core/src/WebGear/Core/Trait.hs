@@ -3,8 +3,7 @@
 {- | Traits are optional attributes associated with a value. For
  example, a list containing totally ordered values might have a
  @Maximum@ trait where the associated attribute is the maximum
- value. This trait exists only if the list is non-empty. The 'Trait'
- typeclass provides an interface to extract such trait attributes.
+ value. This trait exists only if the list is non-empty.
 
  Traits help to associate attributes with values in a type-safe
  manner.
@@ -45,8 +44,8 @@
 -}
 module WebGear.Core.Trait (
   -- * Core Types
-  Trait (..),
-  TraitAbsence (..),
+  Attribute,
+  Absence,
   Prerequisite,
   Get (..),
   Gets,
@@ -73,17 +72,12 @@ import Data.Kind (Constraint, Type)
 import Data.Tagged (Tagged (..), untag)
 import GHC.TypeLits (ErrorMessage (..), TypeError)
 
--- | A trait is an attribute @t@ associated with a value @a@.
-class Trait (t :: Type) a where
-  -- | Type of the associated attribute when the trait holds for a
-  -- value
-  type Attribute t a :: Type
+-- | Type of the associated attribute when the trait holds for a value
+type family Attribute t a :: Type
 
--- | A trait @t@ that can be retrieved from @a@ but could be absent.
-class (Trait t a) => TraitAbsence t a where
-  -- | Type that indicates that the trait does not exist for a
-  -- value. This could be an error message, exception etc.
-  type Absence t a :: Type
+-- | Type that indicates that the trait does not exist for a
+-- value. This could be an error message, exception etc.
+type family Absence t a :: Type
 
 {- | Indicates the constraints a trait depends upon as a
 prerequisite. This is used to assert that a trait @t@ can be
@@ -96,7 +90,7 @@ empty contraint @()@.
 type family Prerequisite (t :: Type) (ts :: [Type]) (a :: Type) :: Constraint
 
 -- | Extract trait attributes from a value.
-class (Arrow h, TraitAbsence t a) => Get h t a where
+class (Arrow h) => Get h t a where
   -- | Attempt to witness the trait attribute from the value @a@.
   getTrait ::
     (Prerequisite t ts a) =>
@@ -107,7 +101,7 @@ class (Arrow h, TraitAbsence t a) => Get h t a where
     h (a `With` ts) (Either (Absence t a) (Attribute t a))
 
 -- | Associate a trait attribute on a value
-class (Arrow h, Trait t a) => Set h (t :: Type) a where
+class (Arrow h) => Set h (t :: Type) a where
   -- | Set a trait attribute @t@ on the value @a \`With\` ts@.
   setTrait ::
     -- | The trait to set

@@ -116,17 +116,13 @@ data JWTAuthError e
   | JWTAuthAttributeError e
   deriving stock (Eq, Show)
 
-instance Trait (JWTAuth' Required scheme m e a) Request where
-  type Attribute (JWTAuth' Required scheme m e a) Request = a
+type instance Attribute (JWTAuth' Required scheme m e a) Request = a
 
-instance TraitAbsence (JWTAuth' Required scheme m e a) Request where
-  type Absence (JWTAuth' Required scheme m e a) Request = JWTAuthError e
+type instance Absence (JWTAuth' Required scheme m e a) Request = JWTAuthError e
 
-instance Trait (JWTAuth' Optional scheme m e a) Request where
-  type Attribute (JWTAuth' Optional scheme m e a) Request = Either (JWTAuthError e) a
+type instance Attribute (JWTAuth' Optional scheme m e a) Request = Either (JWTAuthError e) a
 
-instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
-  type Absence (JWTAuth' Optional scheme m e a) Request = Void
+type instance Absence (JWTAuth' Optional scheme m e a) Request = Void
 
 type instance
   Prerequisite (JWTAuth' x scheme m e a) ts Request =

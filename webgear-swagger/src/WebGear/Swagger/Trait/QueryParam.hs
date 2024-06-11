@@ -22,11 +22,11 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Handler (Description (..))
 import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), TraitAbsence)
+import WebGear.Core.Trait (Get (..))
 import WebGear.Core.Trait.QueryParam (QueryParam (..))
 import WebGear.Swagger.Handler (Documentation (..), SwaggerHandler (..), consumeDescription)
 
-instance (KnownSymbol name, TraitAbsence (QueryParam Required ps name val) Request) => Get (SwaggerHandler m) (QueryParam Required ps name val) Request where
+instance (KnownSymbol name) => Get (SwaggerHandler m) (QueryParam Required ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait _ =
     let param =
@@ -43,7 +43,7 @@ instance (KnownSymbol name, TraitAbsence (QueryParam Required ps name val) Reque
             }
      in SwaggerHandler $ addParam param
 
-instance (KnownSymbol name, TraitAbsence (QueryParam Optional ps name val) Request) => Get (SwaggerHandler m) (QueryParam Optional ps name val) Request where
+instance (KnownSymbol name) => Get (SwaggerHandler m) (QueryParam Optional ps name val) Request where
   {-# INLINE getTrait #-}
   getTrait _ =
     let param =

@@ -54,13 +54,12 @@ module WebGear.Core.Trait.Status (
 
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Response (Response (..), ResponseBody (ResponseBodyBuilder))
-import WebGear.Core.Trait (Set, Trait (..), With, plant, wzero)
+import WebGear.Core.Trait (Attribute, Set, With, plant, wzero)
 
 -- | HTTP response status
 newtype Status = Status HTTP.Status
 
-instance Trait Status Response where
-  type Attribute Status Response = HTTP.Status
+type instance Attribute Status Response = HTTP.Status
 
 -- | Generate a response with the specified status
 mkResponse :: (Set h Status Response) => HTTP.Status -> h () (Response `With` '[Status])

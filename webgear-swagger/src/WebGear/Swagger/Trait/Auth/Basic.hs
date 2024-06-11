@@ -8,12 +8,12 @@ import Data.String (fromString)
 import Data.Swagger
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Attribute, Get (..), TraitAbsence (Absence), With)
+import WebGear.Core.Trait (Attribute, Get (..), Absence, With)
 import WebGear.Core.Trait.Auth.Basic (BasicAuth' (..))
 import WebGear.Swagger.Handler (SwaggerHandler (..))
 import WebGear.Swagger.Trait.Auth (addSecurityScheme)
 
-instance (TraitAbsence (BasicAuth' x scheme m e a) Request, KnownSymbol scheme) => Get (SwaggerHandler m) (BasicAuth' x scheme m e a) Request where
+instance (KnownSymbol scheme) => Get (SwaggerHandler m) (BasicAuth' x scheme m e a) Request where
   {-# INLINE getTrait #-}
   getTrait ::
     BasicAuth' x scheme m e a ->

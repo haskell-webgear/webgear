@@ -27,8 +27,8 @@ import WebGear.Core.Trait (
   HasTrait,
   Prerequisite,
   Set,
-  Trait (..),
-  TraitAbsence (..),
+  Attribute,
+  Absence,
   With,
   plant,
   probe,
@@ -46,21 +46,17 @@ newtype CookieParseError = CookieParseError Text
 -- | Trait for a cookie in HTTP requests
 data Cookie (e :: Existence) (name :: Symbol) (val :: Type) = Cookie
 
-instance Trait (Cookie Required name val) Request where
-  type Attribute (Cookie Required name val) Request = val
+type instance Attribute (Cookie Required name val) Request = val
 
 type instance
   Prerequisite (Cookie e name val) ts Request =
     HasTrait (RequestHeader e Strict "Cookie" Text) ts
 
-instance TraitAbsence (Cookie Required name val) Request where
-  type Absence (Cookie Required name val) Request = Either CookieNotFound CookieParseError
+type instance Absence (Cookie Required name val) Request = Either CookieNotFound CookieParseError
 
-instance Trait (Cookie Optional name val) Request where
-  type Attribute (Cookie Optional name val) Request = Maybe val
+type instance Attribute (Cookie Optional name val) Request = Maybe val
 
-instance TraitAbsence (Cookie Optional name val) Request where
-  type Absence (Cookie Optional name val) Request = CookieParseError
+type instance Absence (Cookie Optional name val) Request = CookieParseError
 
 cookieHandler ::
   forall name val e h ts.
@@ -122,11 +118,9 @@ optionalCookie = cookieHandler
 -- | Trait for a cookie in HTTP responses
 data SetCookie (e :: Existence) (name :: Symbol) = SetCookie
 
-instance Trait (SetCookie Required name) Response where
-  type Attribute (SetCookie Required name) Response = Cookie.SetCookie
+type instance Attribute (SetCookie Required name) Response = Cookie.SetCookie
 
-instance Trait (SetCookie Optional name) Response where
-  type Attribute (SetCookie Optional name) Response = Maybe Cookie.SetCookie
+type instance Attribute (SetCookie Optional name) Response = Maybe Cookie.SetCookie
 
 {- | Set a cookie value in a response.
 
