@@ -10,7 +10,7 @@ import WebGear.Core.Trait (Set, With, setTrait, unwitness)
 import WebGear.Core.Trait.Status (Status (..))
 import WebGear.Server.Handler (ServerHandler)
 
-instance (Monad m) => Set (ServerHandler m) Status Response where
+instance (Monad m) => Set (ServerHandler m) Status where
   {-# INLINE setTrait #-}
   setTrait ::
     Status ->

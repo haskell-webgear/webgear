@@ -110,7 +110,7 @@ userRoutes =
 publicRoutes ::
   ( HasTrait IntUserId ts
   , StdHandler h App
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Set h (Body JSON User)
   ) =>
   RequestHandler h ts
 publicRoutes = getUser
@@ -120,8 +120,8 @@ protectedRoutes ::
   forall h ts.
   ( HasTrait IntUserId ts
   , StdHandler h App
-  , Gets h '[AuthorizationHeader "Basic", BasicAuth App () Credentials, Body JSON User] Request
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Gets h '[AuthorizationHeader "Basic", BasicAuth App () Credentials, Body JSON User]
+  , Set h (Body JSON User)
   ) =>
   RequestHandler h ts
 protectedRoutes =
@@ -141,7 +141,7 @@ getUser ::
   forall h ts.
   ( HasTrait IntUserId ts
   , StdHandler h App
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Set h (Body JSON User)
   ) =>
   RequestHandler h ts
 getUser = method HTTP.GET $
@@ -161,8 +161,8 @@ putUser ::
   forall h ts.
   ( HaveTraits [Auth, IntUserId] ts
   , StdHandler h App
-  , Get h (Body JSON User) Request
-  , Sets h '[RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Get h (Body JSON User)
+  , Set h (Body JSON User)
   ) =>
   RequestHandler h ts
 putUser = method HTTP.PUT $

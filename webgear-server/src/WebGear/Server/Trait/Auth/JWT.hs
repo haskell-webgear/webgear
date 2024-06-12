@@ -22,7 +22,7 @@ import WebGear.Core.Trait.Auth.Common (
 import WebGear.Core.Trait.Auth.JWT (JWTAuth' (..), JWTAuthError (..))
 import WebGear.Server.Handler (ServerHandler)
 
-instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Required scheme m e a) Request where
+instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme)) => Get (ServerHandler m) (JWTAuth' Required scheme m e a) where
   {-# INLINE getTrait #-}
   getTrait ::
     (HasTrait (AuthorizationHeader scheme) ts) =>
@@ -46,7 +46,7 @@ instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Reques
         claims <- withExceptT JWTAuthTokenBadFormat $ JWT.verifyClaims jwtValidationSettings jwkSet jwt
         lift (toJWTAttribute claims) >>= either (throwError . JWTAuthAttributeError) pure
 
-instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme) Request) => Get (ServerHandler m) (JWTAuth' Optional scheme m e a) Request where
+instance (MonadTime m, Get (ServerHandler m) (AuthorizationHeader scheme)) => Get (ServerHandler m) (JWTAuth' Optional scheme m e a) where
   {-# INLINE getTrait #-}
   getTrait ::
     (HasTrait (AuthorizationHeader scheme) ts) =>

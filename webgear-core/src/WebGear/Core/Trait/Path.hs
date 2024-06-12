@@ -29,7 +29,7 @@ import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH.Syntax (Exp (..), Lit (..), Q, TyLit (StrTyLit), Type (..), mkName)
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get, Prerequisite, Attribute, Absence, probe)
+import WebGear.Core.Trait (Absence, Attribute, Get, Prerequisite, probe)
 import WebGear.Core.Trait.Method (method)
 import Prelude hiding (drop, filter, take)
 
@@ -39,10 +39,8 @@ import Prelude hiding (drop, filter, take)
 newtype Path = Path Text
 
 type instance Attribute Path Request = ()
-
-type instance Absence Path Request = ()
-
-type instance Prerequisite Path ts Request = ()
+type instance Absence Path = ()
+type instance Prerequisite Path ts = ()
 
 {- | A path variable that is extracted and converted to a value of
  type @val@. The @tag@ is usually a type-level symbol (string) to
@@ -55,19 +53,15 @@ data PathVarError = PathVarNotFound | PathVarParseError Text
   deriving stock (Eq, Show, Read)
 
 type instance Attribute (PathVar tag val) Request = val
-
-type instance Absence (PathVar tag val) Request = PathVarError
-
-type instance Prerequisite (PathVar tag val) ts Request = ()
+type instance Absence (PathVar tag val) = PathVarError
+type instance Prerequisite (PathVar tag val) ts = ()
 
 -- | Trait to indicate that no more path components are present in the request
 data PathEnd = PathEnd
 
 type instance Attribute PathEnd Request = ()
-
-type instance Absence PathEnd Request = ()
-
-type instance Prerequisite PathEnd ts Request = ()
+type instance Absence PathEnd = ()
+type instance Prerequisite PathEnd ts = ()
 
 {- | A middleware that literally matches path @s@.
 
@@ -81,7 +75,7 @@ type instance Prerequisite PathEnd ts Request = ()
  > path "a/b/c" handler
 -}
 path ::
-  (Get h Path Request, ArrowChoice h, ArrowError RouteMismatch h) =>
+  (Get h Path, ArrowChoice h, ArrowError RouteMismatch h) =>
   Text ->
   Middleware h ts (Path : ts)
 path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
@@ -101,14 +95,14 @@ path s nextHandler = probe (Path s) >>> routeMismatch ||| nextHandler
 -}
 pathVar ::
   forall tag val h ts.
-  (Get h (PathVar tag val) Request, ArrowChoice h, ArrowError RouteMismatch h) =>
+  (Get h (PathVar tag val), ArrowChoice h, ArrowError RouteMismatch h) =>
   Middleware h ts (PathVar tag val : ts)
 pathVar nextHandler = probe PathVar >>> routeMismatch ||| nextHandler
 {-# INLINE pathVar #-}
 
 -- | A middleware that verifies that end of path is reached.
 pathEnd ::
-  (Get h PathEnd Request, ArrowChoice h, ArrowError RouteMismatch h) =>
+  (Get h PathEnd, ArrowChoice h, ArrowError RouteMismatch h) =>
   Middleware h ts (PathEnd : ts)
 pathEnd nextHandler = probe PathEnd >>> routeMismatch ||| nextHandler
 {-# INLINE pathEnd #-}

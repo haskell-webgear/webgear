@@ -16,12 +16,12 @@ import WebGear.Core.Trait.Body (Body (..), UnknownContentBody (..))
 import WebGear.Server.Handler (ServerHandler (..))
 import WebGear.Server.MIMETypes (BodyRender (..), BodyUnrender (..))
 
-instance (Monad m, BodyUnrender m mt val) => Get (ServerHandler m) (Body mt val) Request where
+instance (Monad m, BodyUnrender m mt val) => Get (ServerHandler m) (Body mt val) where
   {-# INLINE getTrait #-}
   getTrait :: Body mt val -> ServerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body mt) = arrM $ bodyUnrender mt . unwitness
 
-instance (Monad m, BodyRender m mt val) => Set (ServerHandler m) (Body mt val) Response where
+instance (Monad m, BodyRender m mt val) => Set (ServerHandler m) (Body mt val) where
   {-# INLINE setTrait #-}
   setTrait ::
     Body mt val ->
@@ -45,7 +45,7 @@ alterContentType mt = go
       | n == HTTP.hContentType = (HTTP.hContentType, mtStr) : hdrs
       | otherwise = (n, v) : go hdrs
 
-instance (Monad m) => Set (ServerHandler m) UnknownContentBody Response where
+instance (Monad m) => Set (ServerHandler m) UnknownContentBody where
   {-# INLINE setTrait #-}
   setTrait ::
     UnknownContentBody ->

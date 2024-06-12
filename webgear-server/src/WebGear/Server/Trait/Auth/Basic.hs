@@ -26,7 +26,7 @@ import WebGear.Core.Trait.Auth.Common (
  )
 import WebGear.Server.Handler (ServerHandler)
 
-instance (Monad m) => Get (ServerHandler m) (BasicAuth' Required scheme m e a) Request where
+instance (Monad m) => Get (ServerHandler m) (BasicAuth' Required scheme m e a) where
   {-# INLINE getTrait #-}
   getTrait ::
     (HasTrait (AuthorizationHeader scheme) ts) =>
@@ -53,7 +53,7 @@ instance (Monad m) => Get (ServerHandler m) (BasicAuth' Required scheme m e a) R
         res <- toBasicAttribute creds
         pure $ first BasicAuthAttributeError res
 
-instance (Monad m) => Get (ServerHandler m) (BasicAuth' Optional scheme m e a) Request where
+instance (Monad m) => Get (ServerHandler m) (BasicAuth' Optional scheme m e a) where
   {-# INLINE getTrait #-}
   getTrait ::
     (HasTrait (AuthorizationHeader scheme) ts) =>

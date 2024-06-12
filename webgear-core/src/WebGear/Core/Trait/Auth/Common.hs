@@ -72,7 +72,6 @@ respondUnauthorized ::
       , RequiredResponseHeader "WWW-Authenticate" Text
       , Body PlainText Text
       ]
-      Response
   ) =>
   -- | The authentication scheme
   CI ByteString ->

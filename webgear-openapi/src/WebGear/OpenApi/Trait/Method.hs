@@ -7,12 +7,11 @@ import Control.Lens ((%~), (&))
 import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi (PathItem (..), paths)
 import Network.HTTP.Types (StdMethod (..))
-import WebGear.Core.Request (Request)
 import WebGear.Core.Trait (Get (..))
 import WebGear.Core.Trait.Method (Method (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..), addRouteDocumentation)
 
-instance Get (OpenApiHandler m) Method Request where
+instance Get (OpenApiHandler m) Method where
   {-# INLINE getTrait #-}
   getTrait (Method method) = OpenApiHandler $ \doc -> do
     addRouteDocumentation $ doc & paths %~ Map.map (removeOtherMethods method)

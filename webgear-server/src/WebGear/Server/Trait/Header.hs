@@ -29,7 +29,7 @@ extractRequestHeader proxy = proc req -> do
   let headerName :: HeaderName = fromString $ symbolVal proxy
   returnA -< parseHeader <$> requestHeader headerName (unwitness req)
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Required Strict name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Required Strict name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     RequestHeader Required Strict name val ->
@@ -41,7 +41,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Left $ Right $ HeaderParseError e
         Just (Right x) -> Right x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Optional Strict name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Optional Strict name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     RequestHeader Optional Strict name val ->
@@ -53,7 +53,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Left $ HeaderParseError e
         Just (Right x) -> Right $ Just x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Required Lenient name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Required Lenient name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     RequestHeader Required Lenient name val ->
@@ -65,7 +65,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Right $ Left e
         Just (Right x) -> Right $ Right x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Optional Lenient name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (RequestHeader Optional Lenient name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     RequestHeader Optional Lenient name val ->
@@ -77,7 +77,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Right $ Just $ Left e
         Just (Right x) -> Right $ Just $ Right x
 
-instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Required name val) Response where
+instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Required name val) where
   {-# INLINE setTrait #-}
   setTrait ::
     ResponseHeader Required name val ->
@@ -92,7 +92,7 @@ instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m)
             _ -> response
     returnA -< f l response' val
 
-instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Optional name val) Response where
+instance (Monad m, KnownSymbol name, ToHttpApiData val) => Set (ServerHandler m) (ResponseHeader Optional name val) where
   {-# INLINE setTrait #-}
   -- If the optional value is 'Nothing', the header is removed from the response
   setTrait ::

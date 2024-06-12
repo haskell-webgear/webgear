@@ -18,7 +18,7 @@ import WebGear.Core.Trait.Path (
  )
 import WebGear.Server.Handler (ServerHandler (..))
 
-instance (Monad m) => Get (ServerHandler m) Path Request where
+instance (Monad m) => Get (ServerHandler m) Path where
   {-# INLINE getTrait #-}
   getTrait :: Path -> ServerHandler m (Request `With` ts) (Either () ())
   getTrait (Path p) = ServerHandler $ const $ do
@@ -28,7 +28,7 @@ instance (Monad m) => Get (ServerHandler m) Path Request where
       Just ps -> put (RoutePath ps) >> pure (Right ())
       Nothing -> pure (Left ())
 
-instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag val) Request where
+instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag val) where
   {-# INLINE getTrait #-}
   getTrait :: PathVar tag val -> ServerHandler m (Request `With` ts) (Either PathVarError val)
   getTrait PathVar = ServerHandler $ const $ do
@@ -40,14 +40,14 @@ instance (Monad m, FromHttpApiData val) => Get (ServerHandler m) (PathVar tag va
           Left e -> pure (Left $ PathVarParseError e)
           Right val -> put (RoutePath ps) >> pure (Right val)
 
-instance (Monad m) => Get (ServerHandler m) PathEnd Request where
+instance (Monad m) => Get (ServerHandler m) PathEnd where
   {-# INLINE getTrait #-}
   getTrait :: PathEnd -> ServerHandler m (Request `With` ts) (Either () ())
   getTrait PathEnd =
-    ServerHandler
-      $ const
-      $ gets
-        ( \case
-            RoutePath [] -> Right ()
-            _ -> Left ()
-        )
+    ServerHandler $
+      const $
+        gets
+          ( \case
+              RoutePath [] -> Right ()
+              _ -> Left ()
+          )

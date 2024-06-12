@@ -12,7 +12,7 @@ import qualified Crypto.JWT as JWT
 import qualified Database.Sqlite as DB
 import qualified Model.User as Model
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding ((.))
+import Relude hiding (Set, (.))
 import WebGear.Server
 
 type CreateUserRequest = Wrapped "user" Model.CreateUserPayload
@@ -20,8 +20,8 @@ type UserResponse = Wrapped "user" Model.UserRecord
 
 create ::
   ( StdHandler h App
-  , Get h (JSONBody CreateUserRequest) Request
-  , Sets h (JSONBodyOrError UserResponse) Response
+  , Get h (JSONBody CreateUserRequest)
+  , Sets h (JSONBodyOrError UserResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -43,9 +43,7 @@ create jwk =
       try $ runDBAction $ Model.create jwk (unwrap userPayload)
 
 handleDBError ::
-  ( StdHandler h App
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
-  ) =>
+  (StdHandler h App, Set h (JSONBody ErrorResponse)) =>
   h DB.SqliteException Response
 handleDBError = proc e ->
   if DB.seError e == DB.ErrorConstraint
@@ -62,8 +60,8 @@ type LoginUserRequest = Wrapped "user" Model.LoginUserPayload
 
 login ::
   ( StdHandler h App
-  , Get h (JSONBody LoginUserRequest) Request
-  , Sets h (JSONBodyOrError UserResponse) Response
+  , Get h (JSONBody LoginUserRequest)
+  , Sets h (JSONBodyOrError UserResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -92,8 +90,8 @@ login jwk =
 
 current ::
   ( StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h (JSONBodyOrError UserResponse) Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Sets h (JSONBodyOrError UserResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -120,8 +118,8 @@ type UpdateUserRequest = Wrapped "user" Model.UpdateUserPayload
 
 update ::
   ( StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateUserRequest] Request
-  , Sets h (JSONBodyOrError UserResponse) Response
+  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateUserRequest]
+  , Sets h (JSONBodyOrError UserResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts

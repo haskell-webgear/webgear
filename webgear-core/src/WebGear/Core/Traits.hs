@@ -17,8 +17,6 @@ import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LText
 import WebGear.Core.Handler (Handler)
 import WebGear.Core.MIMETypes (PlainText)
-import WebGear.Core.Request (Request)
-import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Gets, Sets)
 import WebGear.Core.Trait.Auth.Basic
 import WebGear.Core.Trait.Auth.Common
@@ -40,13 +38,13 @@ import WebGear.Core.Trait.Status
 -}
 type StdHandler h m =
   ( Handler h m
-  , Gets h [Method, Path, PathEnd] Request
+  , Gets h [Method, Path, PathEnd]
   , Sets
       h
       '[ Status
        , Body PlainText String
        , Body PlainText Text.Text
        , Body PlainText LText.Text
+       , RequiredResponseHeader "Content-Type" Text.Text
        ]
-      Response
   )

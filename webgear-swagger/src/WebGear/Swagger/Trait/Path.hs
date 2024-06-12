@@ -23,12 +23,12 @@ import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.Swagger.Handler (SwaggerHandler (..), addRouteDocumentation)
 
-instance Get (SwaggerHandler m) Path Request where
+instance Get (SwaggerHandler m) Path where
   {-# INLINE getTrait #-}
   getTrait :: Path -> SwaggerHandler m (Request `With` ts) (Either () ())
   getTrait (Path p) = SwaggerHandler $ addRouteDocumentation . prependPath (unpack p)
 
-instance (KnownSymbol tag) => Get (SwaggerHandler m) (PathVar tag val) Request where
+instance (KnownSymbol tag) => Get (SwaggerHandler m) (PathVar tag val) where
   {-# INLINE getTrait #-}
   getTrait :: PathVar tag val -> SwaggerHandler m (Request `With` ts) (Either PathVarError val)
   getTrait PathVar =
@@ -50,7 +50,7 @@ instance (KnownSymbol tag) => Get (SwaggerHandler m) (PathVar tag val) Request w
             prependPath ("{" <> paramName <> "}") doc
               & allOperations . parameters <>~ [Inline param]
 
-instance Get (SwaggerHandler m) PathEnd Request where
+instance Get (SwaggerHandler m) PathEnd where
   {-# INLINE getTrait #-}
   getTrait :: PathEnd -> SwaggerHandler m (Request `With` ts) (Either () ())
   getTrait PathEnd = SwaggerHandler $ addRouteDocumentation . prependPath "/"

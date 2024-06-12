@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Main where
 
@@ -28,35 +28,37 @@ import WebGear.Swagger.UI (swaggerUI)
 -- A medium.com clone app specified by https://github.com/gothinkster/realworld
 --------------------------------------------------------------------------------
 
-appRoutes jwk =
-  [route| POST    /api/users/login                                 |] (User.login jwk)
-    <+> [route|       POST    /api/users                                       |] (User.create jwk)
-    <+> [route| GET     /api/user                                        |] (User.current jwk)
-    <+> [route| PUT     /api/user                                        |] (User.update jwk)
-    <+> [route| GET     /api/profiles/username:Text                      |] (Profile.getByName jwk)
-    <+> [route| POST    /api/profiles/username:Text/follow               |] (Profile.follow jwk)
-    <+> [route| DELETE  /api/profiles/username:Text/follow               |] (Profile.unfollow jwk)
-    <+> [route| POST    /api/articles                                    |] (Article.create jwk)
-    <+> [route| GET     /api/articles                                    |] (Article.list jwk)
-    <+> [route| GET     /api/articles/feed                               |] (Article.feed jwk)
-    <+> [route| GET     /api/articles/slug:Text                          |] (Article.getBySlug jwk)
-    <+> [route| PUT     /api/articles/slug:Text                          |] (Article.update jwk)
-    <+> [route| DELETE  /api/articles/slug:Text                          |] (Article.delete jwk)
-    <+> [route| POST    /api/articles/slug:Text/favorite                 |] (Article.favorite jwk)
-    <+> [route| DELETE  /api/articles/slug:Text/favorite                 |] (Article.unfavorite jwk)
-    <+> [route| POST    /api/articles/slug:Text/comments                 |] (Comment.create jwk)
-    <+> [route| GET     /api/articles/slug:Text/comments                 |] (Comment.list jwk)
-    <+> [route| DELETE  /api/articles/slug:Text/comments/commentId:Int64 |] (Comment.delete jwk)
-    <+> [route| GET     /api/tags                                        |] Tag.list
-
 application :: Pool SqlBackend -> JWT.JWK -> Wai.Application
 application pool jwk = toApplication $ transform appToIO allRoutes
   where
+    allRoutes :: RequestHandler (ServerHandler App) '[]
     allRoutes =
-      appRoutes jwk
-        <+> [match| /openapi |] (swaggerUI $ toOpenApi @App $ appRoutes jwk)
+      appRoutes
+        <+> [match| /openapi |] (swaggerUI $ toOpenApi @App $ appRoutes)
         <+> uiRoutes
 
+    appRoutes =
+      [route| POST    /api/users/login                                 |] (User.login jwk)
+        <+> [route| POST    /api/users                                       |] (User.create jwk)
+        <+> [route| GET     /api/user                                        |] (User.current jwk)
+        <+> [route| PUT     /api/user                                        |] (User.update jwk)
+        <+> [route| GET     /api/profiles/username:Text                      |] (Profile.getByName jwk)
+        <+> [route| POST    /api/profiles/username:Text/follow               |] (Profile.follow jwk)
+        <+> [route| DELETE  /api/profiles/username:Text/follow               |] (Profile.unfollow jwk)
+        <+> [route| POST    /api/articles                                    |] (Article.create jwk)
+        <+> [route| GET     /api/articles                                    |] (Article.list jwk)
+        <+> [route| GET     /api/articles/feed                               |] (Article.feed jwk)
+        <+> [route| GET     /api/articles/slug:Text                          |] (Article.getBySlug jwk)
+        <+> [route| PUT     /api/articles/slug:Text                          |] (Article.update jwk)
+        <+> [route| DELETE  /api/articles/slug:Text                          |] (Article.delete jwk)
+        <+> [route| POST    /api/articles/slug:Text/favorite                 |] (Article.favorite jwk)
+        <+> [route| DELETE  /api/articles/slug:Text/favorite                 |] (Article.unfavorite jwk)
+        <+> [route| POST    /api/articles/slug:Text/comments                 |] (Comment.create jwk)
+        <+> [route| GET     /api/articles/slug:Text/comments                 |] (Comment.list jwk)
+        <+> [route| DELETE  /api/articles/slug:Text/comments/commentId:Int64 |] (Comment.delete jwk)
+        <+> [route| GET     /api/tags                                        |] Tag.list
+
+    uiRoutes :: RequestHandler (ServerHandler App) '[]
     uiRoutes = method GET UI.assets
 
     appToIO :: App a -> IO a

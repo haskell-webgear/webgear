@@ -9,7 +9,7 @@ import Control.Category ((.))
 import qualified Crypto.JWT as JWT
 import qualified Model.Profile as Model
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding ((.))
+import Relude hiding (Set, (.))
 import WebGear.Server
 
 type ProfileResponse = Wrapped "profile" Model.Profile
@@ -19,8 +19,8 @@ type PathVarUsername = PathVar "username" Text
 getByName ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Gets h [AuthHeader, OptionalAuth] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ProfileResponse] Response
+  , Gets h [AuthHeader, OptionalAuth]
+  , Set h (JSONBody ProfileResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -41,8 +41,8 @@ getByName jwk =
 follow ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h (JSONBodyOrError ProfileResponse) Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Sets h (JSONBodyOrError ProfileResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -63,8 +63,8 @@ follow jwk =
 unfollow ::
   ( HasTrait PathVarUsername ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h (JSONBodyOrError ProfileResponse) Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Sets h (JSONBodyOrError ProfileResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts

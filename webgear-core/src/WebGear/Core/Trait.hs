@@ -6,7 +6,9 @@
  value. This trait exists only if the list is non-empty.
 
  Traits help to associate attributes with values in a type-safe
- manner.
+ manner. WebGear associates traits with 'Request's and 'Response's to
+ ensure certian attributes are present in them and access those with
+ safety.
 
  Traits are somewhat similar to [refinement
  types](https://hackage.haskell.org/package/refined), but allow
@@ -71,62 +73,67 @@ import Control.Arrow (Arrow (..))
 import Data.Kind (Constraint, Type)
 import Data.Tagged (Tagged (..), untag)
 import GHC.TypeLits (ErrorMessage (..), TypeError)
+import WebGear.Core.Request (Request)
+import WebGear.Core.Response (Response)
 
--- | Type of the associated attribute when the trait holds for a value
+{- | Type of the associated attribute when the trait @t@ holds for a
+   value @a@.
+-}
 type family Attribute t a :: Type
 
--- | Type that indicates that the trait does not exist for a
--- value. This could be an error message, exception etc.
-type family Absence t a :: Type
+{- | Type that indicates that the trait does not exist on a
+   request. This could be an error message, exception etc.
+-}
+type family Absence t :: Type
 
 {- | Indicates the constraints a trait depends upon as a
-prerequisite. This is used to assert that a trait @t@ can be
-extracted from a value @a@ only if one or more other traits are
-present in the trait list @ts@ associated with it.
+   prerequisite. This is used to assert that a trait @t@ can be
+   extracted from a request only if one or more other traits are
+   present in the trait list @ts@ associated with it.
 
-If a trait does not depend on other traits this can be set to the
-empty contraint @()@.
+   If a trait does not depend on other traits this can be set to the
+   empty contraint @()@.
 -}
-type family Prerequisite (t :: Type) (ts :: [Type]) (a :: Type) :: Constraint
+type family Prerequisite (t :: Type) (ts :: [Type]) :: Constraint
 
--- | Extract trait attributes from a value.
-class (Arrow h) => Get h t a where
-  -- | Attempt to witness the trait attribute from the value @a@.
+-- | Extract trait attributes from a request.
+class (Arrow h) => Get h t where
+  -- | Attempt to witness the trait attribute from the request.
   getTrait ::
-    (Prerequisite t ts a) =>
+    (Prerequisite t ts) =>
     -- | The trait to witness
     t ->
     -- | Arrow that attemtps to witness the trait and can possibly
     -- fail
-    h (a `With` ts) (Either (Absence t a) (Attribute t a))
+    h (Request `With` ts) (Either (Absence t) (Attribute t Request))
 
--- | Associate a trait attribute on a value
-class (Arrow h) => Set h (t :: Type) a where
-  -- | Set a trait attribute @t@ on the value @a \`With\` ts@.
+-- | Associate a trait attribute on a response
+class (Arrow h) => Set h (t :: Type) where
+  -- | Set a trait attribute @t@ on the value @Response \`With\` ts@.
   setTrait ::
     -- | The trait to set
     t ->
-    -- | A function to generate a witnessed value. This function must
-    -- be called by the `setTrait` implementation to generate a
-    -- witnessed value.
-    (a `With` ts -> a -> Attribute t a -> a `With` (t : ts)) ->
+    -- | A function to generate a witnessed response. This function
+    -- must be called by the `setTrait` implementation to generate a
+    -- witnessed response.
+    (Response `With` ts -> Response -> Attribute t Response -> Response `With` (t : ts)) ->
     -- | An arrow that attaches a new trait attribute to a witnessed
     -- value.
-    h (a `With` ts, Attribute t a) (a `With` (t : ts))
+    h (Response `With` ts, Attribute t Response) (Response `With` (t : ts))
 
-{- | @Gets h ts a@ is equivalent to @(Get h t1 a, Get h t2 a, ..., Get
- h tn a)@ where @ts = [t1, t2, ..., tn]@.
+{- | @Gets h ts@ is equivalent to @(Get h t1, Get h t2, ..., Get h tn)@
+ where @ts = [t1, t2, ..., tn]@.
 -}
-type family Gets h ts a :: Constraint where
-  Gets h '[] a = ()
-  Gets h (t : ts) a = (Get h t a, Gets h ts a)
+type family Gets h ts :: Constraint where
+  Gets h '[] = ()
+  Gets h (t : ts) = (Get h t, Gets h ts)
 
-{- | @Sets h ts a@ is equivalent to @(Set h t1 a, Set h t2 a, ..., Set
- h tn a)@ where @ts = [t1, t2, ..., tn]@.
+{- | @Sets h ts@ is equivalent to @(Set h t1, Set h t2, ..., Set h tn)@
+   where @ts = [t1, t2, ..., tn]@.
 -}
-type family Sets h ts a :: Constraint where
-  Sets h '[] a = ()
-  Sets h (t : ts) a = (Set h t a, Sets h ts a)
+type family Sets h ts :: Constraint where
+  Sets h '[] = ()
+  Sets h (t : ts) = (Set h t, Sets h ts)
 
 {- | A value associated with a list of traits, referred to as a
 witnessed value. Typically, this is used as an infix type constructor:
@@ -169,35 +176,35 @@ wminus :: a `With` (t : ts) -> a `With` ts
 wminus (With (_, rv) a) = With rv a
 {-# INLINE wminus #-}
 
-{- | Attempt to witness an additional trait with a witnessed value. This
- can fail indicating an 'Absence' of the trait.
+{- | Attempt to witness an additional trait with a witnessed
+   request. This can fail indicating an 'Absence' of the trait.
 -}
 probe ::
-  forall t ts h a.
-  (Get h t a, Prerequisite t ts a) =>
+  forall t ts h.
+  (Get h t, Prerequisite t ts) =>
   t ->
-  h (a `With` ts) (Either (Absence t a) (a `With` (t : ts)))
+  h (Request `With` ts) (Either (Absence t) (Request `With` (t : ts)))
 probe t = proc l -> do
   res <- getTrait t -< l
   arr add -< (l, res)
   where
-    add :: (a `With` ts, Either e (Attribute t a)) -> Either e (a `With` (t : ts))
+    add :: (Request `With` ts, Either e (Attribute t Request)) -> Either e (Request `With` (t : ts))
     add (_, Left e) = Left e
     add (With{..}, Right attr) = Right $ With{attribute = (attr, attribute), ..}
 {-# INLINE probe #-}
 
-{- | Set a trait attribute on witnessed value to produce another
-   witnessed value with the additional trait attached to it.
+{- | Set a trait attribute on witnessed response to produce another
+   witnessed response with the additional trait attached to it.
 -}
 plant ::
-  forall t ts h a.
-  (Set h t a) =>
+  forall t ts h.
+  (Set h t) =>
   t ->
-  h (a `With` ts, Attribute t a) (a `With` (t : ts))
+  h (Response `With` ts, Attribute t Response) (Response `With` (t : ts))
 plant t = proc (l, attr) -> do
   setTrait t add -< (l, attr)
   where
-    add :: a `With` ts -> a -> Attribute t a -> a `With` (t : ts)
+    add :: Response `With` ts -> Response -> Attribute t Response -> Response `With` (t : ts)
     add With{..} a' attr = With{attribute = (attr, attribute), unwitness = a'}
 {-# INLINE plant #-}
 

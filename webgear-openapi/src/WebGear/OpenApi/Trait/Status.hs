@@ -31,7 +31,7 @@ import WebGear.Core.Trait (Set, With, setTrait)
 import WebGear.Core.Trait.Status (Status (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..), addRootPath, consumeDescription)
 
-instance Set (OpenApiHandler m) Status WG.Response where
+instance Set (OpenApiHandler m) Status where
   {-# INLINE setTrait #-}
   setTrait ::
     Status ->

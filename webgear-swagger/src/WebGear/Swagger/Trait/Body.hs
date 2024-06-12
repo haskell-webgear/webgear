@@ -46,7 +46,7 @@ import WebGear.Swagger.Handler (
   consumeDescription,
  )
 
-instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) Request where
+instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) where
   {-# INLINE getTrait #-}
   getTrait :: Body mt val -> SwaggerHandler m (Request `With` ts) (Either Text val)
   getTrait (Body mt) =
@@ -70,7 +70,7 @@ instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) Req
                )
           & definitions %~ (<> defs)
 
-instance (ToSchema val, MIMEType mt) => Set (SwaggerHandler m) (Body mt val) WG.Response where
+instance (ToSchema val, MIMEType mt) => Set (SwaggerHandler m) (Body mt val) where
   {-# INLINE setTrait #-}
   setTrait ::
     Body mt val ->
@@ -81,7 +81,7 @@ instance (ToSchema val, MIMEType mt) => Set (SwaggerHandler m) (Body mt val) WG.
         (defs, ref) = runDeclare (declareSchemaRef $ Proxy @val) mempty
      in SwaggerHandler $ addResponseBody defs mimeList (Just ref)
 
-instance Set (SwaggerHandler m) UnknownContentBody WG.Response where
+instance Set (SwaggerHandler m) UnknownContentBody where
   {-# INLINE setTrait #-}
   setTrait ::
     UnknownContentBody ->

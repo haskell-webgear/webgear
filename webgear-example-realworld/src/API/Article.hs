@@ -19,7 +19,7 @@ import qualified Database.Sqlite as DB
 import qualified Model.Article as Model
 import Model.Entities
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding ((.))
+import Relude hiding (Set, (.))
 import WebGear.Server hiding (length)
 
 type CreateArticleRequest = Wrapped "article" Model.CreateArticlePayload
@@ -27,8 +27,8 @@ type ArticleResponse = Wrapped "article" Model.ArticleRecord
 
 create ::
   ( StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateArticleRequest] Request
-  , Sets h (JSONBodyOrError ArticleResponse) Response
+  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateArticleRequest]
+  , Sets h (JSONBodyOrError ArticleResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -50,7 +50,7 @@ create jwk =
 
 handleDBError ::
   ( StdHandler h App
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
+  , Set h (JSONBody ErrorResponse)
   ) =>
   h DB.SqliteException Response
 handleDBError = proc e ->
@@ -62,8 +62,8 @@ handleDBError = proc e ->
 
 getBySlug ::
   ( StdHandler h App
-  , Gets h [AuthHeader, OptionalAuth] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ArticleResponse] Response
+  , Gets h [AuthHeader, OptionalAuth]
+  , Set h (JSONBody ArticleResponse)
   , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
@@ -92,8 +92,8 @@ update ::
   forall h ts.
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateArticleRequest] Request
-  , Sets h (JSONBodyOrError ArticleResponse) Response
+  , Gets h [AuthHeader, RequiredAuth, JSONBody UpdateArticleRequest]
+  , Sets h (JSONBodyOrError ArticleResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -134,8 +134,8 @@ update jwk =
 delete ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Set h (JSONBody ErrorResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -163,8 +163,8 @@ data ArticleListResponse = ArticleListResponse
 param ::
   forall name val h ts.
   ( StdHandler h App
-  , Get h (OptionalQueryParam name val) Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
+  , Get h (OptionalQueryParam name val)
+  , Set h (JSONBody ErrorResponse)
   ) =>
   Description ->
   Middleware h ts (OptionalQueryParam name val : ts)
@@ -182,8 +182,7 @@ list ::
       , OptionalQueryParam "limit" Model.Limit
       , OptionalQueryParam "offset" Model.Offset
       ]
-      Request
-  , Sets h (JSONBodyOrError ArticleListResponse) Response
+  , Sets h (JSONBodyOrError ArticleListResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -221,8 +220,7 @@ feed ::
       , OptionalQueryParam "limit" Model.Limit
       , OptionalQueryParam "offset" Model.Offset
       ]
-      Request
-  , Sets h (JSONBodyOrError ArticleListResponse) Response
+  , Sets h (JSONBodyOrError ArticleListResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -248,8 +246,8 @@ feed jwk =
 favorite ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h (JSONBodyOrError ArticleResponse) Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Sets h (JSONBodyOrError ArticleResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts
@@ -274,8 +272,8 @@ favorite jwk =
 unfavorite ::
   ( HasTrait PathVarSlug ts
   , StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h (JSONBodyOrError ArticleResponse) Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Sets h (JSONBodyOrError ArticleResponse)
   ) =>
   JWT.JWK ->
   RequestHandler h ts

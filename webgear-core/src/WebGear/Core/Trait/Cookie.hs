@@ -23,12 +23,12 @@ import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (
+  Absence,
+  Attribute,
   Get,
   HasTrait,
   Prerequisite,
   Set,
-  Attribute,
-  Absence,
   With,
   plant,
   probe,
@@ -47,25 +47,22 @@ newtype CookieParseError = CookieParseError Text
 data Cookie (e :: Existence) (name :: Symbol) (val :: Type) = Cookie
 
 type instance Attribute (Cookie Required name val) Request = val
-
+type instance Absence (Cookie Required name val) = Either CookieNotFound CookieParseError
 type instance
-  Prerequisite (Cookie e name val) ts Request =
+  Prerequisite (Cookie e name val) ts =
     HasTrait (RequestHeader e Strict "Cookie" Text) ts
 
-type instance Absence (Cookie Required name val) Request = Either CookieNotFound CookieParseError
-
 type instance Attribute (Cookie Optional name val) Request = Maybe val
-
-type instance Absence (Cookie Optional name val) Request = CookieParseError
+type instance Absence (Cookie Optional name val) = CookieParseError
 
 cookieHandler ::
   forall name val e h ts.
   ( ArrowChoice h
-  , Get h (Cookie e name val) Request
+  , Get h (Cookie e name val)
   , HasTrait (RequestHeader e Strict "Cookie" Text) ts
   ) =>
   -- | error handler
-  h (Request `With` ts, Absence (Cookie e name val) Request) Response ->
+  h (Request `With` ts, Absence (Cookie e name val)) Response ->
   Middleware h ts (Cookie e name val : ts)
 cookieHandler errorHandler nextHandler = proc request -> do
   result <- probe Cookie -< request
@@ -85,7 +82,7 @@ cookieHandler errorHandler nextHandler = proc request -> do
 cookie ::
   forall name val h ts.
   ( ArrowChoice h
-  , Get h (Cookie Required name val) Request
+  , Get h (Cookie Required name val)
   , HasTrait (RequestHeader Required Strict "Cookie" Text) ts
   ) =>
   -- | Error handler
@@ -106,7 +103,7 @@ cookie = cookieHandler
 optionalCookie ::
   forall name val h ts.
   ( ArrowChoice h
-  , Get h (Cookie Optional name val) Request
+  , Get h (Cookie Optional name val)
   , HasTrait (RequestHeader Optional Strict "Cookie" Text) ts
   ) =>
   -- | Error handler
@@ -130,7 +127,7 @@ type instance Attribute (SetCookie Optional name) Response = Maybe Cookie.SetCoo
 -}
 setCookie ::
   forall name h ts.
-  (Set h (SetCookie Required name) Response) =>
+  (Set h (SetCookie Required name)) =>
   h (Response `With` ts, Cookie.SetCookie) (Response `With` (SetCookie Required name : ts))
 setCookie = plant SetCookie
 {-# INLINE setCookie #-}
@@ -147,7 +144,7 @@ setCookie = plant SetCookie
 -}
 setOptionalCookie ::
   forall name h ts.
-  (Set h (SetCookie Optional name) Response) =>
+  (Set h (SetCookie Optional name)) =>
   h (Response `With` ts, Maybe Cookie.SetCookie) (Response `With` (SetCookie Optional name : ts))
 setOptionalCookie = plant SetCookie
 {-# INLINE setOptionalCookie #-}

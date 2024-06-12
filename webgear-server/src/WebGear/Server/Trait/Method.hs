@@ -10,7 +10,7 @@ import WebGear.Core.Trait (Get (..), With (unwitness), unwitness)
 import WebGear.Core.Trait.Method (Method (..), MethodMismatch (..))
 import WebGear.Server.Handler (ServerHandler)
 
-instance (Monad m) => Get (ServerHandler m) Method Request where
+instance (Monad m) => Get (ServerHandler m) Method where
   {-# INLINE getTrait #-}
   getTrait :: Method -> ServerHandler m (Request `With` ts) (Either MethodMismatch HTTP.StdMethod)
   getTrait (Method method) = proc request -> do

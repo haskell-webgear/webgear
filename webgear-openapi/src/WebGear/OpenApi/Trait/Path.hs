@@ -23,12 +23,12 @@ import WebGear.Core.Trait (Get (..), With)
 import WebGear.Core.Trait.Path (Path (..), PathEnd (..), PathVar (..), PathVarError (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..), addRouteDocumentation)
 
-instance Get (OpenApiHandler m) Path Request where
+instance Get (OpenApiHandler m) Path where
   {-# INLINE getTrait #-}
   getTrait :: Path -> OpenApiHandler m (Request `With` ts) (Either () ())
   getTrait (Path p) = OpenApiHandler $ addRouteDocumentation . prependPath (unpack p)
 
-instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag val) Request where
+instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag val) where
   {-# INLINE getTrait #-}
   getTrait :: PathVar tag val -> OpenApiHandler m (Request `With` ts) (Either PathVarError val)
   getTrait PathVar =
@@ -45,7 +45,7 @@ instance (KnownSymbol tag, ToSchema val) => Get (OpenApiHandler m) (PathVar tag 
             prependPath ("{" <> paramName <> "}") doc
               & allOperations . parameters <>~ [Inline param]
 
-instance Get (OpenApiHandler m) PathEnd Request where
+instance Get (OpenApiHandler m) PathEnd where
   {-# INLINE getTrait #-}
   getTrait :: PathEnd -> OpenApiHandler m (Request `With` ts) (Either () ())
   getTrait PathEnd = OpenApiHandler $ addRouteDocumentation . prependPath "/"

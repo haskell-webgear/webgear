@@ -30,7 +30,7 @@ import WebGear.Core.Trait (Set, With, setTrait)
 import WebGear.Core.Trait.Status (Status (..))
 import WebGear.Swagger.Handler (SwaggerHandler (..), addRootPath, consumeDescription)
 
-instance Set (SwaggerHandler m) Status WG.Response where
+instance Set (SwaggerHandler m) Status where
   {-# INLINE setTrait #-}
   setTrait ::
     Status ->

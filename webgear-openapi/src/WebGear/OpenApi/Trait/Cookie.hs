@@ -8,14 +8,12 @@ import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
-import WebGear.Core.Request (Request)
-import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Cookie as WG
 import WebGear.OpenApi.Handler (OpenApiHandler (..))
 import WebGear.OpenApi.Trait.Auth (addSecurityScheme)
 
-instance (KnownSymbol name) => Get (OpenApiHandler m) (WG.Cookie e name val) Request where
+instance (KnownSymbol name) => Get (OpenApiHandler m) (WG.Cookie e name val) where
   {-# INLINE getTrait #-}
   getTrait WG.Cookie =
     OpenApiHandler $ addSecurityScheme cookieName securityScheme
@@ -36,6 +34,6 @@ instance (KnownSymbol name) => Get (OpenApiHandler m) (WG.Cookie e name val) Req
 
 -- Response cookie information is not captured by OpenAPI
 
-instance Set (OpenApiHandler m) (WG.SetCookie e name) Response where
+instance Set (OpenApiHandler m) (WG.SetCookie e name) where
   {-# INLINE setTrait #-}
   setTrait WG.SetCookie _ = OpenApiHandler pure

@@ -16,7 +16,6 @@ import WebGear.Core (
   JSON (..),
   RequestHandler,
   RequiredResponseHeader,
-  Response (..),
   Sets,
   StdHandler,
   UnknownContentBody,
@@ -45,7 +44,6 @@ swaggerUI ::
       , Body JSON apiSpec
       , UnknownContentBody
       ]
-      Response
   ) =>
   -- | Swagger 2.0 or OpenAPI 3.x specification
   apiSpec ->
@@ -58,21 +56,21 @@ swaggerUI apiSpec =
 
 rootEndpoint ::
   ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString]
   ) =>
   RequestHandler h ts
 rootEndpoint = method HTTP.GET $ pathEnd serveIndexHtml
 
 indexHtml ::
   ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString]
   ) =>
   RequestHandler h ts
 indexHtml = [route| HTTP.GET /index.html |] serveIndexHtml
 
 serveIndexHtml ::
   ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body HTML ByteString]
   ) =>
   RequestHandler h ts
 serveIndexHtml = proc _request ->
@@ -80,7 +78,7 @@ serveIndexHtml = proc _request ->
 
 swaggerJson ::
   ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON apiSpec] Response
+  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON apiSpec]
   ) =>
   -- | Swagger 2.0 or OpenAPI 3.x specification
   apiSpec ->
