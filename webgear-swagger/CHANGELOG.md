@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2024-06-13
+
 ### Changed
 - Simplify core API (breaking change) (#47)
 - Reimplement Swagger/OpenAPI internals (#45)
@@ -24,7 +26,8 @@
 - Support file uploads (#32)
 - First version of webgear-swagger
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.3.0
 [1.2.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.2.0
 [1.1.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.1
 [1.1.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.0
