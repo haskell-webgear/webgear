@@ -18,23 +18,23 @@ type UserIdPathVar = PathVar "userId" Int
 
 allRoutes ::
   ( StdHandler h AppM
-  , Gets h [UserIdPathVar, Body JSON User] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Gets h [UserIdPathVar, Body JSON User]
+  , Set h (Body JSON User)
   ) =>
   h (Request `With` '[]) Response
 allRoutes =
   -- Non-TH version:
   --   path "/v1/users" $ pathVar @"userId" @Int $ pathEnd
-  [route| /v1/users/userId:Int |]
-    $ method GET getUser
-    <+> method PUT putUser
-    <+> method DELETE deleteUser
+  [route| /v1/users/userId:Int |] $
+    method GET getUser
+      <+> method PUT putUser
+      <+> method DELETE deleteUser
 
 getUser ::
   forall h ts.
   ( HasTrait UserIdPathVar ts
   , StdHandler h AppM
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Set h (Body JSON User)
   ) =>
   h (Request `With` ts) Response
 getUser = findUser >>> respond
@@ -54,8 +54,8 @@ putUser ::
   forall h ts.
   ( HasTrait UserIdPathVar ts
   , StdHandler h AppM
-  , Get h (Body JSON User) Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, Body JSON User] Response
+  , Get h (Body JSON User)
+  , Set h (Body JSON User)
   ) =>
   h (Request `With` ts) Response
 putUser = requestBody @User JSON badPayload $ doUpdate >>> respond

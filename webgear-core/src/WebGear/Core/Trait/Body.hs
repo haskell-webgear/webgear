@@ -1,17 +1,17 @@
 {- | Traits and middlewares to handle request and response body
    payloads.
 
- The 'requestBody' middleware attempts to convert the body to a
- Haskell value or invoke an error handler if that fails.
+   The 'requestBody' middleware attempts to convert the body to a
+   Haskell value or invoke an error handler if that fails.
 
- The 'respondA' middleware generates a response from an HTTP status
- and a response body.
+   The 'respondA' middleware generates a response from an HTTP status
+   and a response body.
 
- If you need finer control over setting the body, use 'setBody' or
- 'setBodyWithoutContentType'. These arrows accept a witnessed response
- and a body and sets the body in the response. You can generate an
- input response object using functions from
- "WebGear.Core.Trait.Status" module.
+   If you need finer control over setting the body, use 'setBody' or
+   'setBodyWithoutContentType'. These arrows accept a witnessed
+   response and a body and sets the body in the response. You can
+   generate an input response object using functions from
+   "WebGear.Core.Trait.Status" module.
 -}
 module WebGear.Core.Trait.Body (
   -- * Traits
@@ -36,12 +36,12 @@ import WebGear.Core.MIMETypes (MIMEType (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response, ResponseBody)
 import WebGear.Core.Trait (
+  Absence,
+  Attribute,
   Get,
   Prerequisite,
   Set,
   Sets,
-  Trait (..),
-  TraitAbsence (..),
   With (..),
   plant,
   probe,
@@ -52,22 +52,16 @@ import WebGear.Core.Trait.Status (Status, mkResponse)
 -- | Request or response body with MIME types @mimeTypes@ and type @t@.
 newtype Body (mimeType :: Type) (t :: Type) = Body mimeType
 
-instance Trait (Body mt t) Request where
-  type Attribute (Body mt t) Request = t
+type instance Attribute (Body mt t) Request = t
+type instance Absence (Body mt t) = Text
+type instance Prerequisite (Body mt t) ts = ()
 
-instance TraitAbsence (Body mt t) Request where
-  type Absence (Body mt t) Request = Text
-
-type instance Prerequisite (Body mt t) ts Request = ()
-
-instance Trait (Body mt t) Response where
-  type Attribute (Body mt t) Response = t
+type instance Attribute (Body mt t) Response = t
 
 -- | Type representing responses without a statically known MIME type
 data UnknownContentBody = UnknownContentBody
 
-instance Trait UnknownContentBody Response where
-  type Attribute UnknownContentBody Response = ResponseBody
+type instance Attribute UnknownContentBody Response = ResponseBody
 
 {- | Middleware to extract a request body.
 
@@ -83,7 +77,7 @@ instance Trait UnknownContentBody Response where
 requestBody ::
   forall t mt h m ts.
   ( Handler h m
-  , Get h (Body mt t) Request
+  , Get h (Body mt t)
   ) =>
   mt ->
   -- | Error handler in case body cannot be retrieved
@@ -110,7 +104,7 @@ requestBody mt errorHandler nextHandler = proc request -> do
 -}
 setBody ::
   forall body mt h ts.
-  ( Sets h [Body mt body, RequiredResponseHeader "Content-Type" Text] Response
+  ( Sets h [Body mt body, RequiredResponseHeader "Content-Type" Text]
   , MIMEType mt
   ) =>
   mt ->
@@ -132,7 +126,7 @@ Usage:
 -}
 setBodyWithoutContentType ::
   forall h ts.
-  (Set h UnknownContentBody Response) =>
+  (Set h UnknownContentBody) =>
   h (Response `With` ts, ResponseBody) (Response `With` (UnknownContentBody : ts))
 setBodyWithoutContentType = plant UnknownContentBody
 {-# INLINE setBodyWithoutContentType #-}
@@ -151,7 +145,7 @@ setBodyWithoutContentType = plant UnknownContentBody
 respondA ::
   forall body mt h m.
   ( Handler h m
-  , Sets h [Status, Body mt body, RequiredResponseHeader "Content-Type" Text] Response
+  , Sets h [Status, Body mt body, RequiredResponseHeader "Content-Type" Text]
   , MIMEType mt
   ) =>
   -- | Response status

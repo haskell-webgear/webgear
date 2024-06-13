@@ -32,9 +32,14 @@
  authConfig :: 'BasicAuth' IO () 'Credentials'
  authConfig = 'BasicAuth'' { toBasicAttribute = pure . Right }
 
- type ErrorTraits = [Status, RequiredRequestHeader \"Content-Type\" Text, RequiredRequestHeader \"WWW-Authenticate\" Text, Body Text]
+ type ErrorTraits =
+  [ Status
+  , RequiredResponseHeader \"Content-Type\" Text
+  , RequiredResponseHeader \"WWW-Authenticate\" Text
+  , Body Text
+  ]
 
- errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
+ errorHandler :: ('Handler' h IO, Sets h ErrorTraits)
               => h (Request \`With\` ts, 'BasicAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Basic\" \"MyRealm\"
  @
@@ -42,7 +47,7 @@
  we can add basic authentication to @myHandler@:
 
  @
- myHandlerWithAuth :: ('Handler' h IO, Get h ('BasicAuth' IO () 'Credentials') Request, Sets h ErrorTraits Response)
+ myHandlerWithAuth :: ('Handler' h IO, Get h ('BasicAuth' IO () 'Credentials'), Sets h ErrorTraits)
                    => 'RequestHandler' h ts
  myHandlerWithAuth = 'basicAuth' authConfig errorHandler myHandler
  @
@@ -124,29 +129,23 @@ data BasicAuthError e
   | BasicAuthAttributeError e
   deriving stock (Eq, Show, Read)
 
-instance Trait (BasicAuth' Required scheme m e a) Request where
-  type Attribute (BasicAuth' Required scheme m e a) Request = a
+type instance Attribute (BasicAuth' Required scheme m e a) Request = a
+type instance Absence (BasicAuth' Required scheme m e a) = BasicAuthError e
 
-instance TraitAbsence (BasicAuth' Required scheme m e a) Request where
-  type Absence (BasicAuth' Required scheme m e a) Request = BasicAuthError e
-
-instance Trait (BasicAuth' Optional scheme m e a) Request where
-  type Attribute (BasicAuth' Optional scheme m e a) Request = Either (BasicAuthError e) a
-
-instance TraitAbsence (BasicAuth' Optional scheme m e a) Request where
-  type Absence (BasicAuth' Optional scheme m e a) Request = Void
+type instance Attribute (BasicAuth' Optional scheme m e a) Request = Either (BasicAuthError e) a
+type instance Absence (BasicAuth' Optional scheme m e a) = Void
 
 type instance
-  Prerequisite (BasicAuth' x scheme m e a) ts Request =
+  Prerequisite (BasicAuth' x scheme m e a) ts =
     HasTrait (AuthorizationHeader scheme) ts
 
 basicAuthMiddleware ::
   ( ArrowChoice h
-  , Get h (BasicAuth' x scheme m e t) Request
+  , Get h (BasicAuth' x scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   BasicAuth' x scheme m e t ->
-  h (Request `With` ts, Absence (BasicAuth' x scheme m e t) Request) Response ->
+  h (Request `With` ts, Absence (BasicAuth' x scheme m e t)) Response ->
   Middleware h ts (BasicAuth' x scheme m e t : ts)
 basicAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
@@ -169,7 +168,7 @@ basicAuthMiddleware authCfg errorHandler nextHandler =
 basicAuth ::
   forall m e t h ts.
   ( ArrowChoice h
-  , Get h (BasicAuth' Required "Basic" m e t) Request
+  , Get h (BasicAuth' Required "Basic" m e t)
   , HasTrait (AuthorizationHeader "Basic") ts
   ) =>
   -- | Authentication configuration
@@ -189,7 +188,7 @@ basicAuth = basicAuth'
 basicAuth' ::
   forall scheme m e t h ts.
   ( ArrowChoice h
-  , Get h (BasicAuth' Required scheme m e t) Request
+  , Get h (BasicAuth' Required scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration
@@ -214,7 +213,7 @@ basicAuth' = basicAuthMiddleware
 optionalBasicAuth ::
   forall m e t h ts.
   ( ArrowChoice h
-  , Get h (BasicAuth' Optional "Basic" m e t) Request
+  , Get h (BasicAuth' Optional "Basic" m e t)
   , HasTrait (AuthorizationHeader "Basic") ts
   ) =>
   -- | Authentication configuration
@@ -233,7 +232,7 @@ optionalBasicAuth = optionalBasicAuth'
 optionalBasicAuth' ::
   forall scheme m e t h ts.
   ( ArrowChoice h
-  , Get h (BasicAuth' Optional scheme m e t) Request
+  , Get h (BasicAuth' Optional scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration

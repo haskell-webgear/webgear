@@ -36,9 +36,14 @@
    , toJWTAttribute = pure . Right
    }
 
- type ErrorTraits = [Status, RequiredRequestHeader \"Content-Type\" Text, RequiredRequestHeader \"WWW-Authenticate\" Text, Body Text]
+ type ErrorTraits =
+  [ Status
+  , RequiredResponseHeader \"Content-Type\" Text
+  , RequiredResponseHeader \"WWW-Authenticate\" Text
+  , Body Text
+  ]
 
- errorHandler :: ('Handler' h IO, Sets h ErrorTraits Response)
+ errorHandler :: ('Handler' h IO, Sets h ErrorTraits)
               => h (Request \`With\` ts, 'JWTAuthError' e) Response
  errorHandler = 'respondUnauthorized' \"Bearer\" \"MyRealm\"
  @
@@ -46,7 +51,7 @@
  we can add JWT authentication to @myHandler@:
 
  @
- myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'JWT.ClaimsSet') Request, Sets h ErrorTraits Response)
+ myHandlerWithAuth :: ('Handler' h IO, Get h ('JWTAuth' IO () 'JWT.ClaimsSet'), Sets h ErrorTraits)
                    => 'RequestHandler' h ts
  myHandlerWithAuth = 'jwtAuth' authConfig errorHandler myHandler
  @
@@ -116,20 +121,14 @@ data JWTAuthError e
   | JWTAuthAttributeError e
   deriving stock (Eq, Show)
 
-instance Trait (JWTAuth' Required scheme m e a) Request where
-  type Attribute (JWTAuth' Required scheme m e a) Request = a
+type instance Attribute (JWTAuth' Required scheme m e a) Request = a
+type instance Absence (JWTAuth' Required scheme m e a) = JWTAuthError e
 
-instance TraitAbsence (JWTAuth' Required scheme m e a) Request where
-  type Absence (JWTAuth' Required scheme m e a) Request = JWTAuthError e
-
-instance Trait (JWTAuth' Optional scheme m e a) Request where
-  type Attribute (JWTAuth' Optional scheme m e a) Request = Either (JWTAuthError e) a
-
-instance TraitAbsence (JWTAuth' Optional scheme m e a) Request where
-  type Absence (JWTAuth' Optional scheme m e a) Request = Void
+type instance Attribute (JWTAuth' Optional scheme m e a) Request = Either (JWTAuthError e) a
+type instance Absence (JWTAuth' Optional scheme m e a) = Void
 
 type instance
-  Prerequisite (JWTAuth' x scheme m e a) ts Request =
+  Prerequisite (JWTAuth' x scheme m e a) ts =
     HasTrait (AuthorizationHeader scheme) ts
 
 {- | Middleware to add JWT authentication protection for a
@@ -148,7 +147,7 @@ type instance
 -}
 jwtAuth ::
   ( ArrowChoice h
-  , Get h (JWTAuth m e t) Request
+  , Get h (JWTAuth m e t)
   , HasTrait (AuthorizationHeader "Bearer") ts
   ) =>
   -- | Authentication configuration
@@ -176,7 +175,7 @@ jwtAuth = jwtAuth' @"Bearer"
 -}
 optionalJWTAuth ::
   ( ArrowChoice h
-  , Get h (JWTAuth' Optional "Bearer" m e t) Request
+  , Get h (JWTAuth' Optional "Bearer" m e t)
   , HasTrait (AuthorizationHeader "Bearer") ts
   ) =>
   -- | Authentication configuration
@@ -188,11 +187,11 @@ optionalJWTAuth = optionalJWTAuth' @"Bearer"
 jwtAuthMiddleware ::
   forall scheme e t x h m ts.
   ( ArrowChoice h
-  , Get h (JWTAuth' x scheme m e t) Request
+  , Get h (JWTAuth' x scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   JWTAuth' x scheme m e t ->
-  h (Request `With` ts, Absence (JWTAuth' x scheme m e t) Request) Response ->
+  h (Request `With` ts, Absence (JWTAuth' x scheme m e t)) Response ->
   Middleware h ts (JWTAuth' x scheme m e t : ts)
 jwtAuthMiddleware authCfg errorHandler nextHandler =
   proc request -> do
@@ -219,7 +218,7 @@ jwtAuthMiddleware authCfg errorHandler nextHandler =
 jwtAuth' ::
   forall scheme e t h m ts.
   ( ArrowChoice h
-  , Get h (JWTAuth' Required scheme m e t) Request
+  , Get h (JWTAuth' Required scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration
@@ -248,7 +247,7 @@ jwtAuth' = jwtAuthMiddleware
 optionalJWTAuth' ::
   forall scheme e t h m ts.
   ( ArrowChoice h
-  , Get h (JWTAuth' Optional scheme m e t) Request
+  , Get h (JWTAuth' Optional scheme m e t)
   , HasTrait (AuthorizationHeader scheme) ts
   ) =>
   -- | Authentication configuration

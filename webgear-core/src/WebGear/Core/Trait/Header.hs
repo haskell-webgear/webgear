@@ -61,11 +61,11 @@ import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request, requestHeader)
 import WebGear.Core.Response (Response)
 import WebGear.Core.Trait (
+  Absence,
+  Attribute,
   Get (..),
   Prerequisite,
   Set,
-  Trait (..),
-  TraitAbsence (..),
   With,
   plant,
   probe,
@@ -80,10 +80,10 @@ data HeaderNotFound = HeaderNotFound
 newtype HeaderParseError = HeaderParseError Text
   deriving stock (Read, Show, Eq)
 
-{- | A 'Trait' for capturing an HTTP header of specified @name@ and
- converting it to some type @val@. The modifiers @e@ and @p@ determine
- how missing headers and parsing errors are handled. The header name
- is compared case-insensitively.
+{- | A trait for capturing an HTTP request header of specified @name@
+ and converting it to some type @val@. The modifiers @e@ and @p@
+ determine how the missing headers and parsing errors are handled. The
+ header name is compared case-insensitively.
 -}
 data RequestHeader (e :: Existence) (p :: ParseStyle) (name :: Symbol) (val :: Type) = RequestHeader
 
@@ -93,37 +93,25 @@ type RequiredRequestHeader = RequestHeader Required Strict
 -- | A `RequestHeader` that is optional and parsed strictly
 type OptionalRequestHeader = RequestHeader Optional Strict
 
-instance Trait (RequestHeader Required Strict name val) Request where
-  type Attribute (RequestHeader Required Strict name val) Request = val
+type instance Attribute (RequestHeader Required Strict name val) Request = val
+type instance Absence (RequestHeader Required Strict name val) = Either HeaderNotFound HeaderParseError
 
-instance TraitAbsence (RequestHeader Required Strict name val) Request where
-  type Absence (RequestHeader Required Strict name val) Request = Either HeaderNotFound HeaderParseError
+type instance Attribute (RequestHeader Optional Strict name val) Request = Maybe val
+type instance Absence (RequestHeader Optional Strict name val) = HeaderParseError
 
-instance Trait (RequestHeader Optional Strict name val) Request where
-  type Attribute (RequestHeader Optional Strict name val) Request = Maybe val
+type instance Attribute (RequestHeader Required Lenient name val) Request = Either Text val
+type instance Absence (RequestHeader Required Lenient name val) = HeaderNotFound
 
-instance TraitAbsence (RequestHeader Optional Strict name val) Request where
-  type Absence (RequestHeader Optional Strict name val) Request = HeaderParseError
+type instance Attribute (RequestHeader Optional Lenient name val) Request = Maybe (Either Text val)
+type instance Absence (RequestHeader Optional Lenient name val) = Void
 
-instance Trait (RequestHeader Required Lenient name val) Request where
-  type Attribute (RequestHeader Required Lenient name val) Request = Either Text val
-
-instance TraitAbsence (RequestHeader Required Lenient name val) Request where
-  type Absence (RequestHeader Required Lenient name val) Request = HeaderNotFound
-
-instance Trait (RequestHeader Optional Lenient name val) Request where
-  type Attribute (RequestHeader Optional Lenient name val) Request = Maybe (Either Text val)
-
-instance TraitAbsence (RequestHeader Optional Lenient name val) Request where
-  type Absence (RequestHeader Optional Lenient name val) Request = Void
-
-type instance Prerequisite (RequestHeader e p name val) ts Request = ()
+type instance Prerequisite (RequestHeader e p name val) ts = ()
 
 headerHandler ::
   forall name val e p h ts.
-  (Get h (RequestHeader e p name val) Request, ArrowChoice h) =>
+  (Get h (RequestHeader e p name val), ArrowChoice h) =>
   -- | error handler
-  h (Request `With` ts, Absence (RequestHeader e p name val) Request) Response ->
+  h (Request `With` ts, Absence (RequestHeader e p name val)) Response ->
   Middleware h ts (RequestHeader e p name val : ts)
 headerHandler errorHandler nextHandler = proc request -> do
   result <- probe RequestHeader -< request
@@ -132,79 +120,82 @@ headerHandler errorHandler nextHandler = proc request -> do
     Right val -> nextHandler -< val
 {-# INLINE headerHandler #-}
 
-{- | Extract a header value and convert it to a value of type @val@.
+{- | Extract a request header value and convert it to a value of type
+   @val@.
 
- The associated trait attribute has type @val@.
+   The associated trait attribute has type @val@.
 
- Example usage:
+   Example usage:
 
- > header @"Content-Length" @Integer errorHandler okHandler
+   > header @"Content-Length" @Integer errorHandler okHandler
 -}
 header ::
   forall name val h ts.
-  (Get h (RequestHeader Required Strict name val) Request, ArrowChoice h) =>
+  (Get h (RequestHeader Required Strict name val), ArrowChoice h) =>
   -- | Error handler
   h (Request `With` ts, Either HeaderNotFound HeaderParseError) Response ->
   Middleware h ts (RequestHeader Required Strict name val : ts)
 header = headerHandler
 {-# INLINE header #-}
 
-{- | Extract an optional header value and convert it to a value of type
- @val@.
+{- | Extract an optional request header value and convert it to a value
+   of type @val@.
 
- The associated trait attribute has type @Maybe val@; a @Nothing@
- value indicates that the header is missing from the request.
+   The associated trait attribute has type @Maybe val@; a @Nothing@
+   value indicates that the header is missing from the request.
 
- Example usage:
+   Example usage:
 
- > optionalHeader @"Content-Length" @Integer errorHandler okHandler
+   > optionalHeader @"Content-Length" @Integer errorHandler okHandler
 -}
 optionalHeader ::
   forall name val h ts.
-  (Get h (RequestHeader Optional Strict name val) Request, ArrowChoice h) =>
+  (Get h (RequestHeader Optional Strict name val), ArrowChoice h) =>
   -- | Error handler
   h (Request `With` ts, HeaderParseError) Response ->
   Middleware h ts (RequestHeader Optional Strict name val : ts)
 optionalHeader = headerHandler
 {-# INLINE optionalHeader #-}
 
-{- | Extract a header value and convert it to a value of type @val@.
+{- | Extract a request header value and convert it to a value of type
+   @val@.
 
- The associated trait attribute has type @Either Text val@. The
- parsing is done leniently and any errors are reported in the trait
- attribute.
+   The associated trait attribute has type @Either Text val@. The
+   parsing is done leniently and any errors are reported in the trait
+   attribute.
 
- Example usage:
+   Example usage:
 
- > lenientHeader @"Content-Length" @Integer errorHandler okHandler
+   > lenientHeader @"Content-Length" @Integer errorHandler okHandler
 -}
 lenientHeader ::
   forall name val h ts.
-  (Get h (RequestHeader Required Lenient name val) Request, ArrowChoice h) =>
+  (Get h (RequestHeader Required Lenient name val), ArrowChoice h) =>
   -- | Error handler
   h (Request `With` ts, HeaderNotFound) Response ->
   Middleware h ts (RequestHeader Required Lenient name val : ts)
 lenientHeader = headerHandler
 {-# INLINE lenientHeader #-}
 
-{- | Extract a header value and convert it to a value of type @val@.
+{- | Extract a request header value and convert it to a value of type
+   @val@.
 
- The associated trait attribute has type @Maybe (Either Text
- val)@. The parsing is done leniently. Any parsing errors and
- missing header are reported in the trait attribute.
+   The associated trait attribute has type @Maybe (Either Text
+   val)@. The parsing is done leniently. Any parsing errors and
+   missing header are reported in the trait attribute.
 
- Example usage:
+   Example usage:
 
- > optionalLenientHeader @"Content-Length" @Integer handler
+   > optionalLenientHeader @"Content-Length" @Integer handler
 -}
 optionalLenientHeader ::
   forall name val h ts.
-  (Get h (RequestHeader Optional Lenient name val) Request, ArrowChoice h) =>
+  (Get h (RequestHeader Optional Lenient name val), ArrowChoice h) =>
   Middleware h ts (RequestHeader Optional Lenient name val : ts)
 optionalLenientHeader = headerHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientHeader #-}
 
-{- | A 'Trait' for setting a header in the HTTP response. It has a
+{- | A trait for setting a header in the HTTP response. It has a
  specified @name@ and a value of type @val@. The header name is
  compared case-insensitively. The modifier @e@ determines whether the
  header is mandatory or optional.
@@ -217,11 +208,9 @@ type RequiredResponseHeader = ResponseHeader Required
 -- | A `ResponseHeader` that is optional
 type OptionalResponseHeader = ResponseHeader Optional
 
-instance Trait (ResponseHeader Required name val) Response where
-  type Attribute (ResponseHeader Required name val) Response = val
+type instance Attribute (ResponseHeader Required name val) Response = val
 
-instance Trait (ResponseHeader Optional name val) Response where
-  type Attribute (ResponseHeader Optional name val) Response = Maybe val
+type instance Attribute (ResponseHeader Optional name val) Response = Maybe val
 
 {- | Set a header value in a response.
 
@@ -231,7 +220,7 @@ instance Trait (ResponseHeader Optional name val) Response where
 -}
 setHeader ::
   forall name val h ts.
-  (Set h (ResponseHeader Required name val) Response) =>
+  (Set h (ResponseHeader Required name val)) =>
   h (Response `With` ts, val) (Response `With` (ResponseHeader Required name val : ts))
 setHeader = plant ResponseHeader
 {-# INLINE setHeader #-}
@@ -248,7 +237,7 @@ setHeader = plant ResponseHeader
 -}
 setOptionalHeader ::
   forall name val h ts.
-  (Set h (ResponseHeader Optional name val) Response) =>
+  (Set h (ResponseHeader Optional name val)) =>
   h (Response `With` ts, Maybe val) (Response `With` (ResponseHeader Optional name val : ts))
 setOptionalHeader = plant ResponseHeader
 {-# INLINE setOptionalHeader #-}

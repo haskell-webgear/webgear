@@ -94,8 +94,8 @@ type OptionalAuth = JWTAuth' Optional "token" App () (Key User)
 
 requiredTokenAuth ::
   ( StdHandler h App
-  , Gets h [RequiredAuth, AuthHeader] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
+  , Gets h [RequiredAuth, AuthHeader]
+  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse]
   ) =>
   JWT.JWK ->
   Middleware h ts (RequiredAuth : AuthHeader : ts)
@@ -117,7 +117,7 @@ requiredTokenAuth jwk =
 
 optionalTokenAuth ::
   ( StdHandler h App
-  , Gets h [OptionalAuth, AuthHeader] Request
+  , Gets h [OptionalAuth, AuthHeader]
   ) =>
   JWT.JWK ->
   Middleware h ts (OptionalAuth : AuthHeader : ts)
@@ -127,7 +127,7 @@ optionalTokenAuth jwk =
 
 tokenAuth ::
   ( Handler h App
-  , Get h AuthHeader Request
+  , Get h AuthHeader
   ) =>
   JWT.JWK ->
   (JWTAuth' x "token" App () (Key User) -> Middleware h ts (r : ts)) ->
@@ -179,7 +179,7 @@ type PathVarSlug = PathVar "slug" Text
 
 respondJsonA ::
   ( StdHandler h m
-  , Sets h [ResponseHeader Required "Content-Type" Text, JSONBody body] Response
+  , Sets h [ResponseHeader Required "Content-Type" Text, JSONBody body]
   ) =>
   HTTP.Status ->
   h body Response
@@ -187,15 +187,13 @@ respondJsonA status = respondA status JSON
 
 jsonRequestBody ::
   forall t ts h m.
-  (StdHandler h m, Get h (JSONBody t) Request) =>
+  (StdHandler h m, Get h (JSONBody t)) =>
   h (Request `With` ts, Text) Response ->
   Middleware h ts (JSONBody t : ts)
 jsonRequestBody = requestBody JSON
 
 badRequestBody ::
-  ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
-  ) =>
+  (StdHandler h m, Set h (JSONBody ErrorResponse)) =>
   h a Response
 badRequestBody = proc _ ->
   setDescription "Invalid request body"
@@ -204,9 +202,7 @@ badRequestBody = proc _ ->
       "Could not parse body" :: ErrorResponse
 
 badRequestParam ::
-  ( StdHandler h m
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
-  ) =>
+  (StdHandler h m, Set h (JSONBody ErrorResponse)) =>
   h (Request `With` ts, ParamParseError) Response
 badRequestParam = proc (_, e) ->
   setDescription "Invalid query parameter"
@@ -233,4 +229,4 @@ instance IsString ErrorRecord where
 
 type ErrorResponse = Wrapped "errors" ErrorRecord
 
-type JSONBodyOrError a = [RequiredResponseHeader "Content-Type" Text, JSONBody a, JSONBody ErrorResponse]
+type JSONBodyOrError a = [JSONBody a, JSONBody ErrorResponse]

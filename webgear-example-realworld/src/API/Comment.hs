@@ -20,8 +20,8 @@ type PathVarCommentId = PathVar "commentId" Int64
 
 create ::
   ( StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateCommentRequest] Request
-  , Sets h (JSONBodyOrError CommentResponse) Response
+  , Gets h [AuthHeader, RequiredAuth, JSONBody CreateCommentRequest]
+  , Sets h (JSONBodyOrError CommentResponse)
   , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
@@ -48,8 +48,8 @@ type CommentListResponse = Wrapped "comments" [Model.CommentRecord]
 
 list ::
   ( StdHandler h App
-  , Gets h [AuthHeader, OptionalAuth] Request
-  , Sets h (JSONBodyOrError CommentListResponse) Response
+  , Gets h [AuthHeader, OptionalAuth]
+  , Sets h (JSONBodyOrError CommentListResponse)
   , HasTrait PathVarSlug ts
   ) =>
   JWT.JWK ->
@@ -70,8 +70,8 @@ list jwk =
 
 delete ::
   ( StdHandler h App
-  , Gets h [AuthHeader, RequiredAuth] Request
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody ErrorResponse] Response
+  , Gets h [AuthHeader, RequiredAuth]
+  , Set h (JSONBody ErrorResponse)
   , HaveTraits [PathVarSlug, PathVarCommentId] ts
   ) =>
   JWT.JWK ->

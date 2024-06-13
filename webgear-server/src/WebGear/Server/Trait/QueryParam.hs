@@ -31,7 +31,7 @@ extractQueryParam proxy = proc req -> do
       params = queryToQueryText $ queryString $ unwitness req
   returnA -< parseQueryParam <$> (find ((== name) . fst) params >>= snd)
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Required Strict name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Required Strict name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Required Strict name val ->
@@ -43,7 +43,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Left $ Right $ ParamParseError e
         Just (Right x) -> Right x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Optional Strict name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Optional Strict name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Optional Strict name val ->
@@ -55,7 +55,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Left $ ParamParseError e
         Just (Right x) -> Right $ Just x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Required Lenient name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Required Lenient name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Required Lenient name val ->
@@ -67,7 +67,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Right $ Left e
         Just (Right x) -> Right $ Right x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Optional Lenient name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (QueryParam Optional Lenient name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     QueryParam Optional Lenient name val ->

@@ -33,18 +33,15 @@ import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Handler (Description (..))
 import WebGear.Core.Modifiers (Existence (..))
-import WebGear.Core.Request (Request)
-import qualified WebGear.Core.Response as WG
-import WebGear.Core.Trait (Get (..), Set (..), TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.Swagger.Handler (Documentation, SwaggerHandler (..), consumeDescription)
 
 instance
   ( KnownSymbol name
   , ToParamSchema val
-  , TraitAbsence (WG.RequestHeader Required ps name val) Request
   ) =>
-  Get (SwaggerHandler m) (WG.RequestHeader Required ps name val) Request
+  Get (SwaggerHandler m) (WG.RequestHeader Required ps name val)
   where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = SwaggerHandler $ addRequestHeader (Proxy @name) (Proxy @val) True
@@ -52,18 +49,17 @@ instance
 instance
   ( KnownSymbol name
   , ToParamSchema val
-  , TraitAbsence (WG.RequestHeader Optional ps name val) Request
   ) =>
-  Get (SwaggerHandler m) (WG.RequestHeader Optional ps name val) Request
+  Get (SwaggerHandler m) (WG.RequestHeader Optional ps name val)
   where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = SwaggerHandler $ addRequestHeader (Proxy @name) (Proxy @val) False
 
-instance (KnownSymbol name) => Set (SwaggerHandler m) (WG.ResponseHeader Required name val) WG.Response where
+instance (KnownSymbol name) => Set (SwaggerHandler m) (WG.ResponseHeader Required name val) where
   {-# INLINE setTrait #-}
   setTrait WG.ResponseHeader _ = SwaggerHandler $ addResponseHeader (Proxy @name) (Proxy @val)
 
-instance (KnownSymbol name) => Set (SwaggerHandler m) (WG.ResponseHeader Optional name val) WG.Response where
+instance (KnownSymbol name) => Set (SwaggerHandler m) (WG.ResponseHeader Optional name val) where
   {-# INLINE setTrait #-}
   setTrait WG.ResponseHeader _ = SwaggerHandler $ addResponseHeader (Proxy @name) (Proxy @val)
 

@@ -10,9 +10,9 @@ import Control.Arrow.Operations (ArrowError)
 import qualified Network.HTTP.Types as HTTP
 import WebGear.Core.Handler (Middleware, RouteMismatch, routeMismatch)
 import WebGear.Core.Request (Request)
-import WebGear.Core.Trait (Get (..), Prerequisite, Trait (..), TraitAbsence (..), probe)
+import WebGear.Core.Trait (Absence, Attribute, Get (..), Prerequisite, probe)
 
--- | A 'Trait' for capturing the HTTP method of a request
+-- | A trait for capturing the HTTP method of a request
 newtype Method = Method HTTP.StdMethod
 
 -- | Failure to match method against an expected value
@@ -21,13 +21,9 @@ data MethodMismatch = MethodMismatch
   , actualMethod :: HTTP.Method
   }
 
-instance Trait Method Request where
-  type Attribute Method Request = HTTP.StdMethod
-
-instance TraitAbsence Method Request where
-  type Absence Method Request = MethodMismatch
-
-type instance Prerequisite Method ts Request = ()
+type instance Attribute Method Request = HTTP.StdMethod
+type instance Absence Method = MethodMismatch
+type instance Prerequisite Method ts = ()
 
 {- | Check whether the request has a specified HTTP method.
 
@@ -43,7 +39,7 @@ type instance Prerequisite Method ts Request = ()
  cases where both an HTTP method and a path need to be matched.
 -}
 method ::
-  (Get h Method Request, ArrowChoice h, ArrowError RouteMismatch h) =>
+  (Get h Method, ArrowChoice h, ArrowError RouteMismatch h) =>
   HTTP.StdMethod ->
   Middleware h ts (Method : ts)
 method m nextHandler = probe (Method m) >>> routeMismatch ||| nextHandler

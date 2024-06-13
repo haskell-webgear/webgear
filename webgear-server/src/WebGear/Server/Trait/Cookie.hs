@@ -21,7 +21,7 @@ import WebGear.Core.Trait (Get (..), Set (..), With, unwitness)
 import WebGear.Core.Trait.Cookie (Cookie (..), CookieNotFound (..), CookieParseError (..), SetCookie (..))
 import WebGear.Server.Handler (ServerHandler)
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Cookie Required name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Cookie Required name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     Cookie Required name val ->
@@ -33,7 +33,7 @@ instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler 
         Just (Left e) -> Left $ Right $ CookieParseError e
         Just (Right x) -> Right x
 
-instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Cookie Optional name val) Request where
+instance (Monad m, KnownSymbol name, FromHttpApiData val) => Get (ServerHandler m) (Cookie Optional name val) where
   {-# INLINE getTrait #-}
   getTrait ::
     Cookie Optional name val ->
@@ -60,7 +60,7 @@ extractCookie proxy = proc req -> do
 
   returnA -< parseHeader <$> lookupCookie
 
-instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Required name) Response where
+instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Required name) where
   {-# INLINE setTrait #-}
   setTrait ::
     SetCookie Required name ->
@@ -75,7 +75,7 @@ instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Require
             _ -> response
     returnA -< f l response' cookie
 
-instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optional name) Response where
+instance (Monad m, KnownSymbol name) => Set (ServerHandler m) (SetCookie Optional name) where
   {-# INLINE setTrait #-}
   -- If the optional value is 'Nothing', the cookie is removed from the response
   setTrait ::

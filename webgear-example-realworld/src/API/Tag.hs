@@ -6,14 +6,14 @@ import API.Common
 import Control.Category ((.))
 import qualified Model.Tag as Model
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding ((.))
+import Relude hiding (Set, (.))
 import WebGear.Server
 
 type TagsResponse = Wrapped "tags" [Text]
 
 list ::
   ( StdHandler h App
-  , Sets h [RequiredResponseHeader "Content-Type" Text, JSONBody TagsResponse] Response
+  , Set h (JSONBody TagsResponse)
   ) =>
   RequestHandler h ts
 list =

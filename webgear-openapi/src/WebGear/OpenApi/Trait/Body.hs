@@ -45,7 +45,7 @@ import WebGear.OpenApi.Handler (
   consumeDescription,
  )
 
-instance (ToSchema val, MIMEType mt) => Get (OpenApiHandler m) (Body mt val) Request where
+instance (ToSchema val, MIMEType mt) => Get (OpenApiHandler m) (Body mt val) where
   {-# INLINE getTrait #-}
   getTrait :: Body mt val -> OpenApiHandler m (Request `With` ts) (Either Text val)
   getTrait (Body mt) =
@@ -62,7 +62,7 @@ instance (ToSchema val, MIMEType mt) => Get (OpenApiHandler m) (Body mt val) Req
           & allOperations . requestBody ?~ Inline body
           & components . schemas %~ (<> defs)
 
-instance (ToSchema val, MIMEType mt) => Set (OpenApiHandler m) (Body mt val) WG.Response where
+instance (ToSchema val, MIMEType mt) => Set (OpenApiHandler m) (Body mt val) where
   {-# INLINE setTrait #-}
   setTrait ::
     Body mt val ->
@@ -74,7 +74,7 @@ instance (ToSchema val, MIMEType mt) => Set (OpenApiHandler m) (Body mt val) WG.
         body = mempty @MediaTypeObject & schema ?~ ref
      in OpenApiHandler $ addResponseBody defs (fromList [(mediaType, body)])
 
-instance Set (OpenApiHandler m) UnknownContentBody WG.Response where
+instance Set (OpenApiHandler m) UnknownContentBody where
   {-# INLINE setTrait #-}
   setTrait ::
     UnknownContentBody ->

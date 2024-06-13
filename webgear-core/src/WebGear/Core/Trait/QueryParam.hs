@@ -43,7 +43,7 @@ import WebGear.Core.Handler (Middleware)
 import WebGear.Core.Modifiers (Existence (..), ParseStyle (..))
 import WebGear.Core.Request (Request)
 import WebGear.Core.Response (Response)
-import WebGear.Core.Trait (Get, Prerequisite, Trait (..), TraitAbsence (..), With, probe)
+import WebGear.Core.Trait (Absence, Attribute, Get, Prerequisite, With, probe)
 
 {- | Capture a query parameter with a specified @name@ and convert it to
  a value of type @val@. The type parameter @e@ denotes whether the
@@ -67,36 +67,24 @@ data ParamNotFound = ParamNotFound
 newtype ParamParseError = ParamParseError Text
   deriving stock (Read, Show, Eq)
 
-instance Trait (QueryParam Required Strict name val) Request where
-  type Attribute (QueryParam Required Strict name val) Request = val
+type instance Attribute (QueryParam Required Strict name val) Request = val
+type instance Absence (QueryParam Required Strict name val) = Either ParamNotFound ParamParseError
 
-instance TraitAbsence (QueryParam Required Strict name val) Request where
-  type Absence (QueryParam Required Strict name val) Request = Either ParamNotFound ParamParseError
+type instance Attribute (QueryParam Optional Strict name val) Request = Maybe val
+type instance Absence (QueryParam Optional Strict name val) = ParamParseError
 
-instance Trait (QueryParam Optional Strict name val) Request where
-  type Attribute (QueryParam Optional Strict name val) Request = Maybe val
+type instance Attribute (QueryParam Required Lenient name val) Request = Either Text val
+type instance Absence (QueryParam Required Lenient name val) = ParamNotFound
 
-instance TraitAbsence (QueryParam Optional Strict name val) Request where
-  type Absence (QueryParam Optional Strict name val) Request = ParamParseError
+type instance Attribute (QueryParam Optional Lenient name val) Request = Maybe (Either Text val)
+type instance Absence (QueryParam Optional Lenient name val) = Void
 
-instance Trait (QueryParam Required Lenient name val) Request where
-  type Attribute (QueryParam Required Lenient name val) Request = Either Text val
-
-instance TraitAbsence (QueryParam Required Lenient name val) Request where
-  type Absence (QueryParam Required Lenient name val) Request = ParamNotFound
-
-instance Trait (QueryParam Optional Lenient name val) Request where
-  type Attribute (QueryParam Optional Lenient name val) Request = Maybe (Either Text val)
-
-instance TraitAbsence (QueryParam Optional Lenient name val) Request where
-  type Absence (QueryParam Optional Lenient name val) Request = Void
-
-type instance Prerequisite (QueryParam e p name val) ts Request = ()
+type instance Prerequisite (QueryParam e p name val) ts = ()
 
 queryParamHandler ::
   forall name val e p h ts.
-  (Get h (QueryParam e p name val) Request, ArrowChoice h) =>
-  h (Request `With` ts, Absence (QueryParam e p name val) Request) Response ->
+  (Get h (QueryParam e p name val), ArrowChoice h) =>
+  h (Request `With` ts, Absence (QueryParam e p name val)) Response ->
   Middleware h ts (QueryParam e p name val : ts)
 queryParamHandler errorHandler nextHandler = proc request -> do
   result <- probe QueryParam -< request
@@ -116,7 +104,7 @@ queryParamHandler errorHandler nextHandler = proc request -> do
 -}
 queryParam ::
   forall name val h ts.
-  (Get h (QueryParam Required Strict name val) Request, ArrowChoice h) =>
+  (Get h (QueryParam Required Strict name val), ArrowChoice h) =>
   h (Request `With` ts, Either ParamNotFound ParamParseError) Response ->
   Middleware h ts (QueryParam Required Strict name val : ts)
 queryParam = queryParamHandler
@@ -134,7 +122,7 @@ queryParam = queryParamHandler
 -}
 optionalQueryParam ::
   forall name val h ts.
-  (Get h (QueryParam Optional Strict name val) Request, ArrowChoice h) =>
+  (Get h (QueryParam Optional Strict name val), ArrowChoice h) =>
   h (Request `With` ts, ParamParseError) Response ->
   Middleware h ts (QueryParam Optional Strict name val : ts)
 optionalQueryParam = queryParamHandler
@@ -152,7 +140,7 @@ optionalQueryParam = queryParamHandler
 -}
 lenientQueryParam ::
   forall name val h ts.
-  (Get h (QueryParam Required Lenient name val) Request, ArrowChoice h) =>
+  (Get h (QueryParam Required Lenient name val), ArrowChoice h) =>
   h (Request `With` ts, ParamNotFound) Response ->
   Middleware h ts (QueryParam Required Lenient name val : ts)
 lenientQueryParam = queryParamHandler
@@ -170,7 +158,7 @@ lenientQueryParam = queryParamHandler
 -}
 optionalLenientQueryParam ::
   forall name val h ts.
-  (Get h (QueryParam Optional Lenient name val) Request, ArrowChoice h) =>
+  (Get h (QueryParam Optional Lenient name val), ArrowChoice h) =>
   Middleware h ts (QueryParam Optional Lenient name val : ts)
 optionalLenientQueryParam = queryParamHandler $ arr (absurd . snd)
 {-# INLINE optionalLenientQueryParam #-}

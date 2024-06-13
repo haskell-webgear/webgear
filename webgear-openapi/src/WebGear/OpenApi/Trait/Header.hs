@@ -33,25 +33,23 @@ import Data.Text (Text)
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import WebGear.Core.Handler (Description (..))
 import WebGear.Core.Modifiers (Existence (..))
-import WebGear.Core.Request (Request)
-import qualified WebGear.Core.Response as WG
-import WebGear.Core.Trait (Get (..), Set (..), TraitAbsence)
+import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.OpenApi.Handler (Documentation, OpenApiHandler (..), consumeDescription)
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Required ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) Request where
+instance (KnownSymbol name, ToSchema val) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = OpenApiHandler $ addRequestHeader (Proxy @name) (Proxy @val) True
 
-instance (KnownSymbol name, ToSchema val, TraitAbsence (WG.RequestHeader Optional ps name val) Request) => Get (OpenApiHandler m) (WG.RequestHeader Optional ps name val) Request where
+instance (KnownSymbol name, ToSchema val) => Get (OpenApiHandler m) (WG.RequestHeader Optional ps name val) where
   {-# INLINE getTrait #-}
   getTrait WG.RequestHeader = OpenApiHandler $ addRequestHeader (Proxy @name) (Proxy @val) False
 
-instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Required name val) WG.Response where
+instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Required name val) where
   {-# INLINE setTrait #-}
   setTrait WG.ResponseHeader _ = OpenApiHandler $ addResponseHeader (Proxy @name) (Proxy @val) True
 
-instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Optional name val) WG.Response where
+instance (KnownSymbol name, ToSchema val) => Set (OpenApiHandler m) (WG.ResponseHeader Optional name val) where
   {-# INLINE setTrait #-}
   setTrait WG.ResponseHeader _ = OpenApiHandler $ addResponseHeader (Proxy @name) (Proxy @val) False
 
