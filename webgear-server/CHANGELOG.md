@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Simplify core API (breaking change) (#47)
+
 ## [1.2.0] - 2024-03-18
 
 ### Added
