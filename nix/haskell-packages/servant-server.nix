@@ -11,8 +11,8 @@ mkDerivation {
   pname = "servant-server";
   version = "0.20";
   sha256 = "13b2fe785be1aae07e15d139fa1f94c7c5db6c8d36d0fc7789576b31a9bee8be";
-  revision = "4";
-  editedCabalFile = "1y1pilkixlm116cr4q7rsawfxkwv7iahq9cqq4nidc4py482ccbg";
+  revision = "5";
+  editedCabalFile = "1k9rfv4pql4x7qb6gs4yzrfmyp2snfw8640mqaknbg9mc8ic28bc";
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
@@ -35,5 +35,4 @@ mkDerivation {
   homepage = "http://docs.servant.dev/";
   description = "A family of combinators for defining webservices APIs and serving them";
   license = lib.licenses.bsd3;
-  mainProgram = "greet";
 }

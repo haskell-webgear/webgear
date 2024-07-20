@@ -126,9 +126,9 @@ test-suite webgear-server-test
   ghc-options:        -threaded
                       -rtsopts
                       -with-rtsopts=-N
-  build-depends:      QuickCheck >=2.13 && <2.15
+  build-depends:      QuickCheck >=2.13 && <2.16
                     , quickcheck-instances ==0.3.*
                     , tasty >=1.2 && <1.6
                     , tasty-hunit ==0.10.*
-                    , tasty-quickcheck ==0.10.*
+                    , tasty-quickcheck >=0.10 && <0.12
                     , webgear-server

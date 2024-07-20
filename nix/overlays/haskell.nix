@@ -6,8 +6,8 @@ let
   hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["981" "964" "948" "928" "902"];
-  defaultGHCVersion = "981";
+  ghcVersions = ["982" "966" "948" "928" "902"];
+  defaultGHCVersion = "982";
 
   localHsPackages = {
     # Libraries
@@ -34,7 +34,7 @@ let
 
   haskell = prev.haskell // {
     packages = prev.haskell.packages // {
-      ghc981 = prev.haskell.packages.ghc981.override {
+      ghc982 = prev.haskell.packages.ghc982.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
             # Need specific versions for benchmarking
@@ -45,47 +45,17 @@ let
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
-            # For base-4.19 && bytestring-0.12
-            postgresql-libpq = hprev.postgresql-libpq_0_10_0_0;
+            # Latest package versions
+            network = hprev.network_3_2_0_0;
+            lens = hprev.lens_5_3_2;
 
-            # For th-abstraction-0.6
-            generics-sop = hprev.generics-sop_0_5_1_4;
-
-            # Unmaintained package with test fail
-            hourglass = hsLib.dontCheck hprev.hourglass;
-
-            # For base-4.19 && deepseq-1.5
-            singleton-bool = hprev.singleton-bool_0_1_7;
-
-            # For base-4.19 && hedgehog-1.4
-            tasty-hedgehog = hsLib.doJailbreak hprev.tasty-hedgehog_1_4_0_2;
-
-            # For text-2.1
-            attoparsec-iso8601 = hprev.attoparsec-iso8601_1_1_0_1;
-
-            # Test failures
-            bsb-http-chunked = hsLib.dontCheck hprev.bsb-http-chunked;
-
-            # For text-2.1
-            http-api-data = hprev.http-api-data_0_6;
-
-            # For base-4.19
-            postgresql-simple = hprev.postgresql-simple_0_7_0_0;
-
-            # For base-4.19
-            swagger2 = hfinal.callPackage ../haskell-packages/swagger2.nix {};
-
-            # For aeson-2.2. Cannot upgrade because that requires
-            # optparse-applicative-0.18.1.0 which causes infinite
-            # recursion
-            criterion = hsLib.doJailbreak hprev.criterion;
-
-            # For text-2.1. Plus test failures.
-            esqueleto = hsLib.dontCheck (hfinal.callPackage ../haskell-packages/esqueleto.nix {});
+            # For network-3.2
+            http2 = hsLib.doJailbreak hprev.http2;
+            insert-ordered-containers = hsLib.doJailbreak hprev.insert-ordered-containers;
           };
       };
 
-      ghc964 = prev.haskell.packages.ghc964.override {
+      ghc966 = prev.haskell.packages.ghc966.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
             # Need specific versions for benchmarking
@@ -95,9 +65,6 @@ let
 
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
-
-            # For th-abstraction-0.6
-            generics-sop = hprev.generics-sop_0_5_1_4;
           };
       };
 
