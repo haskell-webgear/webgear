@@ -66,23 +66,11 @@ jobs:
           ${BENCHMARK}/bin/users +RTS -N -RTS
 
   stack-build:
-    name: Stack - ghc-${{ matrix.ghc }} os-${{ matrix.os }}
+    name: Stack
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-        ghc:
-          - 9.8.2
-          - 9.6.6
-          - 9.4.8
-          - 9.2.8
-          - 9.0.2
-
-    env:
-      STACK_YAML: stack-${{ matrix.ghc }}.yaml
 
     steps:
       - uses: actions/checkout@v4
@@ -91,16 +79,16 @@ jobs:
       - uses: haskell-actions/setup@v2
         name: Setup Haskell Build Environment
         with:
-          ghc-version: ${{ matrix.ghc }}
+          ghc-version: 9.8.2
           enable-stack: true
 
       - uses: actions/cache@v4
         name: Cache dependencies
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-${{ matrix.ghc }}-stack-${{ hashFiles(env.STACK_YAML) }}
+          key: stack
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.ghc }}-stack-
+            stack-
 
       - name: Build
         run: stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
