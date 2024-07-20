@@ -5,26 +5,26 @@
 
 packages:
 - completed:
-    hackage: scotty-0.21@sha256:d17f6aa30fc4763670922b3e554db35858b9f7aa9c19937c47568480c4d1e031,5948
+    hackage: scotty-0.22@sha256:b3c799b3c4896176342062c1140c290ffb9a8d81e6da2ea3e12f7a83cbda78d4,6013
     pantry-tree:
-      sha256: 9999357ebe8e98b9f52da601a7c051819c661ea8381825078f990266b32c335b
-      size: 2068
+      sha256: ec781405d9d771ad8e0b0d6f350b4c4296104665668fc7263ba36839f674d835
+      size: 2138
   original:
-    hackage: scotty-0.21@sha256:d17f6aa30fc4763670922b3e554db35858b9f7aa9c19937c47568480c4d1e031,5948
+    hackage: scotty-0.22@sha256:b3c799b3c4896176342062c1140c290ffb9a8d81e6da2ea3e12f7a83cbda78d4,6013
 - completed:
-    hackage: servant-0.20.1@sha256:3f0850b019cfcb66501048e6e881a005b2decfee9abb36efc8a2bb5e4f76fe8c,5626
+    hackage: servant-0.20.1@sha256:1a6ad2727d6a10c16c46ba7cd5ed9b9854750ac3cb4f2b931b5ed133f7d8a179,5626
     pantry-tree:
-      sha256: d8a0d5a18e42b5c187f262f1f96a197721ab6cf385347ecfd1b47f422a732717
+      sha256: cef7f2a7d534a4f3984297fedd74b6e99c3edbd9bfba9096ece79e7a2019b00e
       size: 2873
   original:
-    hackage: servant-0.20.1@sha256:3f0850b019cfcb66501048e6e881a005b2decfee9abb36efc8a2bb5e4f76fe8c,5626
+    hackage: servant-0.20.1@sha256:1a6ad2727d6a10c16c46ba7cd5ed9b9854750ac3cb4f2b931b5ed133f7d8a179,5626
 - completed:
-    hackage: servant-server-0.20@sha256:6f312610f197b0162dc198250c553c9bcfeeb8d2f960929909a1d21e278d37f8,5739
+    hackage: servant-server-0.20@sha256:6c21c1226235bd65a7c2151083b8b35a5c5f5dfe9ee867163e9d507cc97639cd,5739
     pantry-tree:
-      sha256: 0daca40197be74f3eb61a636a7edeaa300abbe0f9be6d022fad77c309a39f841
+      sha256: 161e45555d0a0decdb90c3858543a99d6347fa5a520dc496f202e785bc367947
       size: 2615
   original:
-    hackage: servant-server-0.20@sha256:6f312610f197b0162dc198250c553c9bcfeeb8d2f960929909a1d21e278d37f8,5739
+    hackage: servant-server-0.20@sha256:6c21c1226235bd65a7c2151083b8b35a5c5f5dfe9ee867163e9d507cc97639cd,5739
 snapshots:
 - completed:
     sha256: a81fb3877c4f9031e1325eb3935122e608d80715dc16b586eb11ddbff8671ecd

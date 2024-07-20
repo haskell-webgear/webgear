@@ -1,4 +1,4 @@
-resolver: lts-22.12
+resolver: nightly-2024-07-19
 
 packages:
   - ./webgear-core
@@ -7,6 +7,3 @@ packages:
   - ./webgear-swagger-ui
   - ./webgear-openapi
   - ./webgear-benchmarks
-
-extra-deps:
-  - scotty-0.21@sha256:d17f6aa30fc4763670922b3e554db35858b9f7aa9c19937c47568480c4d1e031,5948
