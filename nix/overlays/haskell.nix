@@ -65,9 +65,6 @@ let
 
             # doctests fail
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
-
-            # For th-abstraction-0.6
-            generics-sop = hprev.generics-sop_0_5_1_4;
           };
       };
 
