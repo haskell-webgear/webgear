@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2024-11-24
+
+### Added
+- Support GHC-9.10
+
 ## [1.3.0] - 2024-06-13
 
 ### Changed
@@ -58,7 +63,8 @@
 ### Added
 - First version of webgear-openapi
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.3.1
 [1.3.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.3.0
 [1.2.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.2.0
 [1.1.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.1.1
