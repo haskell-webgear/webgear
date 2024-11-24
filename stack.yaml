@@ -1,4 +1,4 @@
-resolver: nightly-2024-07-19
+resolver: nightly-2024-10-21
 
 packages:
   - ./webgear-core
