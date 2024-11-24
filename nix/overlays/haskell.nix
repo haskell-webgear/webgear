@@ -6,8 +6,8 @@ let
   hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["982" "966" "948" "928" "902"];
-  defaultGHCVersion = "982";
+  ghcVersions = ["9101" "982" "966" "948" "928" "902"];
+  defaultGHCVersion = "9101";
 
   localHsPackages = {
     # Libraries
@@ -34,6 +34,24 @@ let
 
   haskell = prev.haskell // {
     packages = prev.haskell.packages // {
+      ghc9101 = prev.haskell.packages.ghc9101.override {
+        overrides = hfinal: hprev:
+          (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
+            # Latest package versions
+            generics-sop = hprev.generics-sop_0_5_1_4;
+            insert-ordered-containers = hsLib.doJailbreak hprev.insert-ordered-containers;
+            microstache = hprev.microstache_1_0_3;
+
+            # For base-4.20
+            openapi3 = hsLib.doJailbreak hprev.openapi3;
+          };
+      };
+
       ghc982 = prev.haskell.packages.ghc982.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
@@ -46,7 +64,7 @@ let
             openapi3 = hsLib.dontCheck (hsLib.unmarkBroken hprev.openapi3);
 
             # Latest package versions
-            network = hprev.network_3_2_0_0;
+            network = hprev.network_3_2_4_0;
             lens = hprev.lens_5_3_2;
 
             # For network-3.2

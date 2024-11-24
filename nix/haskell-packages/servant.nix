@@ -1,25 +1,22 @@
-{ mkDerivation, aeson, attoparsec, base, base-compat, bifunctors
-, bytestring, case-insensitive, constraints, deepseq, hspec
+{ mkDerivation, aeson, attoparsec, base, bifunctors, bytestring
+, case-insensitive, constraints, containers, deepseq, hspec
 , hspec-discover, http-api-data, http-media, http-types, lib
 , mmorph, mtl, network-uri, QuickCheck, quickcheck-instances
-, singleton-bool, sop-core, string-conversions, tagged, text
-, transformers, vault
+, singleton-bool, sop-core, text, transformers, vault
 }:
 mkDerivation {
   pname = "servant";
-  version = "0.20.1";
-  sha256 = "94f773f9bdff67eb2d7aec9c67f80e8af79d531ba6f52fad2e142d8ce4551be9";
-  revision = "4";
-  editedCabalFile = "0yd1v3vk7lay3f9jnkybqc57am4qkgnxaz5s8rnc243agmrd4shs";
+  version = "0.20.2";
+  sha256 = "6a39e279d34f42b20eace9b5296fa8dcfd2116ed7391d99f58ba005bb3f45365";
   libraryHaskellDepends = [
-    aeson attoparsec base base-compat bifunctors bytestring
-    case-insensitive constraints deepseq http-api-data http-media
-    http-types mmorph mtl network-uri QuickCheck singleton-bool
-    sop-core string-conversions tagged text transformers vault
+    aeson attoparsec base bifunctors bytestring case-insensitive
+    constraints containers deepseq http-api-data http-media http-types
+    mmorph mtl network-uri QuickCheck singleton-bool sop-core text
+    transformers vault
   ];
   testHaskellDepends = [
-    aeson base base-compat bytestring hspec http-media mtl QuickCheck
-    quickcheck-instances string-conversions text transformers
+    aeson base bytestring hspec http-media mtl QuickCheck
+    quickcheck-instances text
   ];
   testToolDepends = [ hspec-discover ];
   homepage = "http://docs.servant.dev/";
