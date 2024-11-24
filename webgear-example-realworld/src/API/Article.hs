@@ -15,7 +15,7 @@ import Control.Exception.Safe (try)
 import qualified Crypto.JWT as JWT
 import Data.Aeson (ToJSON)
 import Data.OpenApi (ToSchema)
-import qualified Database.Sqlite as DB
+import qualified Database.SQLite.Simple as DB
 import qualified Model.Article as Model
 import Model.Entities
 import qualified Network.HTTP.Types as HTTP
@@ -40,21 +40,23 @@ create jwk =
       result <- createArticle -< request
       case result of
         Left e -> handleDBError -< e
-        Right article ->
+        Right Nothing ->
+          unwitnessA . setDescription (resp404Description "Article") . notFound404 -< ()
+        Right (Just article) ->
           setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
     createArticle = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
           articlePayload = pick @(JSONBody CreateArticleRequest) $ from request
-      try $ runDBAction $ Model.create currentUserId (unwrap articlePayload)
+      try $ runDBAction $ Model.create currentUserId $ unwrap articlePayload
 
 handleDBError ::
   ( StdHandler h App
   , Set h (JSONBody ErrorResponse)
   ) =>
-  h DB.SqliteException Response
+  h DB.SQLError Response
 handleDBError = proc e ->
-  if DB.seError e == DB.ErrorConstraint
+  if DB.sqlError e == DB.ErrorConstraint
     then setDescription (dupDescription "article") . respondJsonA HTTP.badRequest400 -< "Article already exists" :: ErrorResponse
     else respondJsonA HTTP.internalServerError500 -< show @ErrorResponse e
 
@@ -122,10 +124,10 @@ update jwk =
                 Right (Just article) ->
                   setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped article :: ArticleResponse
   where
-    getArticleIdAndAuthor :: h Text (Maybe (Key Article, Key User))
+    getArticleIdAndAuthor :: h Text (Maybe (ArticleId, UserId))
     getArticleIdAndAuthor = arrM $ \slug -> runDBAction (Model.getArticleIdAndAuthorBySlug slug)
 
-    updateArticle :: h (Key User, Key Article, Model.UpdateArticlePayload) (Either DB.SqliteException (Maybe Model.ArticleRecord))
+    updateArticle :: h (UserId, ArticleId, Model.UpdateArticlePayload) (Either DB.SQLError (Maybe Model.ArticleRecord))
     updateArticle = arrM $ \(authorId, articleId, updatePayload) ->
       try $ runDBAction $ Model.update authorId articleId updatePayload
 
@@ -154,8 +156,8 @@ delete jwk =
 --------------------------------------------------------------------------------
 
 data ArticleListResponse = ArticleListResponse
-  { articles :: [Model.ArticleRecord]
-  , articlesCount :: Int
+  { articles :: ![Model.ArticleRecord]
+  , articlesCount :: !Int
   }
   deriving stock (Generic)
   deriving anyclass (ToJSON, ToSchema)

@@ -1,29 +1,40 @@
 module Model.Common where
 
-import Control.Monad.Logger (runStdoutLoggingT)
 import qualified Data.Aeson as Aeson
 import Data.Char (isLower, isUpper, toLower)
 import qualified Data.OpenApi as OpenApi
-import Data.Pool (Pool, withResource)
-import Database.Esqueleto.Experimental
-import Database.Esqueleto.Internal.Internal (Update)
-import Database.Persist.Sqlite (withSqlitePool)
+import Data.Pool (Pool, defaultPoolConfig, newPool, withResource)
+import Database.SQLite.Simple (
+  Connection,
+  FromRow,
+  NamedParam,
+  Query,
+  close,
+  executeNamed,
+  open,
+  queryNamed,
+ )
 import Model.Entities (migrateAll)
 import Relude
 
 -- All DB operations run in this monad
-type DBAction a = ReaderT SqlBackend IO a
+type DBAction a = ReaderT Connection IO a
 
-withDBConnectionPool :: (Pool SqlBackend -> IO a) -> IO a
-withDBConnectionPool f = runStdoutLoggingT
-  $ withSqlitePool "realworld.db" 20
-  $ \pool -> liftIO $ do
-    withResource pool $ runSqlConn (runMigration migrateAll)
-    f pool
+withDBConnectionPool :: (Pool Connection -> IO a) -> IO a
+withDBConnectionPool f = do
+  pool <- newPool $ defaultPoolConfig (open "realworld.db") close 300.0 20
+  withResource pool migrateAll
+  f pool
 
--- An optional update operator
-(=?.) :: (PersistEntity v, PersistField typ) => EntityField v typ -> Maybe typ -> Maybe (SqlExpr (Entity v) -> SqlExpr Update)
-fld =?. mv = fmap (\v -> fld =. val v) mv
+queryNamed :: (FromRow r) => Query -> [NamedParam] -> DBAction [r]
+queryNamed q params = do
+  conn <- ask
+  liftIO $ Database.SQLite.Simple.queryNamed conn q params
+
+executeNamed :: Query -> [NamedParam] -> DBAction ()
+executeNamed q params = do
+  conn <- ask
+  liftIO $ Database.SQLite.Simple.executeNamed conn q params
 
 -- Aeson options to drop the entity name prefix from field names
 aesonDropPrefixOptions :: Aeson.Options

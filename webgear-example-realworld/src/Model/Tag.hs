@@ -1,22 +1,18 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Model.Tag (
   list,
 ) where
 
-import Database.Esqueleto.Experimental
+import Database.SQLite.Simple (Query, fromOnly, queryNamed)
+import Database.SQLite.Simple.QQ (sql)
 import Model.Common (DBAction)
-import Model.Entities
 import Relude hiding (on)
 
 list :: DBAction [Text]
-list =
-  fmap unValue
-    <$>
-    -- select only tags used in articles
-    ( select $ do
-        (tag :& _articleTag) <-
-          from $
-            table @Tag
-              `innerJoin` table @ArticleTag
-              `on` (\(tag :& articleTag) -> tag ^. TagId ==. articleTag ^. ArticleTagTagid)
-        pure $ tag ^. TagName
-    )
+list = do
+  conn <- ask
+  let q :: Query
+      q = [sql| SELECT tag.name FROM tag JOIN article_tag ON article_tag.tagid = tag.id |]
+  results <- liftIO $ queryNamed conn q []
+  pure $ fromOnly <$> results

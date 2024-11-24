@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Model.Article (
   CreateArticlePayload (..),
   ArticleRecord (..),
@@ -27,15 +29,26 @@ import Data.Aeson (
   genericToJSON,
  )
 import Data.Char (isSpace)
-import Data.Maybe (fromJust)
-import Data.OpenApi (ToSchema (..), default_, genericDeclareNamedSchema, maximum_, minimum_, paramSchemaToSchema)
+import Data.OpenApi (
+  ToSchema (..),
+  default_,
+  genericDeclareNamedSchema,
+  maximum_,
+  minimum_,
+  paramSchemaToSchema,
+ )
 import Data.OpenApi.Internal.Schema (plain)
 import qualified Data.Text as Text
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (getCurrentTime)
-import Database.Esqueleto.Experimental as E
-import qualified Database.Persist.Sql as DB
-import Database.Sqlite (Error (..), SqliteException (..))
+import Database.SQLite.Simple (
+  Error (..),
+  NamedParam (..),
+  Only (..),
+  Query,
+  SQLError (..),
+ )
+import Database.SQLite.Simple.QQ (sql)
 import Model.Common
 import Model.Entities
 import qualified Model.Profile as Profile
@@ -45,10 +58,10 @@ import System.Random (randomIO)
 import Web.HttpApiData (FromHttpApiData)
 
 data CreateArticlePayload = CreateArticlePayload
-  { articleTitle :: Text
-  , articleDescription :: Text
-  , articleBody :: Text
-  , articleTagList :: Maybe [Text]
+  { articleTitle :: !Text
+  , articleDescription :: !Text
+  , articleBody :: !Text
+  , articleTagList :: !(Maybe [Text])
   }
   deriving stock (Generic)
 
@@ -59,16 +72,16 @@ instance ToSchema CreateArticlePayload where
   declareNamedSchema = genericDeclareNamedSchema schemaDropPrefixOptions
 
 data ArticleRecord = ArticleRecord
-  { articleSlug :: Text
-  , articleTitle :: Text
-  , articleDescription :: Text
-  , articleBody :: Text
-  , articleTagList :: [Text]
-  , articleCreatedAt :: UTCTime
-  , articleUpdatedAt :: UTCTime
-  , articleFavorited :: Bool
-  , articleFavoritesCount :: Int
-  , articleAuthor :: Maybe Profile.Profile
+  { articleSlug :: !Text
+  , articleTitle :: !Text
+  , articleDescription :: !Text
+  , articleBody :: !Text
+  , articleTagList :: ![Text]
+  , articleCreatedAt :: !UTCTime
+  , articleUpdatedAt :: !UTCTime
+  , articleFavorited :: !Bool
+  , articleFavoritesCount :: !Int
+  , articleAuthor :: !(Maybe Profile.Profile)
   }
   deriving stock (Generic)
 
@@ -78,56 +91,92 @@ instance ToJSON ArticleRecord where
 instance ToSchema ArticleRecord where
   declareNamedSchema = genericDeclareNamedSchema schemaDropPrefixOptions
 
-create :: Key User -> CreateArticlePayload -> DBAction ArticleRecord
+create :: UserId -> CreateArticlePayload -> DBAction (Maybe ArticleRecord)
 create userId CreateArticlePayload{..} = do
   articleCreatedAt <- liftIO getCurrentTime
   let articleUpdatedAt = articleCreatedAt
-      articleAuthor = userId
       tags = fromMaybe [] articleTagList
   articleSlug <- slugify articleTitle
 
-  articleId <- DB.insert Article{..}
-  forM_ tags $ \tag -> do
-    tagId <- DB.entityKey <$> DB.upsert (Tag tag) []
-    DB.insert $ ArticleTag tagId articleId
+  let stmt :: Query
+      stmt =
+        [sql|
+          INSERT INTO article (id, slug, title, description, body, created_at, updated_at, author)
+          VALUES (NULL, :slug, :title, :description, :body, :createdAt, :updatedAt, :author)
+          RETURNING id
+        |]
 
-  fromJust <$> getArticleRecord (Just userId) articleId
+      params :: [NamedParam]
+      params =
+        [ ":slug" := articleSlug
+        , ":title" := articleTitle
+        , ":description" := articleDescription
+        , ":body" := articleBody
+        , ":createdAt" := articleCreatedAt
+        , ":updatedAt" := articleUpdatedAt
+        , ":author" := userId
+        ]
 
-slugify :: MonadIO m => Text -> m Text
+  queryNamed stmt params >>= \case
+    [Only articleId] -> do
+      forM_ tags $ \tagName -> do
+        [Only tagId] <-
+          queryNamed @(Only TagId)
+            [sql| INSERT INTO tag (id, name) VALUES (NULL, :tagName) ON CONFLICT DO UPDATE SET id = id RETURNING id |]
+            [":tagName" := tagName]
+        executeNamed
+          [sql| INSERT INTO article_tag (tagid, articleid) VALUES (:tagId, :articleId) |]
+          [":tagId" := tagId, ":articleId" := articleId]
+
+      getArticleRecord (Just userId) articleId
+    _x -> pure Nothing
+
+slugify :: (MonadIO m) => Text -> m Text
 slugify s = liftIO $ do
   num <- randomIO
   let suffix = "-" <> show (num :: Word64)
-  pure $
-    (<> suffix) $
-      Text.take 255 $
-        Text.filter URIEncode.isAllowed $
-          Text.map (\c -> if isSpace c then '-' else c) $
-            Text.toLower s
+  pure
+    $ (<> suffix)
+    $ Text.take 255
+    $ Text.filter URIEncode.isAllowed
+    $ Text.map (\c -> if isSpace c then '-' else c)
+    $ Text.toLower s
 
-getArticleRecord :: Maybe (Key User) -> Key Article -> DBAction (Maybe ArticleRecord)
-getArticleRecord maybeUserId articleId = DB.getEntity articleId >>= traverse (mkRecord maybeUserId)
+getArticleRecord :: Maybe UserId -> ArticleId -> DBAction (Maybe ArticleRecord)
+getArticleRecord maybeUserId articleId = do
+  queryNamed [sql| SELECT * FROM article WHERE id = :articleId |] [":articleId" := articleId] >>= \case
+    [article] -> Just <$> mkRecord maybeUserId article
+    _x -> pure Nothing
 
-mkRecord :: Maybe (Key User) -> Entity Article -> DBAction ArticleRecord
-mkRecord maybeUserId (Entity articleId Article{..}) = do
-  articleTagList <-
-    map unValue
-      <$> ( select $ do
-              (articleTag :& tag) <-
-                from $
-                  table @ArticleTag
-                    `innerJoin` table @Tag
-                    `on` (\(articleTag :& tag) -> articleTag ^. ArticleTagTagid ==. tag ^. TagId)
-              where_ (articleTag ^. ArticleTagArticleid ==. val articleId)
-              pure (tag ^. TagName)
-          )
+mkRecord :: Maybe UserId -> Article -> DBAction ArticleRecord
+mkRecord maybeUserId Article{..} = do
+  articleTagList <- do
+    let q :: Query
+        q =
+          [sql|
+            SELECT
+              t.name
+            FROM
+              article_tag AS a_t JOIN
+              tag AS t ON a_t.tagid = t.id
+            WHERE
+              a_t.articleid = :articleId
+          |]
 
-  favoritedUsers <-
-    map unValue
-      <$> ( select $ do
-              fav <- from $ table @Favorite
-              where_ (fav ^. FavoriteArticleid ==. val articleId)
-              pure $ fav ^. FavoriteUserid
-          )
+        params :: [NamedParam]
+        params = [":articleId" := articleId]
+
+    coerce @[Only Text] @[Text] <$> queryNamed q params
+
+  favoritedUsers <- do
+    let q :: Query
+        q = [sql| SELECT userid FROM favorite WHERE articleid = :articleId |]
+
+        params :: [NamedParam]
+        params = [":articleId" := articleId]
+
+    coerce @[Only UserId] @[UserId] <$> queryNamed q params
+
   let articleFavorited = maybe False (`elem` favoritedUsers) maybeUserId
   let articleFavoritesCount = length favoritedUsers
   authorProfile <- Profile.getOne maybeUserId articleAuthor
@@ -136,29 +185,30 @@ mkRecord maybeUserId (Entity articleId Article{..}) = do
 
 --------------------------------------------------------------------------------
 
-getArticleBySlug :: Maybe (Key User) -> Text -> DBAction (Maybe ArticleRecord)
-getArticleBySlug maybeUserId slug =
-  DB.getBy (UniqueSlug slug) >>= traverse (mkRecord maybeUserId)
+getArticleBySlug :: Maybe UserId -> Text -> DBAction (Maybe ArticleRecord)
+getArticleBySlug maybeUserId slug = do
+  queryNamed [sql| SELECT * FROM article WHERE slug = :slug |] [":slug" := slug] >>= \case
+    [article] -> Just <$> mkRecord maybeUserId article
+    _x -> pure Nothing
 
 --------------------------------------------------------------------------------
 
-getArticleIdAndAuthorBySlug :: Text -> DBAction (Maybe (Key Article, Key User))
+getArticleIdAndAuthorBySlug :: Text -> DBAction (Maybe (ArticleId, UserId))
 getArticleIdAndAuthorBySlug slug = do
-  maybeResult <-
-    listToMaybe
-      <$> ( select $ do
-              article <- from $ table @Article
-              where_ (article ^. ArticleSlug ==. val slug)
-              pure (article ^. ArticleId, article ^. ArticleAuthor)
-          )
-  pure $ fmap (\(Value aid, Value uid) -> (aid, uid)) maybeResult
+  let q :: Query
+      q = [sql| SELECT id, author FROM article WHERE slug = :slug |]
+
+      params :: [NamedParam]
+      params = [":slug" := slug]
+
+  listToMaybe <$> queryNamed q params
 
 --------------------------------------------------------------------------------
 
 data UpdateArticlePayload = UpdateArticlePayload
-  { articleTitle :: Maybe Text
-  , articleDescription :: Maybe Text
-  , articleBody :: Maybe Text
+  { articleTitle :: !(Maybe Text)
+  , articleDescription :: !(Maybe Text)
+  , articleBody :: !(Maybe Text)
   }
   deriving stock (Generic)
 
@@ -170,63 +220,49 @@ instance ToSchema UpdateArticlePayload where
 
 update ::
   -- | author
-  Key User ->
-  Key Article ->
+  UserId ->
+  ArticleId ->
   UpdateArticlePayload ->
   DBAction (Maybe ArticleRecord)
 update authorId articleId UpdateArticlePayload{..} = do
   newSlug <- traverse slugify articleTitle
   now <- liftIO getCurrentTime
-  let updates =
+
+  let updates :: [(String, NamedParam)]
+      updates =
         catMaybes
-          [ ArticleTitle =?. articleTitle
-          , ArticleDescription =?. articleDescription
-          , ArticleBody =?. articleBody
-          , ArticleSlug =?. newSlug
-          , ArticleUpdatedAt =?. Just now
+          [ (\x -> ("title = :articleTitle", ":articleTitle" := x)) <$> articleTitle
+          , (\x -> ("description = :articleDescription", ":articleDescription" := x)) <$> articleDescription
+          , (\x -> ("body = :articleBody", ":articleBody" := x)) <$> articleBody
+          , (\x -> ("slug = :articleSlug", ":articleSlug" := x)) <$> newSlug
+          , Just ("updated_at = :updatedAt", ":updatedAt" := now)
           ]
-  E.update $ \article -> do
-    set article updates
-    where_ (article ^. ArticleId ==. val articleId)
-    where_ (article ^. ArticleAuthor ==. val authorId)
+
+      stmt :: Query
+      stmt =
+        [sql| UPDATE article SET |]
+          <> fromString (intercalate "," $ map fst updates)
+          <> [sql| WHERE id = :articleId AND author = :articleAuthor |]
+
+      params :: [NamedParam]
+      params = map snd updates <> [":articleId" := articleId, ":articleAuthor" := authorId]
+
+  executeNamed stmt params
 
   getArticleRecord (Just authorId) articleId
 
 --------------------------------------------------------------------------------
 
-delete :: Key User -> Text -> DBAction ()
+delete :: UserId -> Text -> DBAction ()
 delete userId slug = do
-  let matchSlugAndAuthor article = do
-        where_ (article ^. ArticleSlug ==. val slug)
-        where_ (article ^. ArticleAuthor ==. val userId)
+  [Only articleId] <-
+    queryNamed @(Only ArticleId)
+      [sql| DELETE FROM article WHERE slug = :slug AND author = :author RETURNING id |]
+      [":slug" := slug, ":author" := userId]
 
-  E.delete $ do
-    articleTag <- from $ table @ArticleTag
-    where_ $
-      exists $ do
-        article <- from $ table @Article
-        where_ (article ^. ArticleId ==. articleTag ^. ArticleTagArticleid)
-        matchSlugAndAuthor article
-
-  E.delete $ do
-    comment <- from $ table @Comment
-    where_ $
-      exists $ do
-        article <- from $ table @Article
-        where_ (article ^. ArticleId ==. comment ^. CommentArticle)
-        matchSlugAndAuthor article
-
-  E.delete $ do
-    fav <- from $ table @Favorite
-    where_ $
-      exists $ do
-        article <- from $ table @Article
-        where_ (article ^. ArticleId ==. fav ^. FavoriteArticleid)
-        matchSlugAndAuthor article
-
-  E.delete $ do
-    article <- from $ table @Article
-    matchSlugAndAuthor article
+  executeNamed [sql| DELETE FROM article_tag WHERE articleid = :id |] [":id" := articleId]
+  executeNamed [sql| DELETE FROM comment WHERE article = :id |] [":id" := articleId]
+  executeNamed [sql| DELETE FROM favorite WHERE articleid = :id |] [":id" := articleId]
 
 --------------------------------------------------------------------------------
 newtype Limit = Limit {getLimit :: Integer}
@@ -235,11 +271,14 @@ newtype Limit = Limit {getLimit :: Integer}
 
 instance ToSchema Limit where
   declareNamedSchema _ =
-    plain $
-      paramSchemaToSchema (Proxy @Integer)
-        & minimum_ ?~ 0
-        & maximum_ ?~ 1000
-        & default_ ?~ Number 20
+    plain
+      $ paramSchemaToSchema (Proxy @Integer)
+      & minimum_
+      ?~ 0
+        & maximum_
+      ?~ 1000
+        & default_
+      ?~ Number 20
 
 newtype Offset = Offset {getOffset :: Integer}
   deriving stock (Eq, Ord, Show, Read)
@@ -247,117 +286,183 @@ newtype Offset = Offset {getOffset :: Integer}
 
 instance ToSchema Offset where
   declareNamedSchema _ =
-    plain $
-      paramSchemaToSchema (Proxy @Integer)
-        & minimum_ ?~ 0
-        & maximum_ ?~ 1000
-        & default_ ?~ Number 0
+    plain
+      $ paramSchemaToSchema (Proxy @Integer)
+      & minimum_
+      ?~ 0
+        & maximum_
+      ?~ 1000
+        & default_
+      ?~ Number 0
 
 data ArticleListInput = ArticleListInput
-  { maybeCurrentUserId :: Maybe (Key User)
-  , maybeTag :: Maybe Text
-  , maybeAuthorName :: Maybe Text
-  , maybeFavoritedBy :: Maybe Text
-  , listLimit :: Limit
-  , listOffset :: Offset
+  { maybeCurrentUserId :: !(Maybe UserId)
+  , maybeTag :: !(Maybe Text)
+  , maybeAuthorName :: !(Maybe Text)
+  , maybeFavoritedBy :: !(Maybe Text)
+  , listLimit :: !Limit
+  , listOffset :: !Offset
   }
 
 articleList :: ArticleListInput -> DBAction [ArticleRecord]
 articleList ArticleListInput{..} = do
-  let filterTag article =
+  let filterTag :: (Query, [NamedParam])
+      filterTag =
         case maybeTag of
-          Nothing -> val True
-          Just "" -> val True
-          Just aTag -> exists $ do
-            (articleTag :& tag) <-
-              from $
-                table @ArticleTag
-                  `innerJoin` table @Tag
-                  `on` (\(articleTag :& tag) -> articleTag ^. ArticleTagTagid ==. tag ^. TagId)
-            where_ (tag ^. TagName ==. val aTag)
-            where_ (article ^. ArticleId ==. articleTag ^. ArticleTagArticleid)
+          Nothing -> ([sql| TRUE |], [])
+          Just "" -> ([sql| TRUE |], [])
+          Just aTag ->
+            ( [sql|
+                EXISTS (
+                  SELECT
+                    t.id
+                  FROM
+                    article_tag AS a_t JOIN
+                    tag AS t ON a_t.tagid = t.id
+                  WHERE
+                    t.name = :tagName AND
+                    a_t.articleid = a.id
+                )
+              |]
+            , [":tagName" := aTag]
+            )
 
-      filterAuthor article =
+      filterAuthor :: (Query, [NamedParam])
+      filterAuthor =
         case maybeAuthorName of
-          Nothing -> val True
-          Just "" -> val True
-          Just authorName -> exists $ do
-            user <- from $ table @User
-            where_ (article ^. ArticleAuthor ==. user ^. UserId)
-            where_ (user ^. UserUsername ==. val authorName)
+          Nothing -> ([sql| TRUE |], [])
+          Just "" -> ([sql| TRUE |], [])
+          Just authorName ->
+            ( [sql|
+                EXISTS (
+                  SELECT
+                    *
+                  FROM
+                    user AS u
+                  WHERE
+                    a.author = u.id AND
+                    u.username = :authorName
+                )
+              |]
+            , [":authorName" := authorName]
+            )
 
-      filterFavorite article =
+      filterFavorite :: (Query, [NamedParam])
+      filterFavorite =
         case maybeFavoritedBy of
-          Nothing -> val True
-          Just "" -> val True
-          Just favUserName -> exists $ do
-            (fav :& user) <-
-              from $
-                table @Favorite
-                  `innerJoin` table @User
-                  `on` (\(fav :& user) -> fav ^. FavoriteUserid ==. user ^. UserId)
-            where_ (article ^. ArticleId ==. fav ^. FavoriteArticleid)
-            where_ (user ^. UserUsername ==. val favUserName)
+          Nothing -> ([sql| TRUE |], [])
+          Just "" -> ([sql| TRUE |], [])
+          Just favUserName ->
+            ( [sql|
+                EXISTS (
+                  SELECT
+                    *
+                  FROM
+                    favorite AS f JOIN
+                    user AS u ON f.userid = u.id
+                  WHERE
+                    a.id = f.articleid AND
+                    u.username = :favUserName
+                )
+              |]
+            , [":favUserName" := favUserName]
+            )
 
-  articleIds <- select $ do
-    article <- from $ table @Article
-    where_ (filterTag article)
-    where_ (filterAuthor article)
-    where_ (filterFavorite article)
-    orderBy [desc $ article ^. ArticleUpdatedAt]
-    limit (fromInteger $ getLimit listLimit)
-    offset (fromInteger $ getOffset listOffset)
-    pure $ article ^. ArticleId
+  let q :: Query
+      q =
+        [sql| SELECT a.id FROM article AS a WHERE |]
+          <> fst filterTag
+          <> [sql| AND |]
+          <> fst filterAuthor
+          <> [sql| AND |]
+          <> fst filterFavorite
+          <> [sql|
+               ORDER BY a.updated_at DESC
+               LIMIT :lim
+               OFFSET :offset
+             |]
 
-  articles <- traverse (getArticleRecord maybeCurrentUserId . unValue) articleIds
+      params :: [NamedParam]
+      params =
+        [ ":lim" := fromInteger @Int64 (getLimit listLimit)
+        , ":offset" := fromInteger @Int64 (getOffset listOffset)
+        ]
+          <> snd filterTag
+          <> snd filterAuthor
+          <> snd filterFavorite
+
+  articleIds <- coerce @[Only ArticleId] @[ArticleId] <$> queryNamed q params
+  articles <- traverse (getArticleRecord maybeCurrentUserId) articleIds
   pure $ catMaybes articles
 
 --------------------------------------------------------------------------------
 
 data ArticleFeedInput = ArticleFeedInput
-  { currentUserId :: Key User
-  , listLimit :: Limit
-  , listOffset :: Offset
+  { currentUserId :: !UserId
+  , listLimit :: !Limit
+  , listOffset :: !Offset
   }
 
 articleFeed :: ArticleFeedInput -> DBAction [ArticleRecord]
 articleFeed ArticleFeedInput{..} = do
-  articleIds <- select $ do
-    (article :& follow) <-
-      from $
-        table @Article
-          `innerJoin` table @Follow
-          `on` (\(article :& follow) -> follow ^. FollowFollowee ==. article ^. ArticleAuthor)
-    where_ (follow ^. FollowFollower ==. val currentUserId)
-    orderBy [desc $ article ^. ArticleUpdatedAt]
-    limit (fromInteger $ getLimit listLimit)
-    offset (fromInteger $ getOffset listOffset)
-    pure $ article ^. ArticleId
+  let q :: Query
+      q =
+        [sql|
+          SELECT
+            a.id
+          FROM
+            article AS a JOIN
+            follow AS f ON f.followee = a.author
+          WHERE
+            f.follower = :currentUser
+          LIMIT :lim
+          OFFSET :offset
+        |]
 
-  articles <- traverse (getArticleRecord (Just currentUserId) . unValue) articleIds
+      params :: [NamedParam]
+      params =
+        [ ":currentUser" := currentUserId
+        , ":lim" := fromInteger @Int64 (getLimit listLimit)
+        , ":offset" := fromInteger @Int64 (getOffset listOffset)
+        ]
+
+  articleIds <- queryNamed q params
+  articles <- traverse (getArticleRecord (Just currentUserId) . fromOnly) articleIds
   pure $ catMaybes articles
 
 --------------------------------------------------------------------------------
 
-favorite :: Key User -> Text -> DBAction (Maybe ArticleRecord)
+favorite :: UserId -> Text -> DBAction (Maybe ArticleRecord)
 favorite userId slug =
   getArticleIdAndAuthorBySlug slug >>= \case
     Nothing -> pure Nothing
     Just (articleId, _) -> do
-      let fav = Favorite{favoriteUserid = userId, favoriteArticleid = articleId}
-      let handleDBError :: SqliteException -> DBAction ()
+      let handleDBError :: SQLError -> DBAction ()
           handleDBError e
-            | seError e == ErrorConstraint = pure ()
+            | sqlError e == ErrorConstraint = pure ()
             | otherwise = throw e
-      DB.insert_ fav `catch` handleDBError
+
+      let stmt :: Query
+          stmt = [sql| INSERT INTO favorite (userid, articleid) VALUES (:userId, :articleId) |]
+
+          params :: [NamedParam]
+          params = [":userId" := userId, ":articleId" := articleId]
+
+      executeNamed stmt params `catch` handleDBError
       getArticleRecord (Just userId) articleId
 
 --------------------------------------------------------------------------------
 
-unfavorite :: Key User -> Text -> DBAction (Maybe ArticleRecord)
+unfavorite :: UserId -> Text -> DBAction (Maybe ArticleRecord)
 unfavorite userId slug =
   getArticleIdAndAuthorBySlug slug >>= \case
     Nothing -> pure Nothing
     Just (articleId, _) -> do
-      DB.deleteBy (UniqueFavorite articleId userId)
+      let stmt :: Query
+          stmt = [sql| DELETE FROM favorite WHERE userid = :userId AND articleid = :articleId |]
+
+          params :: [NamedParam]
+          params = [":userId" := userId, ":articleId" := articleId]
+
+      executeNamed stmt params
       getArticleRecord (Just userId) articleId

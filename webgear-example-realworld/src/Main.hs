@@ -14,7 +14,7 @@ import qualified Crypto.JWT as JWT
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Pool (Pool)
-import Database.Persist.Sql (SqlBackend)
+import Database.SQLite.Simple (Connection)
 import Model.Common (withDBConnectionPool)
 import Network.HTTP.Types (StdMethod (..))
 import qualified Network.Wai as Wai
@@ -28,7 +28,7 @@ import WebGear.Swagger.UI (swaggerUI)
 -- A medium.com clone app specified by https://github.com/gothinkster/realworld
 --------------------------------------------------------------------------------
 
-application :: Pool SqlBackend -> JWT.JWK -> Wai.Application
+application :: Pool Connection -> JWT.JWK -> Wai.Application
 application pool jwk = toApplication $ transform appToIO allRoutes
   where
     allRoutes :: RequestHandler (ServerHandler App) '[]

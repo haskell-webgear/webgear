@@ -9,7 +9,7 @@ import API.Common
 import Control.Category ((.))
 import Control.Exception.Safe (try)
 import qualified Crypto.JWT as JWT
-import qualified Database.Sqlite as DB
+import qualified Database.SQLite.Simple as DB
 import qualified Model.User as Model
 import qualified Network.HTTP.Types as HTTP
 import Relude hiding (Set, (.))
@@ -44,9 +44,9 @@ create jwk =
 
 handleDBError ::
   (StdHandler h App, Set h (JSONBody ErrorResponse)) =>
-  h DB.SqliteException Response
+  h DB.SQLError Response
 handleDBError = proc e ->
-  if DB.seError e == DB.ErrorConstraint
+  if DB.sqlError e == DB.ErrorConstraint
     then
       setDescription (dupDescription "user account")
         . respondJsonA HTTP.badRequest400

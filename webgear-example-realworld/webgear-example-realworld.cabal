@@ -23,21 +23,18 @@ executable realworld
                     , base
                     , bytestring
                     , cryptonite
-                    , esqueleto
                     , http-api-data
                     , http-types
                     , jose
                     , lens
-                    , monad-logger
                     , monad-time
                     , mtl
                     , openapi3
-                    , persistent
-                    , persistent-sqlite
                     , random
                     , relude
                     , resource-pool
                     , safe-exceptions
+                    , sqlite-simple
                     , text
                     , time
                     , uri-encode
@@ -48,6 +45,7 @@ executable realworld
                     , webgear-openapi
                     , webgear-swagger-ui
   default-extensions: Arrows
+                      BlockArguments
                       DataKinds
                       DeriveAnyClass
                       DeriveGeneric
@@ -59,6 +57,7 @@ executable realworld
                       KindSignatures
                       LambdaCase
                       MultiParamTypeClasses
+                      NamedFieldPuns
                       NoImplicitPrelude
                       OverloadedStrings
                       QuasiQuotes

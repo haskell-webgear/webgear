@@ -7,8 +7,8 @@ module API.Comment (
 import API.Common
 import Control.Category ((.))
 import qualified Crypto.JWT as JWT
-import qualified Database.Persist.Sql as DB
 import qualified Model.Comment as Model
+import Model.Entities (CommentId (..))
 import qualified Network.HTTP.Types as HTTP
 import Relude hiding (Set, (.))
 import WebGear.Server
@@ -88,4 +88,4 @@ delete jwk =
       let currentUserId = pick @RequiredAuth $ from request
           slug = pick @PathVarSlug $ from request
           commentId = pick @PathVarCommentId $ from request
-      runDBAction $ Model.delete currentUserId slug (DB.toSqlKey commentId)
+      runDBAction $ Model.delete currentUserId slug (coerce @Int64 @CommentId commentId)
