@@ -25,19 +25,18 @@ import Data.OpenApi (
   schemaName,
  )
 import Data.OpenApi.Lens (properties, type_)
-import Data.Pool (Pool)
-import Database.Persist.Sql (runSqlPool, toSqlKey)
-import Database.Persist.Sqlite (SqlBackend)
+import Data.Pool (Pool, withResource)
+import Database.SQLite.Simple (Connection)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Model.Common (DBAction, aesonDropPrefixOptions, schemaDropPrefixOptions)
-import Model.Entities (Key, User)
+import Model.Entities (UserId (..))
 import qualified Network.HTTP.Types as HTTP
 import Relude hiding (Set, (.))
 import WebGear.Server
 
 -- The API handlers run in the App monad.
 
-newtype AppEnv = AppEnv {appEnvSqlBackend :: Pool SqlBackend}
+newtype AppEnv = AppEnv {appEnvSqlPool :: Pool Connection}
 
 newtype App a = App {unApp :: ReaderT AppEnv IO a}
   deriving newtype
@@ -57,13 +56,15 @@ instance MonadTime App where
 instance JWT.MonadRandom App where
   getRandomBytes = liftIO . JWT.getRandomBytes
 
-askConnectionPool :: (MonadReader AppEnv m) => m (Pool SqlBackend)
-askConnectionPool = asks appEnvSqlBackend
+askConnectionPool :: (MonadReader AppEnv m) => m (Pool Connection)
+askConnectionPool = asks appEnvSqlPool
 
 runDBAction :: DBAction a -> App a
 runDBAction action = do
   pool <- askConnectionPool
-  liftIO $ runSqlPool action pool
+  liftIO
+    $ withResource pool
+    $ runReaderT action
 
 --------------------------------------------------------------------------------
 
@@ -89,8 +90,8 @@ type JSONBody a = Body JSON a
 -- Middlewares for JWT authentication with "token" scheme
 
 type AuthHeader = AuthorizationHeader "token"
-type RequiredAuth = JWTAuth' Required "token" App () (Key User)
-type OptionalAuth = JWTAuth' Optional "token" App () (Key User)
+type RequiredAuth = JWTAuth' Required "token" App () UserId
+type OptionalAuth = JWTAuth' Optional "token" App () UserId
 
 requiredTokenAuth ::
   ( StdHandler h App
@@ -130,7 +131,7 @@ tokenAuth ::
   , Get h AuthHeader
   ) =>
   JWT.JWK ->
-  (JWTAuth' x "token" App () (Key User) -> Middleware h ts (r : ts)) ->
+  (JWTAuth' x "token" App () UserId -> Middleware h ts (r : ts)) ->
   Middleware h ts (r : ts)
 tokenAuth jwk auth nextHandler =
   auth authCfg (nextHandler . setDescription "JWT authorization based on `token' scheme")
@@ -142,11 +143,11 @@ tokenAuth jwk auth nextHandler =
         , toJWTAttribute = claimsToUser
         }
 
-    claimsToUser :: JWT.ClaimsSet -> App (Either () (Key User))
+    claimsToUser :: JWT.ClaimsSet -> App (Either () UserId)
     claimsToUser claims = pure
       $ case view JWT.claimSub claims >>= readMaybe . toString . view JWT.string of
         Nothing -> Left ()
-        Just oid -> Right $ toSqlKey oid
+        Just oid -> Right (UserId oid)
 
 --------------------------------------------------------------------------------
 

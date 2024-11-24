@@ -26,26 +26,26 @@ import Data.Aeson (
   (.=),
  )
 import Data.OpenApi (ToSchema (..), genericDeclareNamedSchema)
-import Database.Esqueleto.Experimental as E
-import qualified Database.Persist.Sql as DB
+import Database.SQLite.Simple (NamedParam (..), Only (..), Query)
+import Database.SQLite.Simple.QQ (sql)
 import Model.Common
 import Model.Entities
 import Relude
 
 data CreateUserPayload = CreateUserPayload
-  { userUsername :: Text
-  , userEmail :: Text
-  , userPassword :: Text
+  { userUsername :: !Text
+  , userEmail :: !Text
+  , userPassword :: !Text
   }
   deriving stock (Generic)
 
 data UserRecord = UserRecord
-  { userId :: Int64
-  , userUsername :: Text
-  , userEmail :: Text
-  , userBio :: Maybe Text
-  , userImage :: Maybe Text
-  , userToken :: Text
+  { userId :: !Int64
+  , userUsername :: !Text
+  , userEmail :: !Text
+  , userBio :: !(Maybe Text)
+  , userImage :: !(Maybe Text)
+  , userToken :: !Text
   }
   deriving stock (Generic)
 
@@ -62,19 +62,42 @@ instance ToSchema UserRecord where
   declareNamedSchema = genericDeclareNamedSchema schemaDropPrefixOptions
 
 create :: JWT.JWK -> CreateUserPayload -> DBAction UserRecord
-create jwk CreateUserPayload{..} = do
-  let userBio = Nothing
-      userImage = Nothing
-  key <- DB.insert User{userPassword = hashUserPassword userPassword, ..}
-  userToken <- generateJWT jwk key
-  pure UserRecord{userId = DB.fromSqlKey key, ..}
+create jwk CreateUserPayload{userUsername, userEmail, userPassword} = do
+  let stmt :: Query
+      stmt =
+        [sql|
+          INSERT INTO user (id, username, email, password, bio, image)
+          VALUES (NULL, :username, :email, :password, NULL, NULL)
+          RETURNING id
+        |]
+
+      params :: [NamedParam]
+      params =
+        [ ":username" := userUsername
+        , ":email" := userEmail
+        , ":password" := hashUserPassword userPassword
+        ]
+
+  queryNamed stmt params >>= \case
+    [Only key] -> do
+      userToken <- generateJWT jwk key
+      pure
+        UserRecord
+          { userId = coerce key
+          , userUsername
+          , userEmail
+          , userToken
+          , userBio = Nothing
+          , userImage = Nothing
+          }
+    x -> fail $ "Expected a single key, but got " ++ show x
 
 hashUserPassword :: Text -> Text
 hashUserPassword = show . Hash.hashWith Hash.SHA256 . (encodeUtf8 :: Text -> ByteString)
 
-generateJWT :: JWT.JWK -> Key User -> DBAction Text
-generateJWT jwk uid = do
-  Right jwt <- mkJWT jwk ["sub" .= show @Text (DB.fromSqlKey uid)]
+generateJWT :: JWT.JWK -> UserId -> DBAction Text
+generateJWT jwk (UserId uid) = do
+  Right jwt <- mkJWT jwk ["sub" .= show @Text uid]
   pure $ decodeUtf8 $ toStrict $ JWT.encodeCompact jwt
 
 mkJWT ::
@@ -92,42 +115,47 @@ mkJWT jwk claims = lift $ JWT.runJOSE $ do
 --------------------------------------------------------------------------------
 
 data LoginUserPayload = LoginUserPayload
-  { email :: Text
-  , password :: Text
+  { email :: !Text
+  , password :: !Text
   }
   deriving stock (Generic)
   deriving anyclass (FromJSON, ToSchema)
 
 checkCredentials :: JWT.JWK -> LoginUserPayload -> DBAction (Maybe UserRecord)
 checkCredentials jwk LoginUserPayload{..} = do
-  users <- select $ do
-    u <- from $ table @User
-    where_ (u ^. UserEmail ==. val email)
-    where_ (u ^. UserPassword ==. val (hashUserPassword password))
-    pure u
-  case users of
-    [Entity key User{..}] -> do
-      userToken <- generateJWT jwk key
-      pure $ Just $ UserRecord{userId = DB.fromSqlKey key, ..}
-    _ -> pure Nothing
+  let q :: Query
+      q = [sql| SELECT * FROM user WHERE email = :email AND password = :password |]
+
+      params :: [NamedParam]
+      params = [":email" := email, ":password" := hashUserPassword password]
+
+  queryNamed q params >>= \case
+    [User{..}] -> do
+      userToken <- generateJWT jwk userId
+      pure $ Just $ UserRecord{userId = coerce userId, ..}
+    _x -> pure Nothing
 
 --------------------------------------------------------------------------------
 
-getByKey :: JWT.JWK -> Key User -> DBAction (Maybe UserRecord)
-getByKey jwk key = DB.get key >>= traverse mkRecord
-  where
-    mkRecord User{..} = do
+getByKey :: JWT.JWK -> UserId -> DBAction (Maybe UserRecord)
+getByKey jwk key = do
+  let q :: Query
+      q = [sql| SELECT * FROM user WHERE id = :id |]
+
+  queryNamed q [":id" := key] >>= \case
+    [User{..}] -> do
       userToken <- generateJWT jwk key
-      pure UserRecord{userId = DB.fromSqlKey key, ..}
+      pure $ Just UserRecord{userId = coerce key, ..}
+    _x -> pure Nothing
 
 --------------------------------------------------------------------------------
 
 data UpdateUserPayload = UpdateUserPayload
-  { userUsername :: Maybe Text
-  , userEmail :: Maybe Text
-  , userPassword :: Maybe Text
-  , userBio :: Maybe (Maybe Text)
-  , userImage :: Maybe (Maybe Text)
+  { userUsername :: !(Maybe Text)
+  , userEmail :: !(Maybe Text)
+  , userPassword :: !(Maybe Text)
+  , userBio :: !(Maybe (Maybe Text))
+  , userImage :: !(Maybe (Maybe Text))
   }
   deriving stock (Generic)
 
@@ -137,17 +165,27 @@ instance FromJSON UpdateUserPayload where
 instance ToSchema UpdateUserPayload where
   declareNamedSchema = genericDeclareNamedSchema schemaDropPrefixOptions
 
-update :: JWT.JWK -> Key User -> UpdateUserPayload -> DBAction (Maybe UserRecord)
+update :: JWT.JWK -> UserId -> UpdateUserPayload -> DBAction (Maybe UserRecord)
 update jwk key UpdateUserPayload{..} = do
-  let updates =
+  let updates :: [(String, NamedParam)]
+      updates =
         catMaybes
-          [ UserUsername =?. userUsername
-          , UserEmail =?. userEmail
-          , UserPassword =?. (hashUserPassword <$> userPassword)
-          , UserBio =?. userBio
-          , UserImage =?. userImage
+          [ (\x -> ("username = :username", ":username" := x)) <$> userUsername
+          , (\x -> ("email = :email", ":email" := x)) <$> userEmail
+          , (\x -> ("password = :password", ":password" := hashUserPassword x)) <$> userPassword
+          , (\x -> ("bio = :bio", ":bio" := x)) <$> userBio
+          , (\x -> ("image = :image", ":image" := x)) <$> userImage
           ]
-  E.update $ \u -> do
-    set u updates
-    where_ (u ^. UserId ==. val key)
+
+      stmt :: Query
+      stmt =
+        [sql| UPDATE user SET |]
+          <> fromString (intercalate "," $ map fst updates)
+          <> [sql| WHERE id = :id |]
+
+      params :: [NamedParam]
+      params = (":id" := key) : map snd updates
+
+  executeNamed stmt params
+
   getByKey jwk key
