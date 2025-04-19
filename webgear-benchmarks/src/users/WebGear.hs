@@ -2,6 +2,7 @@ module WebGear (application) where
 
 import Control.Arrow
 import Control.Monad.Reader (MonadReader (..), ReaderT (..))
+import Data.Text (Text)
 import Model
 import Network.HTTP.Types (StdMethod (..))
 import qualified Network.HTTP.Types as HTTP

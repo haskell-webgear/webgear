@@ -5,12 +5,12 @@ module API.Comment (
 ) where
 
 import API.Common
-import Control.Category ((.))
 import qualified Crypto.JWT as JWT
+import Data.Coerce (coerce)
+import Data.Int (Int64)
 import qualified Model.Comment as Model
 import Model.Entities (CommentId (..))
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding (Set, (.))
 import WebGear.Server
 
 type CreateCommentRequest = Wrapped "comment" Model.CreateCommentPayload
@@ -27,14 +27,14 @@ create ::
   JWT.JWK ->
   RequestHandler h ts
 create jwk =
-  withDoc "Add a new comment" "Add a comment to an article"
-    $ requiredTokenAuth jwk
-    $ jsonRequestBody @CreateCommentRequest badRequestBody
-    $ proc request -> do
-      maybeComment <- createComment -< request
-      case maybeComment of
-        Nothing -> unwitnessA . setDescription (resp404Description "Comment") . notFound404 -< ()
-        Just comment -> setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped comment :: CommentResponse
+  withDoc "Add a new comment" "Add a comment to an article" $
+    requiredTokenAuth jwk $
+      jsonRequestBody @CreateCommentRequest badRequestBody $
+        proc request -> do
+          maybeComment <- createComment -< request
+          case maybeComment of
+            Nothing -> unwitnessA <<< setDescription (resp404Description "Comment") <<< notFound404 -< ()
+            Just comment -> setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped comment :: CommentResponse
   where
     createComment = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request
@@ -55,11 +55,11 @@ list ::
   JWT.JWK ->
   RequestHandler h ts
 list jwk =
-  withDoc "List comments" "List all comments of an article"
-    $ optionalTokenAuth jwk
-    $ proc request -> do
-      comments <- listComments -< request
-      setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped comments :: CommentListResponse
+  withDoc "List comments" "List all comments of an article" $
+    optionalTokenAuth jwk $
+      proc request -> do
+        comments <- listComments -< request
+        setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped comments :: CommentListResponse
   where
     listComments = arrM $ \request -> do
       let maybeCurrentUserId = rightToMaybe $ pick @OptionalAuth $ from request
@@ -77,12 +77,12 @@ delete ::
   JWT.JWK ->
   RequestHandler h ts
 delete jwk =
-  withDoc "Delete a comment" "Only an author can delete their comments"
-    $ requiredTokenAuth jwk
-    $ unwitnessA
-    . setDescription okDescription
-    . noContent204
-    . deleteComment
+  withDoc "Delete a comment" "Only an author can delete their comments" $
+    requiredTokenAuth jwk $
+      unwitnessA
+        <<< setDescription okDescription
+        <<< noContent204
+        <<< deleteComment
   where
     deleteComment = arrM $ \request -> do
       let currentUserId = pick @RequiredAuth $ from request

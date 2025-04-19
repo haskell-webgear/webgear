@@ -2,9 +2,10 @@
 
 module API.Common where
 
-import Control.Category ((.))
 import Control.Exception.Safe (MonadCatch, MonadThrow)
 import Control.Lens (view, (.~), (?~))
+import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad.Reader (MonadReader, ReaderT (..), asks)
 import Control.Monad.Time (MonadTime (..))
 import qualified Crypto.JWT as JWT
 import Data.Aeson (
@@ -16,6 +17,7 @@ import Data.Aeson (
   (.:),
   (.=),
  )
+import Data.Function ((&))
 import Data.OpenApi (
   NamedSchema (..),
   OpenApiType (OpenApiObject),
@@ -26,13 +28,18 @@ import Data.OpenApi (
  )
 import Data.OpenApi.Lens (properties, type_)
 import Data.Pool (Pool, withResource)
+import Data.Proxy (Proxy (..))
+import Data.String (IsString (..))
+import Data.Text (Text, unpack)
 import Database.SQLite.Simple (Connection)
+import GHC.Generics (Generic)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Model.Common (DBAction, aesonDropPrefixOptions, schemaDropPrefixOptions)
 import Model.Entities (UserId (..))
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding (Set, (.))
+import Text.Read (readMaybe)
 import WebGear.Server
+import Prelude
 
 -- The API handlers run in the App monad.
 
@@ -62,9 +69,9 @@ askConnectionPool = asks appEnvSqlPool
 runDBAction :: DBAction a -> App a
 runDBAction action = do
   pool <- askConnectionPool
-  liftIO
-    $ withResource pool
-    $ runReaderT action
+  liftIO $
+    withResource pool $
+      runReaderT action
 
 --------------------------------------------------------------------------------
 
@@ -81,7 +88,7 @@ resp404Description :: Text -> Description
 resp404Description name = Description $ name <> " not found"
 
 withDoc :: (Handler h m) => Summary -> Description -> Middleware h ts ts
-withDoc summ descr handler = handler . setDescription descr . setSummary summ
+withDoc summ descr handler = handler <<< setDescription descr <<< setSummary summ
 
 --------------------------------------------------------------------------------
 
@@ -102,19 +109,13 @@ requiredTokenAuth ::
   Middleware h ts (RequiredAuth : AuthHeader : ts)
 requiredTokenAuth jwk =
   optionalLenientHeader @"Authorization" @(AuthToken "token")
-    . tokenAuth jwk (`jwtAuth'` forbidden)
+    <<< tokenAuth jwk (`jwtAuth'` forbidden)
   where
     forbidden = proc (_, err) -> case err of
       JWTAuthTokenBadFormat e ->
-        setDescription "Authentication failure"
-          . respondJsonA HTTP.forbidden403
-          -<
-            show @ErrorResponse e
+        setDescription "Authentication failure" <<< respondJsonA HTTP.forbidden403 -< showError e
       e ->
-        setDescription "Unauthorized"
-          . respondJsonA HTTP.unauthorized401
-          -<
-            show @ErrorResponse e
+        setDescription "Unauthorized" <<< respondJsonA HTTP.unauthorized401 -< showError e
 
 optionalTokenAuth ::
   ( StdHandler h App
@@ -134,7 +135,7 @@ tokenAuth ::
   (JWTAuth' x "token" App () UserId -> Middleware h ts (r : ts)) ->
   Middleware h ts (r : ts)
 tokenAuth jwk auth nextHandler =
-  auth authCfg (nextHandler . setDescription "JWT authorization based on `token' scheme")
+  auth authCfg (nextHandler <<< setDescription "JWT authorization based on `token' scheme")
   where
     authCfg =
       JWTAuth'
@@ -144,8 +145,8 @@ tokenAuth jwk auth nextHandler =
         }
 
     claimsToUser :: JWT.ClaimsSet -> App (Either () UserId)
-    claimsToUser claims = pure
-      $ case view JWT.claimSub claims >>= readMaybe . toString . view JWT.string of
+    claimsToUser claims = pure $
+      case view JWT.claimSub claims >>= readMaybe . unpack . view JWT.string of
         Nothing -> Left ()
         Just oid -> Right (UserId oid)
 
@@ -168,13 +169,13 @@ instance (KnownSymbol s, ToJSON t) => ToJSON (Wrapped s t) where
 instance (KnownSymbol s, ToSchema t) => ToSchema (Wrapped s t) where
   declareNamedSchema _ = do
     tSchema <- declareSchemaRef (Proxy @t)
-    pure
-      $ NamedSchema (("wrapped" <>) <$> schemaName (Proxy @t))
-      $ mempty
-      & type_
-      ?~ OpenApiObject
-        & properties
-      .~ [(fromString (symbolVal $ Proxy @s), tSchema)]
+    pure $
+      NamedSchema (("wrapped" <>) <$> schemaName (Proxy @t)) $
+        mempty
+          & type_
+            ?~ OpenApiObject
+          & properties
+            .~ [(fromString (symbolVal $ Proxy @s), tSchema)]
 
 type PathVarSlug = PathVar "slug" Text
 
@@ -198,7 +199,7 @@ badRequestBody ::
   h a Response
 badRequestBody = proc _ ->
   setDescription "Invalid request body"
-    . respondJsonA HTTP.badRequest400
+    <<< respondJsonA HTTP.badRequest400
     -<
       "Could not parse body" :: ErrorResponse
 
@@ -206,10 +207,7 @@ badRequestParam ::
   (StdHandler h m, Set h (JSONBody ErrorResponse)) =>
   h (Request `With` ts, ParamParseError) Response
 badRequestParam = proc (_, e) ->
-  setDescription "Invalid query parameter"
-    . respondJsonA HTTP.badRequest400
-    -<
-      show @ErrorResponse e
+  setDescription "Invalid query parameter" <<< respondJsonA HTTP.badRequest400 -< showError e
 
 --------------------------------------------------------------------------------
 
@@ -230,4 +228,14 @@ instance IsString ErrorRecord where
 
 type ErrorResponse = Wrapped "errors" ErrorRecord
 
+showError :: (Show a) => a -> ErrorResponse
+showError = fromString . show
+
 type JSONBodyOrError a = [JSONBody a, JSONBody ErrorResponse]
+
+--------------------------------------------------------------------------------
+
+rightToMaybe :: Either l r -> Maybe r
+rightToMaybe = \case
+  Left _l -> Nothing
+  Right r -> Just r

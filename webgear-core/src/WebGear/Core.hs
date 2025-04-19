@@ -14,7 +14,6 @@
 -}
 module WebGear.Core (
   module Control.Arrow,
-  module Data.Text,
   module WebGear.Core.Trait,
   module WebGear.Core.Request,
   module WebGear.Core.Response,
@@ -26,7 +25,6 @@ module WebGear.Core (
 ) where
 
 import Control.Arrow
-import Data.Text
 import qualified Network.Wai as Wai
 import WebGear.Core.MIMETypes
 

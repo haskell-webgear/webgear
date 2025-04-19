@@ -1,4 +1,4 @@
-resolver: nightly-2024-10-21
+resolver: nightly-2025-04-18
 
 packages:
   - ./webgear-core
@@ -7,3 +7,10 @@ packages:
   - ./webgear-swagger-ui
   - ./webgear-openapi
   - ./webgear-benchmarks
+
+allow-newer: true
+
+extra-deps:
+  - insert-ordered-containers-0.2.6@sha256:8f46527a04f92e1a1b11fb45633f85d2dd73c2ab7b5de13ccf504c8f98a079f1,2358
+  - openapi3-3.2.4@sha256:780f50a7538a02a83ea21db26f5c69578800c5f6895baecb98013b69b0d0f1f8,4943
+  - swagger2-2.8.9@sha256:8434f71bf8017c1421d85ee8021e3f56f45f15c8ba50fff55f7329ace4cb0076,4518

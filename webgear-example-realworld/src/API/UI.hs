@@ -2,7 +2,6 @@ module API.UI where
 
 import API.Common (App)
 import Network.Wai.Application.Static (StaticSettings (..), defaultWebAppSettings)
-import Relude
 import WaiAppStatic.Types (unsafeToPiece)
 import WebGear.Server
 

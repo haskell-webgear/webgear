@@ -8,16 +8,22 @@ module Model.Comment (
   Model.Comment.delete,
 ) where
 
+import Control.Monad (join)
+import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (FromJSON (..), ToJSON (..), genericParseJSON, genericToJSON)
+import Data.Coerce (coerce)
+import Data.Int (Int64)
+import Data.Maybe (catMaybes, listToMaybe)
 import Data.OpenApi (ToSchema (..), genericDeclareNamedSchema)
+import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (getCurrentTime)
 import Database.SQLite.Simple (NamedParam (..), Only (..), Query)
 import Database.SQLite.Simple.QQ (sql)
+import GHC.Generics (Generic)
 import Model.Common
 import Model.Entities
 import qualified Model.Profile as Profile
-import Relude hiding (on)
 
 newtype CreateCommentPayload = CreateCommentPayload
   {commentBody :: Text}

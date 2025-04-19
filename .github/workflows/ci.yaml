@@ -21,22 +21,21 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
+          - 9.12.1
           - 9.10.1
           - 9.8.2
           - 9.6.6
           - 9.4.8
-          - 9.2.8
-          - 9.0.2
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v30
+        uses: cachix/install-nix-action@v31
 
       - name: Set up Cachix
-        uses: cachix/cachix-action@v15
+        uses: cachix/cachix-action@v16
         with:
           name: haskell-webgear
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
@@ -53,7 +52,7 @@ jobs:
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
       - name: Build Examples
-        if: matrix.ghc == '9.10.1'
+        if: matrix.ghc == '9.12.1'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link           \
@@ -80,7 +79,7 @@ jobs:
       - uses: haskell-actions/setup@v2
         name: Setup Haskell Build Environment
         with:
-          ghc-version: 9.8.2
+          ghc-version: 9.10.1
           enable-stack: true
 
       - uses: actions/cache@v4
