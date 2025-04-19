@@ -9,17 +9,18 @@ import qualified API.Profile as Profile
 import qualified API.Tag as Tag
 import qualified API.UI as UI
 import qualified API.User as User
-import Control.Category ((.))
+import Control.Monad.Reader (runReaderT)
 import qualified Crypto.JWT as JWT
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as LBS
+import Data.Int (Int64)
 import Data.Pool (Pool)
+import Data.Text (Text)
 import Database.SQLite.Simple (Connection)
 import Model.Common (withDBConnectionPool)
 import Network.HTTP.Types (StdMethod (..))
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
-import Relude hiding ((.))
 import WebGear.OpenApi (toOpenApi)
 import WebGear.Server
 import WebGear.Swagger.UI (swaggerUI)
@@ -38,7 +39,7 @@ application pool jwk = toApplication $ transform appToIO allRoutes
         <+> uiRoutes
 
     appRoutes =
-      [route| POST    /api/users/login                                 |] (User.login jwk)
+      [route|       POST    /api/users/login                                 |] (User.login jwk)
         <+> [route| POST    /api/users                                       |] (User.create jwk)
         <+> [route| GET     /api/user                                        |] (User.current jwk)
         <+> [route| PUT     /api/user                                        |] (User.update jwk)
@@ -67,5 +68,5 @@ application pool jwk = toApplication $ transform appToIO allRoutes
 main :: IO ()
 main = withDBConnectionPool $ \pool -> do
   jwkBS <- LBS.readFile "realworld.jwk"
-  let jwk = either (error . toText) id $ eitherDecode jwkBS
+  let jwk = either error id $ eitherDecode jwkBS
   Warp.run 3000 (application pool jwk)

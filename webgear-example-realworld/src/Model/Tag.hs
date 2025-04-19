@@ -4,10 +4,12 @@ module Model.Tag (
   list,
 ) where
 
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (ask)
+import Data.Text (Text)
 import Database.SQLite.Simple (Query, fromOnly, queryNamed)
 import Database.SQLite.Simple.QQ (sql)
 import Model.Common (DBAction)
-import Relude hiding (on)
 
 list :: DBAction [Text]
 list = do

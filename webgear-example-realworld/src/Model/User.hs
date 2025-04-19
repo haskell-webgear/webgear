@@ -12,6 +12,7 @@ module Model.User (
 ) where
 
 import Control.Monad.Except (throwError)
+import Control.Monad.Trans (lift)
 import qualified Crypto.Hash as Hash
 import qualified Crypto.JWT as JWT
 import Data.Aeson (
@@ -25,12 +26,20 @@ import Data.Aeson (
   genericToJSON,
   (.=),
  )
+import qualified Data.ByteString as BS
+import Data.Coerce (coerce)
+import Data.Int (Int64)
+import Data.List (intercalate)
+import Data.Maybe (catMaybes)
 import Data.OpenApi (ToSchema (..), genericDeclareNamedSchema)
+import Data.String (fromString)
+import Data.Text (Text, pack)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Database.SQLite.Simple (NamedParam (..), Only (..), Query)
 import Database.SQLite.Simple.QQ (sql)
+import GHC.Generics (Generic)
 import Model.Common
 import Model.Entities
-import Relude
 
 data CreateUserPayload = CreateUserPayload
   { userUsername :: !Text
@@ -93,12 +102,12 @@ create jwk CreateUserPayload{userUsername, userEmail, userPassword} = do
     x -> fail $ "Expected a single key, but got " ++ show x
 
 hashUserPassword :: Text -> Text
-hashUserPassword = show . Hash.hashWith Hash.SHA256 . (encodeUtf8 :: Text -> ByteString)
+hashUserPassword = pack . show . Hash.hashWith Hash.SHA256 . encodeUtf8
 
 generateJWT :: JWT.JWK -> UserId -> DBAction Text
 generateJWT jwk (UserId uid) = do
-  Right jwt <- mkJWT jwk ["sub" .= show @Text uid]
-  pure $ decodeUtf8 $ toStrict $ JWT.encodeCompact jwt
+  Right jwt <- mkJWT jwk ["sub" .= show uid]
+  pure $ decodeUtf8 $ BS.toStrict $ JWT.encodeCompact jwt
 
 mkJWT ::
   JWT.JWK ->

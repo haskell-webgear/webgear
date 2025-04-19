@@ -21,6 +21,8 @@ module Model.Article (
 
 import Control.Exception.Safe (catch, throw)
 import Control.Lens ((?~))
+import Control.Monad (forM_)
+import Control.Monad.IO.Class (MonadIO (..))
 import Data.Aeson (
   FromJSON (..),
   ToJSON (..),
@@ -29,6 +31,11 @@ import Data.Aeson (
   genericToJSON,
  )
 import Data.Char (isSpace)
+import Data.Coerce (coerce)
+import Data.Function ((&))
+import Data.Int (Int64)
+import Data.List (intercalate)
+import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
 import Data.OpenApi (
   ToSchema (..),
   default_,
@@ -38,9 +45,13 @@ import Data.OpenApi (
   paramSchemaToSchema,
  )
 import Data.OpenApi.Internal.Schema (plain)
+import Data.Proxy (Proxy (..))
+import Data.String (fromString)
+import Data.Text (Text, pack)
 import qualified Data.Text as Text
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (getCurrentTime)
+import Data.Word (Word64)
 import Database.SQLite.Simple (
   Error (..),
   NamedParam (..),
@@ -49,11 +60,11 @@ import Database.SQLite.Simple (
   SQLError (..),
  )
 import Database.SQLite.Simple.QQ (sql)
+import GHC.Generics (Generic)
 import Model.Common
 import Model.Entities
 import qualified Model.Profile as Profile
 import qualified Network.URI.Encode as URIEncode
-import Relude hiding (on)
 import System.Random (randomIO)
 import Web.HttpApiData (FromHttpApiData)
 
@@ -134,13 +145,13 @@ create userId CreateArticlePayload{..} = do
 slugify :: (MonadIO m) => Text -> m Text
 slugify s = liftIO $ do
   num <- randomIO
-  let suffix = "-" <> show (num :: Word64)
-  pure
-    $ (<> suffix)
-    $ Text.take 255
-    $ Text.filter URIEncode.isAllowed
-    $ Text.map (\c -> if isSpace c then '-' else c)
-    $ Text.toLower s
+  let suffix = pack $ "-" <> show (num :: Word64)
+  pure $
+    (<> suffix) $
+      Text.take 255 $
+        Text.filter URIEncode.isAllowed $
+          Text.map (\c -> if isSpace c then '-' else c) $
+            Text.toLower s
 
 getArticleRecord :: Maybe UserId -> ArticleId -> DBAction (Maybe ArticleRecord)
 getArticleRecord maybeUserId articleId = do
@@ -271,14 +282,11 @@ newtype Limit = Limit {getLimit :: Integer}
 
 instance ToSchema Limit where
   declareNamedSchema _ =
-    plain
-      $ paramSchemaToSchema (Proxy @Integer)
-      & minimum_
-      ?~ 0
-        & maximum_
-      ?~ 1000
-        & default_
-      ?~ Number 20
+    plain $
+      paramSchemaToSchema (Proxy @Integer)
+        & (minimum_ ?~ 0)
+        & (maximum_ ?~ 1000)
+        & (default_ ?~ Number 20)
 
 newtype Offset = Offset {getOffset :: Integer}
   deriving stock (Eq, Ord, Show, Read)
@@ -286,14 +294,11 @@ newtype Offset = Offset {getOffset :: Integer}
 
 instance ToSchema Offset where
   declareNamedSchema _ =
-    plain
-      $ paramSchemaToSchema (Proxy @Integer)
-      & minimum_
-      ?~ 0
-        & maximum_
-      ?~ 1000
-        & default_
-      ?~ Number 0
+    plain $
+      paramSchemaToSchema (Proxy @Integer)
+        & (minimum_ ?~ 0)
+        & (maximum_ ?~ 1000)
+        & (default_ ?~ Number 0)
 
 data ArticleListInput = ArticleListInput
   { maybeCurrentUserId :: !(Maybe UserId)

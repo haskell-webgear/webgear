@@ -2,6 +2,8 @@
 
 module Model.Entities where
 
+import Data.Int (Int64)
+import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.SQLite.Simple (Connection, Query, execute_)
 import Database.SQLite.Simple.FromField (FromField)
@@ -9,7 +11,7 @@ import Database.SQLite.Simple.FromRow (FromRow)
 import Database.SQLite.Simple.QQ (sql)
 import Database.SQLite.Simple.ToField (ToField)
 import Database.SQLite.Simple.ToRow (ToRow)
-import Relude
+import GHC.Generics (Generic)
 
 data User = User
   { userId :: !UserId

@@ -22,7 +22,7 @@ executable realworld
   build-depends:      aeson
                     , base
                     , bytestring
-                    , cryptonite
+                    , crypton
                     , http-api-data
                     , http-types
                     , jose
@@ -31,7 +31,6 @@ executable realworld
                     , mtl
                     , openapi3
                     , random
-                    , relude
                     , resource-pool
                     , safe-exceptions
                     , sqlite-simple
@@ -58,7 +57,6 @@ executable realworld
                       LambdaCase
                       MultiParamTypeClasses
                       NamedFieldPuns
-                      NoImplicitPrelude
                       OverloadedStrings
                       QuasiQuotes
                       RecordWildCards

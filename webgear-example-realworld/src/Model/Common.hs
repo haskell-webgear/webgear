@@ -1,5 +1,7 @@
 module Model.Common where
 
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (MonadReader (..), ReaderT)
 import qualified Data.Aeson as Aeson
 import Data.Char (isLower, isUpper, toLower)
 import qualified Data.OpenApi as OpenApi
@@ -15,7 +17,6 @@ import Database.SQLite.Simple (
   queryNamed,
  )
 import Model.Entities (migrateAll)
-import Relude
 
 -- All DB operations run in this monad
 type DBAction a = ReaderT Connection IO a

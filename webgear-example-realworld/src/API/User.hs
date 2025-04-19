@@ -6,13 +6,11 @@ module API.User (
 ) where
 
 import API.Common
-import Control.Category ((.))
 import Control.Exception.Safe (try)
 import qualified Crypto.JWT as JWT
 import qualified Database.SQLite.Simple as DB
 import qualified Model.User as Model
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding (Set, (.))
 import WebGear.Server
 
 type CreateUserRequest = Wrapped "user" Model.CreateUserPayload
@@ -26,17 +24,14 @@ create ::
   JWT.JWK ->
   RequestHandler h ts
 create jwk =
-  withDoc "Create new user" "Create a new user in the store"
-    $ jsonRequestBody @CreateUserRequest badRequestBody
-    $ proc request -> do
-      result <- createInDB -< request
-      case result of
-        Left e -> handleDBError -< e
-        Right user ->
-          setDescription okDescription
-            . respondJsonA HTTP.ok200
-            -<
-              Wrapped user :: UserResponse
+  withDoc "Create new user" "Create a new user in the store" $
+    jsonRequestBody @CreateUserRequest badRequestBody $
+      proc request -> do
+        result <- createInDB -< request
+        case result of
+          Left e -> handleDBError -< e
+          Right user ->
+            setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped user :: UserResponse
   where
     createInDB = arrM $ \request -> do
       let userPayload = pick @(JSONBody CreateUserRequest) $ from request
@@ -48,11 +43,8 @@ handleDBError ::
 handleDBError = proc e ->
   if DB.sqlError e == DB.ErrorConstraint
     then
-      setDescription (dupDescription "user account")
-        . respondJsonA HTTP.badRequest400
-        -<
-          "Another user account exists with these values" :: ErrorResponse
-    else respondJsonA HTTP.internalServerError500 -< show @ErrorResponse e
+      setDescription (dupDescription "user account") <<< respondJsonA HTTP.badRequest400 -< "Another user account exists with these values" :: ErrorResponse
+    else respondJsonA HTTP.internalServerError500 -< showError e
 
 --------------------------------------------------------------------------------
 
@@ -66,21 +58,15 @@ login ::
   JWT.JWK ->
   RequestHandler h ts
 login jwk =
-  withDoc "Authenticate a user" "Authenticate a user and return their record"
-    $ jsonRequestBody @LoginUserRequest badRequestBody
-    $ proc request -> do
-      result <- checkCreds -< request
-      case result of
-        Nothing ->
-          setDescription resp403Description
-            . respondJsonA HTTP.forbidden403
-            -<
-              "Invalid credentials" :: ErrorResponse
-        Just user ->
-          setDescription okDescription
-            . respondJsonA HTTP.ok200
-            -<
-              Wrapped user :: UserResponse
+  withDoc "Authenticate a user" "Authenticate a user and return their record" $
+    jsonRequestBody @LoginUserRequest badRequestBody $
+      proc request -> do
+        result <- checkCreds -< request
+        case result of
+          Nothing ->
+            setDescription resp403Description <<< respondJsonA HTTP.forbidden403 -< "Invalid credentials" :: ErrorResponse
+          Just user ->
+            setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped user :: UserResponse
   where
     checkCreds = arrM $ \request -> do
       let loginPayload = pick @(JSONBody LoginUserRequest) $ from request
@@ -96,17 +82,14 @@ current ::
   JWT.JWK ->
   RequestHandler h ts
 current jwk =
-  withDoc "Get current user" "Returns the record of authenticated user"
-    $ requiredTokenAuth jwk
-    $ proc request -> do
-      result <- getAuthUser -< request
-      case result of
-        Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
-        Just user ->
-          setDescription okDescription
-            . respondJsonA HTTP.ok200
-            -<
-              Wrapped user :: UserResponse
+  withDoc "Get current user" "Returns the record of authenticated user" $
+    requiredTokenAuth jwk $
+      proc request -> do
+        result <- getAuthUser -< request
+        case result of
+          Nothing -> unwitnessA <<< setDescription (resp404Description "User") <<< notFound404 -< ()
+          Just user ->
+            setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped user :: UserResponse
   where
     getAuthUser = arrM $ \request -> do
       let userId = pick @RequiredAuth $ from request
@@ -124,19 +107,16 @@ update ::
   JWT.JWK ->
   RequestHandler h ts
 update jwk =
-  withDoc "Update current user" "Update the authenticated user"
-    $ requiredTokenAuth jwk
-    $ jsonRequestBody @UpdateUserRequest badRequestBody
-    $ proc request -> do
-      result <- updateUser -< request
-      case result of
-        Left e -> handleDBError -< e
-        Right Nothing -> unwitnessA . setDescription (resp404Description "User") . notFound404 -< ()
-        Right (Just user) ->
-          setDescription okDescription
-            . respondJsonA HTTP.ok200
-            -<
-              Wrapped user :: UserResponse
+  withDoc "Update current user" "Update the authenticated user" $
+    requiredTokenAuth jwk $
+      jsonRequestBody @UpdateUserRequest badRequestBody $
+        proc request -> do
+          result <- updateUser -< request
+          case result of
+            Left e -> handleDBError -< e
+            Right Nothing -> unwitnessA <<< setDescription (resp404Description "User") <<< notFound404 -< ()
+            Right (Just user) ->
+              setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped user :: UserResponse
   where
     updateUser = arrM $ \request -> do
       let userId = pick @RequiredAuth $ from request

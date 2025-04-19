@@ -3,10 +3,9 @@ module API.Tag (
 ) where
 
 import API.Common
-import Control.Category ((.))
+import Data.Text (Text)
 import qualified Model.Tag as Model
 import qualified Network.HTTP.Types as HTTP
-import Relude hiding (Set, (.))
 import WebGear.Server
 
 type TagsResponse = Wrapped "tags" [Text]
@@ -17,9 +16,9 @@ list ::
   ) =>
   RequestHandler h ts
 list =
-  withDoc "Get all tags" ""
-    $ proc _request -> do
+  withDoc "Get all tags" "" $
+    proc _request -> do
       tags <- fetchTags -< ()
-      setDescription okDescription . respondJsonA HTTP.ok200 -< Wrapped tags :: TagsResponse
+      setDescription okDescription <<< respondJsonA HTTP.ok200 -< Wrapped tags :: TagsResponse
   where
     fetchTags = arrM $ const $ runDBAction Model.list

@@ -14,7 +14,6 @@
 module Main where
 
 import Control.Applicative (Alternative (..))
-import Control.Category ((.))
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.Reader (MonadReader (..), ReaderT (..))
@@ -24,6 +23,7 @@ import qualified Data.HashMap.Strict as HM
 import Data.Hashable (Hashable)
 import Data.IORef (IORef, modifyIORef, newIORef, readIORef)
 import Data.Maybe (isJust)
+import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import GHC.Generics (Generic)
 import qualified Network.HTTP.Types as HTTP
@@ -31,7 +31,6 @@ import Network.Wai (Application)
 import qualified Network.Wai.Handler.Warp as Warp
 import Web.HttpApiData (FromHttpApiData)
 import WebGear.Server
-import Prelude hiding ((.))
 
 --------------------------------------------------------------------------------
 -- An example program that uses WebGear to build a simple HTTP API to
@@ -149,7 +148,7 @@ getUser = method HTTP.GET $
     let uid = pick @IntUserId $ from request
     maybeUser <- fetchUser -< uid
     case maybeUser of
-      Nothing -> unwitnessA . notFound404 -< ()
+      Nothing -> unwitnessA <<< notFound404 -< ()
       Just user -> respondA HTTP.ok200 JSON -< user
   where
     fetchUser :: h UserId (Maybe User)
@@ -194,8 +193,8 @@ deleteUser = method HTTP.DELETE $
     let uid = pick @IntUserId $ from request
     removed <- doRemove -< (request, uid)
     if removed
-      then unwitnessA . noContent204 -< ()
-      else unwitnessA . notFound404 -< ()
+      then unwitnessA <<< noContent204 -< ()
+      else unwitnessA <<< notFound404 -< ()
   where
     doRemove = arrM $ \(request, uid) -> do
       store <- ask

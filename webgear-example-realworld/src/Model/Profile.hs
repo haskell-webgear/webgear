@@ -10,7 +10,10 @@ module Model.Profile (
 
 import Control.Exception.Safe (catch, throw)
 import Data.Aeson (ToJSON (..), genericToJSON)
+import Data.Functor ((<&>))
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.OpenApi (ToSchema (..), genericDeclareNamedSchema)
+import Data.Text (Text)
 import Database.SQLite.Simple (
   Error (ErrorConstraint),
   NamedParam (..),
@@ -19,9 +22,9 @@ import Database.SQLite.Simple (
  )
 import Database.SQLite.Simple.QQ (sql)
 import Database.SQLite.Simple.Types (Only (..))
+import GHC.Generics (Generic)
 import Model.Common
 import Model.Entities
-import Relude
 
 data Profile = Profile
   { userUsername :: !Text
