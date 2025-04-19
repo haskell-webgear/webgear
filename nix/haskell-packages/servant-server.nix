@@ -10,6 +10,8 @@ mkDerivation {
   pname = "servant-server";
   version = "0.20.2";
   sha256 = "1ecf500dcc045f2232294313f0a7faaabfb3150d04ed0103219cc8f5feb70f3b";
+  revision = "1";
+  editedCabalFile = "0qjl1yrr0l7kynrndv8qmpzl0jz9nzb7c4v9r7kxq05nnb7xpqbz";
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [

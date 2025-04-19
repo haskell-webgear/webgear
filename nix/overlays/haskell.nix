@@ -6,8 +6,8 @@ let
   hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["9101" "982" "966" "948" "928" "902"];
-  defaultGHCVersion = "9101";
+  ghcVersions = ["9121" "9101" "982" "966" "948"];
+  defaultGHCVersion = "9121";
 
   localHsPackages = {
     # Libraries
@@ -34,6 +34,28 @@ let
 
   haskell = prev.haskell // {
     packages = prev.haskell.packages // {
+      ghc9121 = prev.haskell.packages.ghc9121.override {
+        overrides = hfinal: hprev:
+          (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
+            # Need specific versions for benchmarking
+            scotty = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/scotty.nix {});
+            servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
+            servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
+
+            # For ghc-9.12, base-4.21
+            insert-ordered-containers = hsLib.doJailbreak hprev.insert-ordered-containers;
+            openapi3 = hsLib.doJailbreak hprev.openapi3;
+            statistics = hsLib.doJailbreak hprev.statistics;
+            swagger2 = hsLib.doJailbreak hprev.swagger2;
+
+            # https://gitlab.haskell.org/ghc/ghc/-/issues/25653
+            binary-instances = hsLib.dontCheck hprev.binary-instances;
+
+            # Test failure: https://github.com/kazu-yamamoto/crypton/issues/40
+            crypton = hsLib.dontCheck hprev.crypton;
+          };
+      };
+
       ghc9101 = prev.haskell.packages.ghc9101.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
