@@ -3,7 +3,28 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/topics/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: insert-ordered-containers-0.2.6@sha256:8f46527a04f92e1a1b11fb45633f85d2dd73c2ab7b5de13ccf504c8f98a079f1,2358
+    pantry-tree:
+      sha256: d0124c42db056e67a9bb7b198570c39d1d1bd574ebc93be1fbf214504b12ba97
+      size: 542
+  original:
+    hackage: insert-ordered-containers-0.2.6@sha256:8f46527a04f92e1a1b11fb45633f85d2dd73c2ab7b5de13ccf504c8f98a079f1,2358
+- completed:
+    hackage: openapi3-3.2.4@sha256:780f50a7538a02a83ea21db26f5c69578800c5f6895baecb98013b69b0d0f1f8,4943
+    pantry-tree:
+      sha256: 6bb5197e8825b35ee83642f1065849ad3a4301287c48e67a9d6135cba885ee2b
+      size: 2263
+  original:
+    hackage: openapi3-3.2.4@sha256:780f50a7538a02a83ea21db26f5c69578800c5f6895baecb98013b69b0d0f1f8,4943
+- completed:
+    hackage: swagger2-2.8.9@sha256:8434f71bf8017c1421d85ee8021e3f56f45f15c8ba50fff55f7329ace4cb0076,4518
+    pantry-tree:
+      sha256: 730792e758e42b95ee322bcb0d67c53eaba89fdc7f68184157ef5cb755e1aa1f
+      size: 2192
+  original:
+    hackage: swagger2-2.8.9@sha256:8434f71bf8017c1421d85ee8021e3f56f45f15c8ba50fff55f7329ace4cb0076,4518
 snapshots:
 - completed:
     sha256: 906572cba5fc56ab1eb3f9884acf5cbf22faefd67aa6abef3fe0dce992b964c8
