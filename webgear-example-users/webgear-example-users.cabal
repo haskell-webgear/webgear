@@ -32,13 +32,13 @@ executable users
                     , wai
                     , warp
                     , webgear-server
-  ghc-options:        -threaded
-                      -rtsopts
-                      -with-rtsopts=-N
-                      -Wall
-                      -Wno-unticked-promoted-constructors
+  ghc-options:        -Wall
                       -Wincomplete-record-updates
                       -Wincomplete-uni-patterns
+                      -Wno-unticked-promoted-constructors
                       -Wredundant-constraints
+                      -rtsopts
+                      -threaded
+                      -with-rtsopts=-N
   main-is:            Main.hs
   hs-source-dirs:     src

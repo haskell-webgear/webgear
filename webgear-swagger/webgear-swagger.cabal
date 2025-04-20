@@ -57,8 +57,8 @@ library
                       LambdaCase
                       MultiParamTypeClasses
                       NamedFieldPuns
-                      OverloadedStrings
                       OverloadedLists
+                      OverloadedStrings
                       PolyKinds
                       RankNTypes
                       RecordWildCards
@@ -69,23 +69,23 @@ library
                       TypeFamilies
                       TypeOperators
   build-depends:      arrows ==0.4.*
-                    , base >=4.13.0.0 && <4.22
+                    , base >=4.17.0.0 && <4.22
                     , http-types ==0.12.*
                     , insert-ordered-containers ==0.2.*
-                    , lens >=4.18.1 && <5.4
+                    , lens >=5.2 && <5.4
                     , mtl >=2.2 && <2.4
-                    , swagger2 >=2.6 && <2.9
-                    , text >=1.2.0.0 && <2.2
+                    , swagger2 >=2.8 && <2.9
+                    , text >=2.0 && <2.2
                     , webgear-core ^>=1.3.1
   ghc-options:        -Wall
-                      -Wno-unticked-promoted-constructors
                       -Wcompat
                       -Widentities
                       -Wincomplete-record-updates
                       -Wincomplete-uni-patterns
+                      -Wmissing-deriving-strategies
                       -Wmissing-fields
                       -Wmissing-home-modules
-                      -Wmissing-deriving-strategies
+                      -Wno-unticked-promoted-constructors
                       -Wpartial-fields
                       -Wredundant-constraints
                       -Wunused-packages
