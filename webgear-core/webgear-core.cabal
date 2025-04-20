@@ -24,7 +24,7 @@ source-repository head
   location:  https://github.com/haskell-webgear/webgear
 
 
-common webgear-common
+library
   default-language:   Haskell2010
   default-extensions: Arrows
                       ConstraintKinds
@@ -42,8 +42,8 @@ common webgear-common
                       LambdaCase
                       MultiParamTypeClasses
                       NamedFieldPuns
-                      OverloadedStrings
                       OverloadedLists
+                      OverloadedStrings
                       PolyKinds
                       RankNTypes
                       RecordWildCards
@@ -53,39 +53,36 @@ common webgear-common
                       TypeApplications
                       TypeFamilies
                       TypeOperators
-  build-depends:      base >=4.13.0.0 && <4.22
+  build-depends:      arrows ==0.4.*
+                    , base >=4.17.0.0 && <4.22
                     , binary >= 0.8.0.0 && <0.9
-                    , bytestring >=0.10.10.1 && <0.13
+                    , bytestring >=0.11.0.0 && <0.13
                     , case-insensitive ==1.2.*
                     , cookie >=0.4.5 && <0.6
-                    , http-api-data >=0.4.2 && <0.7
+                    , http-api-data >=0.5 && <0.7
                     , http-media ==0.8.*
                     , http-types ==0.12.*
+                    , jose >=0.10 && <0.12
                     , network >=3.1.0 && <3.3
                     , tagged ==0.8.*
-                    , template-haskell >=2.15.0.0 && <2.24
-                    , text >=1.2.0.0 && <2.2
+                    , template-haskell >=2.19.0.0 && <2.24
+                    , text >=2.0 && <2.2
                     , wai ==3.2.*
                     , wai-app-static ==3.1.*
                     , wai-extra ==3.1.*
   ghc-options:        -Wall
-                      -Wno-unticked-promoted-constructors
                       -Wcompat
                       -Widentities
                       -Wincomplete-record-updates
                       -Wincomplete-uni-patterns
+                      -Wmissing-deriving-strategies
                       -Wmissing-fields
                       -Wmissing-home-modules
-                      -Wmissing-deriving-strategies
+                      -Wno-unticked-promoted-constructors
                       -Wpartial-fields
                       -Wredundant-constraints
+                      -Wunused-packages
                       -fshow-warning-groups
-
-  if impl(ghc >= 8.10)
-    ghc-options:      -Wunused-packages
-
-library
-  import:             webgear-common
   exposed-modules:    WebGear.Core
                     , WebGear.Core.Modifiers
                     , WebGear.Core.Trait
@@ -106,5 +103,3 @@ library
                     , WebGear.Core.Trait.Status
                     , WebGear.Core.Handler.Static
   hs-source-dirs:     src
-  build-depends:      arrows ==0.4.*
-                    , jose >=0.8.3.1 && <0.12
