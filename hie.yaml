@@ -34,7 +34,7 @@ cradle:
       config:
         cradle:
           cabal:
-            component: "webgear-benchmarks:exe:users"
+            component: "webgear-benchmarks:exe:benchmarks"
     - path: "./webgear-example-users/src"
       config:
         cradle:
