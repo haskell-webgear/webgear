@@ -17,18 +17,14 @@ source-repository head
   type:      git
   location:  https://github.com/haskell-webgear/webgear-benchmarks
 
-executable users
+executable benchmarks
   default-language:   Haskell2010
-  build-depends:      aeson >=2.1 && <2.3
-                    , base >=4.17.0.0 && <4.22
+  build-depends:      base >=4.17.0.0 && <4.22
                     , bytestring >=0.11 && <0.13
                     , criterion >=1.6.1.0 && <1.7
-                    , hashable >=1.4 && <1.6
                     , http-types ==0.12.*
                     , mtl >=2.2.2 && <2.4
                     , text >=2.0 && <2.2
-                    , time >=1.12 && <1.15
-                    , unordered-containers ==0.2.*
                     , servant ==0.20.2
                     , servant-server ==0.20.2
                     , scotty ==0.22
@@ -43,18 +39,18 @@ executable users
                       FlexibleContexts
                       GeneralizedNewtypeDeriving
                       LambdaCase
+                      NamedFieldPuns
                       OverloadedStrings
                       QuasiQuotes
                       RankNTypes
                       ScopedTypeVariables
                       TypeApplications
                       TypeOperators
-  hs-source-dirs:     src/users
+  hs-source-dirs:     src
   main-is:            Main.hs
-  other-modules:      Model
-                    , WebGear
+  other-modules:      Scotty
                     , Servant
-                    , Scotty
+                    , WebGear
   ghc-options:        -O2
                       -Wall
                       -Wcompat
