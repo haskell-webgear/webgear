@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                webgear-server
-version:             1.3.1
+version:             1.4.0
 synopsis:            Composable, type-safe library to build HTTP API servers
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -10,7 +10,7 @@ homepage:            https://github.com/haskell-webgear/webgear#readme
 bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2020-2024 Raghu Kaippully
+copyright:           2020-2025 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 category:            Web
@@ -59,7 +59,7 @@ common webgear-common
                     , http-types ==0.12.*
                     , text >=2.0 && <2.2
                     , wai ==3.2.*
-                    , webgear-core ^>=1.3.1
+                    , webgear-core ^>=1.4.0
   ghc-options:        -Wall
                       -Wcompat
                       -Widentities
