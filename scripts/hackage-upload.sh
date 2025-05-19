@@ -26,6 +26,8 @@ upload_package() {
          --request PUT \
          --header "Accept: text/plain" \
          --header "Authorization: X-ApiKey $HACKAGE_API_KEY" \
+         --header "Content-Type: application/x-tar" \
+         --header "Content-Encoding: gzip" \
          --data-binary "@$doc" \
          https://hackage.haskell.org/package/$1/docs
 }
