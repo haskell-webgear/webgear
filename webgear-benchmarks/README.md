@@ -18,114 +18,124 @@ $ cabal run webgear-benchmarks:benchmarks -- --output criterion-report.html
 Configuration is affected by the following files:
 - cabal.project
 benchmarking hello-world/Scotty
-time                 65.79 μs   (65.47 μs .. 66.14 μs)
+time                 66.97 μs   (66.73 μs .. 67.11 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 65.93 μs   (65.77 μs .. 66.12 μs)
-std dev              584.2 ns   (433.9 ns .. 831.1 ns)
+mean                 66.65 μs   (66.49 μs .. 66.88 μs)
+std dev              636.6 ns   (501.5 ns .. 903.5 ns)
 
 benchmarking hello-world/Servant
-time                 56.86 μs   (56.70 μs .. 57.09 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 57.49 μs   (57.33 μs .. 57.67 μs)
-std dev              587.2 ns   (505.8 ns .. 754.6 ns)
+time                 58.90 μs   (58.41 μs .. 59.65 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 59.09 μs   (58.73 μs .. 59.75 μs)
+std dev              1.568 μs   (1.039 μs .. 2.455 μs)
+variance introduced by outliers: 25% (moderately inflated)
 
 benchmarking hello-world/WebGear
-time                 11.29 μs   (11.27 μs .. 11.31 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 11.25 μs   (11.24 μs .. 11.26 μs)
-std dev              27.80 ns   (21.30 ns .. 37.21 ns)
+time                 11.78 μs   (11.65 μs .. 11.93 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 11.88 μs   (11.79 μs .. 11.97 μs)
+std dev              311.3 ns   (221.9 ns .. 464.1 ns)
+variance introduced by outliers: 29% (moderately inflated)
 
 benchmarking path-variable/Scotty
-time                 194.7 μs   (194.3 μs .. 194.9 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 193.8 μs   (193.5 μs .. 194.0 μs)
-std dev              862.6 ns   (758.3 ns .. 1.040 μs)
+time                 198.7 μs   (197.0 μs .. 201.3 μs)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 200.3 μs   (198.8 μs .. 202.3 μs)
+std dev              6.070 μs   (4.618 μs .. 8.510 μs)
+variance introduced by outliers: 26% (moderately inflated)
 
 benchmarking path-variable/Servant
-time                 128.5 μs   (128.3 μs .. 128.6 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 128.0 μs   (127.9 μs .. 128.2 μs)
-std dev              473.4 ns   (421.2 ns .. 542.0 ns)
+time                 133.9 μs   (132.9 μs .. 134.9 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 132.9 μs   (132.0 μs .. 134.3 μs)
+std dev              3.750 μs   (3.073 μs .. 5.138 μs)
+variance introduced by outliers: 25% (moderately inflated)
 
 benchmarking path-variable/WebGear
-time                 48.30 μs   (48.24 μs .. 48.35 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 48.02 μs   (47.93 μs .. 48.09 μs)
-std dev              259.9 ns   (220.2 ns .. 358.1 ns)
+time                 48.77 μs   (48.33 μs .. 49.18 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 47.74 μs   (47.40 μs .. 48.26 μs)
+std dev              1.391 μs   (1.110 μs .. 1.826 μs)
+variance introduced by outliers: 29% (moderately inflated)
 
 benchmarking query-param/Scotty
-time                 202.2 μs   (201.8 μs .. 202.7 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 201.0 μs   (200.6 μs .. 201.4 μs)
-std dev              1.261 μs   (1.103 μs .. 1.465 μs)
+time                 209.2 μs   (206.7 μs .. 211.5 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 207.2 μs   (206.2 μs .. 208.8 μs)
+std dev              4.390 μs   (3.255 μs .. 6.074 μs)
+variance introduced by outliers: 15% (moderately inflated)
 
 benchmarking query-param/Servant
-time                 134.0 μs   (133.8 μs .. 134.1 μs)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 133.2 μs   (133.0 μs .. 133.5 μs)
-std dev              758.3 ns   (680.9 ns .. 866.8 ns)
+time                 138.7 μs   (137.2 μs .. 140.0 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 137.0 μs   (136.3 μs .. 137.9 μs)
+std dev              2.781 μs   (2.111 μs .. 4.190 μs)
+variance introduced by outliers: 15% (moderately inflated)
 
 benchmarking query-param/WebGear
-time                 98.46 μs   (98.18 μs .. 98.74 μs)
+time                 94.20 μs   (93.90 μs .. 94.47 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 98.17 μs   (98.01 μs .. 98.38 μs)
-std dev              614.3 ns   (459.1 ns .. 804.3 ns)
+mean                 94.46 μs   (93.96 μs .. 95.60 μs)
+std dev              2.306 μs   (973.1 ns .. 3.901 μs)
+variance introduced by outliers: 20% (moderately inflated)
 
 benchmarking header/Scotty
-time                 99.17 μs   (98.83 μs .. 99.42 μs)
+time                 98.79 μs   (98.66 μs .. 98.91 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 98.88 μs   (98.71 μs .. 99.08 μs)
-std dev              620.4 ns   (523.5 ns .. 862.9 ns)
+mean                 99.09 μs   (98.90 μs .. 99.32 μs)
+std dev              717.2 ns   (572.9 ns .. 922.6 ns)
 
 benchmarking header/Servant
-time                 78.02 μs   (77.85 μs .. 78.21 μs)
+time                 77.22 μs   (76.84 μs .. 77.68 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 77.92 μs   (77.79 μs .. 78.08 μs)
-std dev              462.0 ns   (348.7 ns .. 601.4 ns)
+mean                 77.07 μs   (76.85 μs .. 77.28 μs)
+std dev              738.9 ns   (642.1 ns .. 917.5 ns)
 
 benchmarking header/WebGear
-time                 42.61 μs   (42.52 μs .. 42.69 μs)
+time                 43.20 μs   (43.01 μs .. 43.47 μs)
                      1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 42.77 μs   (42.66 μs .. 42.91 μs)
-std dev              407.4 ns   (321.7 ns .. 562.2 ns)
+mean                 43.60 μs   (43.48 μs .. 43.70 μs)
+std dev              389.5 ns   (291.7 ns .. 482.8 ns)
 
 benchmarking upload/Scotty
-time                 163.4 μs   (160.9 μs .. 167.0 μs)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 161.5 μs   (160.9 μs .. 162.8 μs)
-std dev              2.920 μs   (1.724 μs .. 4.782 μs)
-variance introduced by outliers: 11% (moderately inflated)
+time                 167.7 μs   (165.5 μs .. 169.2 μs)
+                     0.999 R²   (0.998 R² .. 0.999 R²)
+mean                 163.5 μs   (162.0 μs .. 165.3 μs)
+std dev              5.658 μs   (4.888 μs .. 7.063 μs)
+variance introduced by outliers: 32% (moderately inflated)
 
 benchmarking upload/Servant
-time                 170.1 μs   (166.5 μs .. 174.7 μs)
-                     0.996 R²   (0.993 R² .. 0.998 R²)
-mean                 176.2 μs   (173.8 μs .. 179.1 μs)
-std dev              9.143 μs   (7.624 μs .. 11.40 μs)
-variance introduced by outliers: 51% (severely inflated)
+time                 170.7 μs   (165.3 μs .. 174.8 μs)
+                     0.997 R²   (0.996 R² .. 0.999 R²)
+mean                 165.6 μs   (164.5 μs .. 167.7 μs)
+std dev              4.882 μs   (3.020 μs .. 7.331 μs)
+variance introduced by outliers: 25% (moderately inflated)
 
 benchmarking upload/WebGear
-time                 216.9 μs   (208.5 μs .. 227.4 μs)
-                     0.991 R²   (0.987 R² .. 0.997 R²)
-mean                 227.7 μs   (223.6 μs .. 230.6 μs)
-std dev              11.65 μs   (7.990 μs .. 16.32 μs)
-variance introduced by outliers: 50% (moderately inflated)
+time                 213.6 μs   (203.4 μs .. 226.6 μs)
+                     0.984 R²   (0.981 R² .. 0.991 R²)
+mean                 223.0 μs   (217.0 μs .. 229.2 μs)
+std dev              19.40 μs   (16.68 μs .. 22.43 μs)
+variance introduced by outliers: 74% (severely inflated)
 
 benchmarking download/Scotty
-time                 1.381 ms   (1.375 ms .. 1.385 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 1.374 ms   (1.372 ms .. 1.379 ms)
-std dev              11.05 μs   (8.855 μs .. 14.75 μs)
+time                 1.458 ms   (1.446 ms .. 1.466 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 1.481 ms   (1.470 ms .. 1.496 ms)
+std dev              46.19 μs   (34.99 μs .. 58.78 μs)
+variance introduced by outliers: 18% (moderately inflated)
 
 benchmarking download/Servant
-time                 1.398 ms   (1.391 ms .. 1.404 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 1.374 ms   (1.368 ms .. 1.379 ms)
-std dev              18.74 μs   (16.37 μs .. 22.90 μs)
+time                 1.501 ms   (1.484 ms .. 1.513 ms)
+                     0.999 R²   (0.999 R² .. 0.999 R²)
+mean                 1.447 ms   (1.438 ms .. 1.458 ms)
+std dev              33.48 μs   (27.18 μs .. 39.17 μs)
+variance introduced by outliers: 12% (moderately inflated)
 
 benchmarking download/WebGear
-time                 1.324 ms   (1.284 ms .. 1.362 ms)
-                     0.997 R²   (0.995 R² .. 0.999 R²)
-mean                 1.276 ms   (1.268 ms .. 1.289 ms)
-std dev              33.94 μs   (21.49 μs .. 56.67 μs)
-variance introduced by outliers: 14% (moderately inflated)
+time                 1.601 ms   (1.455 ms .. 1.728 ms)
+                     0.965 R²   (0.950 R² .. 0.992 R²)
+mean                 1.414 ms   (1.376 ms .. 1.490 ms)
+std dev              161.4 μs   (102.4 μs .. 243.4 μs)
+variance introduced by outliers: 77% (severely inflated)
 ```
