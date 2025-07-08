@@ -46,19 +46,21 @@ import WebGear.Core.Response (Response, ResponseBody (..))
 as specified by a MIME type.
 -}
 class (MIMEType mt) => BodyUnrender m mt a where
-  -- | Parse a request body. Return a 'Left' value with error messages
-  -- in case of failure.
+  {- | Parse a request body. Return a 'Left' value with error messages
+  in case of failure.
+  -}
   bodyUnrender :: mt -> Request -> m (Either Text a)
 
 {- | Instances of this class serializes a value to a response body as
 specified by a MIME type.
 -}
 class (MIMEType mt) => BodyRender m mt a where
-  -- | Render a value in the format specified by the media type.
-  --
-  -- Returns the response body and the media type to be used in the
-  -- "Content-Type" header. This could be a variant of the original
-  -- media type with additional parameters.
+  {- | Render a value in the format specified by the media type.
+
+  Returns the response body and the media type to be used in the
+  "Content-Type" header. This could be a variant of the original
+  media type with additional parameters.
+  -}
   bodyRender :: mt -> Response -> a -> m (HTTP.MediaType, ResponseBody)
 
 --------------------------------------------------------------------------------
@@ -127,11 +129,12 @@ tempFileBackend = do
   st <- liftResourceT getInternalState
   pure $ tempFileBackEnd st
 
-instance (MonadIO m) => BodyUnrender m (FormData a) (FormDataResult a) where
-  bodyUnrender :: FormData a -> Request -> m (Either Text (FormDataResult a))
+instance (MonadIO m) => BodyUnrender m (FormData m a) (FormDataResult a) where
+  bodyUnrender :: FormData m a -> Request -> m (Either Text (FormDataResult a))
   bodyUnrender FormData{parseOptions, backendOptions} request = do
-    (formDataParams, formDataFiles) <-
-      liftIO $ parseRequestBodyEx parseOptions backendOptions $ toWaiRequest request
+    (formDataParams, formDataFiles) <- do
+      be <- backendOptions
+      liftIO $ parseRequestBodyEx parseOptions be $ toWaiRequest request
     pure $ Right FormDataResult{formDataParams, formDataFiles}
 
 --------------------------------------------------------------------------------

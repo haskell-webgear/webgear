@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Make FormData backend monadic (breaking change) (#59)
+
 ## [1.4.0] - 2025-05-19
 
 ### Added

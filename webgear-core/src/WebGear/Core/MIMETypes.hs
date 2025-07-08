@@ -59,9 +59,9 @@ instance MIMEType JSON where
 --------------------------------------------------------------------------------
 
 -- | The multipart/form-data MIME type
-data FormData a = FormData
+data FormData m a = FormData
   { parseOptions :: Wai.Parse.ParseRequestBodyOptions
-  , backendOptions :: Wai.Parse.BackEnd a
+  , backendOptions :: m (Wai.Parse.BackEnd a)
   }
 
 {- | Result of parsing a multipart/form-data body from a request.
@@ -72,8 +72,8 @@ data FormDataResult a = FormDataResult
   , formDataFiles :: [Wai.Parse.File a]
   }
 
-instance MIMEType (FormData a) where
-  mimeType :: FormData a -> HTTP.MediaType
+instance MIMEType (FormData m a) where
+  mimeType :: FormData m a -> HTTP.MediaType
   mimeType _ = "multipart/form-data"
   {-# INLINE mimeType #-}
 
