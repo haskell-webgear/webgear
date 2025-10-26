@@ -6,8 +6,8 @@ let
   hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["9121" "9101" "982" "966" "948"];
-  defaultGHCVersion = "9121";
+  ghcVersions = ["9122" "9103" "984" "967" "948"];
+  defaultGHCVersion = "9122";
 
   localHsPackages = {
     # Libraries
@@ -34,7 +34,7 @@ let
 
   haskell = prev.haskell // {
     packages = prev.haskell.packages // {
-      ghc9121 = prev.haskell.packages.ghc9121.override {
+      ghc9122 = prev.haskell.packages.ghc9122.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
             # Need specific versions for benchmarking
@@ -42,21 +42,12 @@ let
             servant = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant.nix {});
             servant-server = hsLib.dontHaddock (hfinal.callPackage ../haskell-packages/servant-server.nix {});
 
-            # For ghc-9.12, base-4.21
-            insert-ordered-containers = hsLib.doJailbreak hprev.insert-ordered-containers;
-            openapi3 = hsLib.doJailbreak hprev.openapi3;
-            statistics = hsLib.doJailbreak hprev.statistics;
-            swagger2 = hsLib.doJailbreak hprev.swagger2;
-
-            # https://gitlab.haskell.org/ghc/ghc/-/issues/25653
-            binary-instances = hsLib.dontCheck hprev.binary-instances;
-
-            # Test failure: https://github.com/kazu-yamamoto/crypton/issues/40
-            crypton = hsLib.dontCheck hprev.crypton;
+            # Latest packages
+            jose = hprev.jose_0_12;
           };
       };
 
-      ghc9101 = prev.haskell.packages.ghc9101.override {
+      ghc9103 = prev.haskell.packages.ghc9103.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
             # Need specific versions for benchmarking
@@ -69,7 +60,7 @@ let
           };
       };
 
-      ghc982 = prev.haskell.packages.ghc982.override {
+      ghc984 = prev.haskell.packages.ghc984.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
             # Need specific versions for benchmarking
@@ -82,7 +73,7 @@ let
           };
       };
 
-      ghc966 = prev.haskell.packages.ghc966.override {
+      ghc967 = prev.haskell.packages.ghc967.override {
         overrides = hfinal: hprev:
           final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages // {
             # Need specific versions for benchmarking

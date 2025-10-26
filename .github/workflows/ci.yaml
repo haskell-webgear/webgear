@@ -21,15 +21,15 @@ jobs:
         os:
           - ubuntu-latest
         ghc:
-          - 9.12.1
-          - 9.10.1
-          - 9.8.2
-          - 9.6.6
+          - 9.12.2
+          - 9.10.3
+          - 9.8.4
+          - 9.6.7
           - 9.4.8
 
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -52,7 +52,7 @@ jobs:
             .#webgear-benchmarks-ghc${GHC_VERSION}
 
       - name: Build Examples
-        if: matrix.ghc == '9.12.1'
+        if: matrix.ghc == '9.12.2'
         run: |
           GHC_VERSION=$(echo ${{ matrix.ghc }} | tr -d .)
           nix build --print-build-logs --no-link           \
@@ -73,13 +73,13 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         name: Checkout Source Code
 
       - uses: haskell-actions/setup@v2
         name: Setup Haskell Build Environment
         with:
-          ghc-version: 9.10.1
+          ghc-version: 9.12.2
           enable-stack: true
 
       - uses: actions/cache@v4

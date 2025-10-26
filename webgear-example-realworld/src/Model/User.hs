@@ -116,7 +116,7 @@ mkJWT ::
   DBAction (Either JWT.JWTError JWT.SignedJWT)
 mkJWT jwk claims = lift $ JWT.runJOSE $ do
   alg <- JWT.bestJWSAlg jwk
-  let hdr = JWT.newJWSHeader ((), alg)
+  let hdr = JWT.newJWSHeaderProtected alg
   case fromJSON (Object claims) of
     Error s -> throwError $ JWT.JWTClaimsSetDecodeError s
     Success claims' -> JWT.signClaims jwk hdr claims'
