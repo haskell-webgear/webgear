@@ -6,8 +6,8 @@ let
   hsLib = final.haskell.lib.compose;
   mapcat = f: lst: builtins.foldl' (l: r: l // r) {} (map f lst);
 
-  ghcVersions = ["9122" "9103" "984" "967" "948"];
-  defaultGHCVersion = "9122";
+  ghcVersions = ["9123" "9103" "984" "967" "948"];
+  defaultGHCVersion = "9123";
 
   localHsPackages = {
     # Libraries
@@ -34,7 +34,7 @@ let
 
   haskell = prev.haskell // {
     packages = prev.haskell.packages // {
-      ghc9122 = prev.haskell.packages.ghc9122.override {
+      ghc9123 = prev.haskell.packages.ghc9123.override {
         overrides = hfinal: hprev:
           (final.lib.mapAttrs (mkLocalDerivation hfinal) localHsPackages) // {
             # Need specific versions for benchmarking
@@ -44,6 +44,10 @@ let
 
             # Latest packages
             jose = hprev.jose_0_12;
+
+            # Tests fail
+            cabal-add = hsLib.dontCheck hprev.cabal-add;
+            fourmolu = hsLib.dontCheck hprev.fourmolu;
           };
       };
 

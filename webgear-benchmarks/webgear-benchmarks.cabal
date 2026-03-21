@@ -27,7 +27,7 @@ executable benchmarks
                     , text >=2.0 && <2.2
                     , servant ==0.20.3.0
                     , servant-server ==0.20.3.0
-                    , scotty ==0.22
+                    , scotty ==0.30
                     , wai ==3.2.*
                     , webgear-server ==1.5.0
   default-extensions: Arrows

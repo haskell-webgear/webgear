@@ -59,7 +59,7 @@ library
                     , bytestring >=0.11.0.0 && <0.13
                     , case-insensitive ==1.2.*
                     , cookie >=0.4.5 && <0.6
-                    , http-api-data >=0.5 && <0.7
+                    , http-api-data >=0.5 && <0.8
                     , http-media ==0.8.*
                     , http-types ==0.12.*
                     , jose >=0.10 && <0.13
@@ -68,7 +68,7 @@ library
                     , template-haskell >=2.19.0.0 && <2.24
                     , text >=2.0 && <2.2
                     , wai ==3.2.*
-                    , wai-app-static ==3.1.*
+                    , wai-app-static >=3.1.0 && <3.3
                     , wai-extra ==3.1.*
   ghc-options:        -Wall
                       -Wcompat
