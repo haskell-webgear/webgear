@@ -1,7 +1,7 @@
 cabal-version:       2.4
 
 name:                webgear-swagger
-version:             1.5.0
+version:             1.5.1
 synopsis:            Composable, type-safe library to build HTTP API servers
 description:
     WebGear is a library to for building composable, type-safe HTTP API servers.
@@ -11,7 +11,7 @@ homepage:            https://github.com/haskell-webgear/webgear#readme
 bug-reports:         https://github.com/haskell-webgear/webgear/issues
 author:              Raghu Kaippully
 maintainer:          rkaippully@gmail.com
-copyright:           2023-2025 Raghu Kaippully
+copyright:           2023-2026 Raghu Kaippully
 license:             MPL-2.0
 license-file:        LICENSE
 category:            Web
@@ -74,9 +74,9 @@ library
                     , insert-ordered-containers >=0.2.0 && <0.4
                     , lens >=5.2 && <5.4
                     , mtl >=2.2 && <2.4
-                    , swagger2 >=2.8 && <2.9
+                    , swagger2 >=2.8 && <2.10
                     , text >=2.0 && <2.2
-                    , webgear-core ^>=1.5.0
+                    , webgear-core ^>=1.5.1
   ghc-options:        -Wall
                       -Wcompat
                       -Widentities

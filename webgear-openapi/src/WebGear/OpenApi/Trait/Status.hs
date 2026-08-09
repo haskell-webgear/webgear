@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | OpenApi implementation of 'Status' trait.
@@ -5,7 +6,6 @@ module WebGear.OpenApi.Trait.Status where
 
 import Control.Applicative ((<|>))
 import Control.Lens (at, mapped, (%~), (&), (.~), (?~), (^.))
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Maybe (fromMaybe)
 import Data.OpenApi (
   Operation,
@@ -30,6 +30,12 @@ import qualified WebGear.Core.Response as WG
 import WebGear.Core.Trait (Set, With, setTrait)
 import WebGear.Core.Trait.Status (Status (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..), addRootPath, consumeDescription)
+
+#if MIN_VERSION_openapi3(3,2,5)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance Set (OpenApiHandler m) Status where
   {-# INLINE setTrait #-}

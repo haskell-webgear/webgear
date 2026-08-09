@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -73,16 +73,16 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         name: Checkout Source Code
 
       - uses: haskell-actions/setup@v2
         name: Setup Haskell Build Environment
         with:
-          ghc-version: 9.12.2
+          ghc-version: 9.12.4
           enable-stack: true
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         name: Cache dependencies
         with:
           path: ~/.stack

@@ -1,15 +1,21 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Swagger implementation of 'Method' trait.
 module WebGear.Swagger.Trait.Method where
 
 import Control.Lens ((%~), (&))
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Swagger (PathItem (..), paths)
 import Network.HTTP.Types (StdMethod (..))
 import WebGear.Core.Trait (Get (..))
 import WebGear.Core.Trait.Method (Method (..))
 import WebGear.Swagger.Handler (SwaggerHandler (..), addRouteDocumentation)
+
+#if MIN_VERSION_swagger2(2,9,0)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance Get (SwaggerHandler m) Method where
   {-# INLINE getTrait #-}

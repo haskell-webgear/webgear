@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Swagger implementation of 'Status' trait.
@@ -5,7 +6,6 @@ module WebGear.Swagger.Trait.Status where
 
 import Control.Applicative ((<|>))
 import Control.Lens (at, mapped, (%~), (&), (.~), (?~), (^.))
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Maybe (fromMaybe)
 import Data.Swagger (
   Operation,
@@ -29,6 +29,12 @@ import qualified WebGear.Core.Response as WG
 import WebGear.Core.Trait (Set, With, setTrait)
 import WebGear.Core.Trait.Status (Status (..))
 import WebGear.Swagger.Handler (SwaggerHandler (..), addRootPath, consumeDescription)
+
+#if MIN_VERSION_swagger2(2,9,0)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance Set (SwaggerHandler m) Status where
   {-# INLINE setTrait #-}

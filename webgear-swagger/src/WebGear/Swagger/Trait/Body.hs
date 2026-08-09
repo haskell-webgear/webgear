@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Swagger implementation of 'Body' trait.
@@ -5,7 +6,6 @@ module WebGear.Swagger.Trait.Body where
 
 import Control.Lens ((%~), (&), (.~), (?~), (^.))
 import Control.Monad.State.Strict (MonadState)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Proxy (Proxy (..))
 import Data.Swagger (
   Definitions,
@@ -46,6 +46,12 @@ import WebGear.Swagger.Handler (
   consumeDescription,
  )
 
+#if MIN_VERSION_swagger2(2,9,0)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
+
 instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) where
   {-# INLINE getTrait #-}
   getTrait :: Body mt val -> SwaggerHandler m (Request `With` ts) (Either Text val)
@@ -64,9 +70,9 @@ instance (ToSchema val, MIMEType mt) => Get (SwaggerHandler m) (Body mt val) whe
         doc
           & allOperations
             %~ ( \op ->
-                  op
-                    & parameters %~ (Inline body :)
-                    & consumes %~ Just . maybe mimeList (<> mimeList)
+                   op
+                     & parameters %~ (Inline body :)
+                     & consumes %~ Just . maybe mimeList (<> mimeList)
                )
           & definitions %~ (<> defs)
 
@@ -113,8 +119,8 @@ addResponseBody defs mimeList respSchema doc = do
     doc'
       & allOperations
         %~ ( \op ->
-              op
-                & responses . responses %~ Map.map (addDescription . (`swaggerMappend` Inline resp))
-                & produces %~ Just . maybe mimeList (`swaggerMappend` mimeList)
+               op
+                 & responses . responses %~ Map.map (addDescription . (`swaggerMappend` Inline resp))
+                 & produces %~ Just . maybe mimeList (`swaggerMappend` mimeList)
            )
       & definitions %~ (<> defs)
