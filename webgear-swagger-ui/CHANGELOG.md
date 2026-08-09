@@ -5,7 +5,7 @@
 ## [1.5.1] - 2026-08-09
 
 ### Changed
-- Updated dependencies (#63)
+- Updated dependencies (#65)
 
 ## [1.5.0] - 2025-07-23
 
