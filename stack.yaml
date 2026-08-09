@@ -1,4 +1,4 @@
-resolver: nightly-2026-03-20
+resolver: nightly-2026-08-08
 
 packages:
   - ./webgear-core
@@ -9,7 +9,3 @@ packages:
   - ./webgear-benchmarks
 
 allow-newer: true
-
-extra-deps:
-  - openapi3-3.2.4@sha256:7309864a9a59b4654b21ef477444fb26bf8d393eba795dd8de089b368ea74c2a,4982
-  - swagger2-2.8.10@sha256:e2cd0e2077b3f2571a3bfca2aca0ba03d10086800803d9c0b7bb895f7aad8441,4689
