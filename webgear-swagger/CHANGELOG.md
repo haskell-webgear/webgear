@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.5.1] - 2206-08-09
+
+### Changed
+- Support swagger2-2.9 (#63)
+
 ## [1.5.0] - 2025-07-23
 
 ### Changed
@@ -44,7 +49,8 @@
 - Support file uploads (#32)
 - First version of webgear-swagger
 
-[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/haskell-webgear/webgear/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.5.1
 [1.5.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.5.0
 [1.4.0]: https://github.com/haskell-webgear/webgear/releases/tag/v1.4.0
 [1.3.1]: https://github.com/haskell-webgear/webgear/releases/tag/v1.3.1

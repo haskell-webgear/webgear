@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | OpenApi implementation of 'Body' trait.
@@ -5,7 +6,6 @@ module WebGear.OpenApi.Trait.Body where
 
 import Control.Lens ((%~), (&), (.~), (<>~), (?~), (^.))
 import Control.Monad.State.Strict (MonadState)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi (
   Definitions,
   MediaTypeObject,
@@ -44,6 +44,12 @@ import WebGear.OpenApi.Handler (
   addRootPath,
   consumeDescription,
  )
+
+#if MIN_VERSION_openapi3(3,2,5)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance (ToSchema val, MIMEType mt) => Get (OpenApiHandler m) (Body mt val) where
   {-# INLINE getTrait #-}

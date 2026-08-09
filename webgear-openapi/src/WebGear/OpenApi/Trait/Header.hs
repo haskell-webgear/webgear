@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | OpenApi implementation of 'Header' trait.
@@ -5,7 +6,6 @@ module WebGear.OpenApi.Trait.Header () where
 
 import Control.Lens ((%~), (&), (.~), (<>~), (?~))
 import Control.Monad.State.Strict (MonadState)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi (
   Header,
   HeaderName,
@@ -36,6 +36,12 @@ import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.OpenApi.Handler (Documentation, OpenApiHandler (..), consumeDescription)
+
+#if MIN_VERSION_openapi3(3,2,5)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance (KnownSymbol name, ToSchema val) => Get (OpenApiHandler m) (WG.RequestHeader Required ps name val) where
   {-# INLINE getTrait #-}

@@ -1,15 +1,21 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | OpenApi implementation of 'Method' trait.
 module WebGear.OpenApi.Trait.Method where
 
 import Control.Lens ((%~), (&))
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi (PathItem (..), paths)
 import Network.HTTP.Types (StdMethod (..))
 import WebGear.Core.Trait (Get (..))
 import WebGear.Core.Trait.Method (Method (..))
 import WebGear.OpenApi.Handler (OpenApiHandler (..), addRouteDocumentation)
+
+#if MIN_VERSION_openapi3(3,2,5)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance Get (OpenApiHandler m) Method where
   {-# INLINE getTrait #-}

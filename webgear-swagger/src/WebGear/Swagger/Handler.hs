@@ -21,7 +21,6 @@ import Control.Lens (at, (%~), (&), (.~), (?~), (^.))
 import Control.Monad ((<=<))
 import Control.Monad.State.Strict (MonadState, State, evalState, state)
 import Data.Coerce (coerce)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Swagger (
   Operation,
   PathItem,
@@ -49,6 +48,12 @@ import WebGear.Core.Handler (
   RoutePath (..),
   Summary (..),
  )
+
+#if MIN_VERSION_swagger2(2,9,0)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 -- | A handler that captures `Swagger` documentation of API specifications.
 newtype SwaggerHandler m a b = SwaggerHandler (Swagger -> State Documentation Swagger)

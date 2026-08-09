@@ -21,7 +21,6 @@ import Control.Lens (at, (%~), (&), (.~), (?~), (^.))
 import Control.Monad ((<=<))
 import Control.Monad.State.Strict (MonadState, State, evalState, state)
 import Data.Coerce (coerce)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.OpenApi (
   OpenApi,
   Operation,
@@ -51,6 +50,12 @@ import WebGear.Core.Handler (
   RoutePath (..),
   Summary (..),
  )
+
+#if MIN_VERSION_openapi3(3,2,5)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 -- | A handler that captures `OpenApi` documentation of API specifications.
 newtype OpenApiHandler m a b = OpenApiHandler (OpenApi -> State Documentation OpenApi)

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Swagger implementation of 'Header' trait.
@@ -5,7 +6,6 @@ module WebGear.Swagger.Trait.Header () where
 
 import Control.Lens ((%~), (&), (.~), (<>~), (?~))
 import Control.Monad.State.Strict (MonadState)
-import qualified Data.HashMap.Strict.InsOrd as Map
 import Data.Proxy (Proxy (Proxy))
 import Data.String (fromString)
 import Data.Swagger (
@@ -36,6 +36,12 @@ import WebGear.Core.Modifiers (Existence (..))
 import WebGear.Core.Trait (Get (..), Set (..))
 import qualified WebGear.Core.Trait.Header as WG
 import WebGear.Swagger.Handler (Documentation, SwaggerHandler (..), consumeDescription)
+
+#if MIN_VERSION_swagger2(2,9,0)
+import qualified Data.HashMap.Strict.InsOrd.Compat as Map
+#else
+import qualified Data.HashMap.Strict.InsOrd as Map
+#endif
 
 instance
   ( KnownSymbol name
